@@ -135,7 +135,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\code\G3D\source\Matrix.cpp" />
     <ClCompile Include="..\..\code\G3D\source\Matrix3.cpp" />
     <ClCompile Include="..\..\code\G3D\source\Matrix4.cpp" />
     <ClCompile Include="..\..\code\G3D\source\Vector2.cpp" />
@@ -143,8 +142,6 @@
     <ClCompile Include="..\..\code\G3D\source\Vector3.cpp" />
     <ClCompile Include="..\..\code\G3D\source\Vector3int16.cpp" />
     <ClCompile Include="..\..\code\G3D\source\Vector3int32.cpp" />
-    <ClCompile Include="..\..\code\G3D\source\Vector4.cpp" />
-    <ClCompile Include="..\..\code\G3D\source\Vector4int8.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

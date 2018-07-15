@@ -15,12 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\code\G3D\source\Vector4.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\code\G3D\source\Vector4int8.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\code\G3D\source\Vector2.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -40,9 +34,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\code\G3D\source\Matrix4.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\code\G3D\source\Matrix.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
