@@ -264,3 +264,8 @@
 /cppLib/VSProject/cppLibs/x64/Release/*.ipdb
 /cppLib/VSProject/cppLibs/x64/Release/*.lib
 /cppLib/VSProject/cppLibs/x64/Release/*.pdb
+/cppLib/VSProject/cppLibs/.vs/cppLibs/v15/ipch/AutoPCH/adf363befadf36c2/*.ipch
+/Project/.vs/Project/v15/Server/sqlite3/*.lock
+/Project/.vs/Project/v15/Server/sqlite3/*.ide
+/Project/.vs/Project/v15/Server/sqlite3/*.ide-shm
+/Project/.vs/Project/v15/Server/sqlite3/*.ide-wal
