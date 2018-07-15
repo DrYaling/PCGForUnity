@@ -22,9 +22,6 @@ EXPORT_API void RegisterLogError(CPPLogErrorCallback callback)
 }
 EXPORT_API void Update(int time_diff)
 {
-	LogFormat("cpp update %d", time_diff);
-	LogWarningFormat("cpp update %d", time_diff);
-	LogErrorFormat("cpp update %d", time_diff);
 }
 EXPORT_API void DestroyCPP()
 {
