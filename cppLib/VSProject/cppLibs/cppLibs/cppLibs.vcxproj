@@ -105,6 +105,10 @@
     <PreLinkEvent>
       <Command>Copy "$(SolutionDir)$(Configuration)\$(ProjectName).dll" "$(SolutionDir)../../../../Project/Assets/Plugins/x86/$(ProjectName).dll"</Command>
     </PreLinkEvent>
+    <Link>
+      <GenerateMapFile>true</GenerateMapFile>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -123,6 +127,10 @@
       <Command>
       </Command>
     </PreBuildEvent>
+    <Link>
+      <GenerateMapFile>true</GenerateMapFile>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -142,6 +150,8 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <GenerateMapFile>true</GenerateMapFile>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>Copy "$(SolutionDir)$(Configuration)\$(ProjectName).dll" "$(SolutionDir)../../../Project\Assets\Plugins\x86/$(ProjectName).dll"</Command>
@@ -172,6 +182,8 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <GenerateMapFile>true</GenerateMapFile>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(SolutionDir)../../../Project\Assets\Plugins\x86_x64/$(ProjectName).dll"</Command>

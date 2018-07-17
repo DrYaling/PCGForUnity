@@ -6,15 +6,17 @@
 #include <stdarg.h>
 #include <iostream>
 #include <string.h>
-#include <mutex>
-#include <map>
-#include <thread>
 #define LOG_IN_THREAD 0
 //#define LOG_TYPE_AS_TITLE
 #define LOG_SWITCH 1
 #ifdef WIN32
 #include "windows.h"
+#include <Windows.h>
+#include "DbgHelp.h"
+//#pragma comment(lib, " dbghelp.lib")
 #define sleep(x) Sleep(x)
+#else
+#include <execinfo.h>
 #endif
 enum LoggerType
 {
@@ -47,6 +49,53 @@ static CPPLogCallback logCallBack = nullptr;
 static CPPLogWarningCallback logWarningCallBack = nullptr;
 static CPPLogErrorCallback logErrorCallBack = nullptr;
 
+#ifndef WIN32
+void printStackTrace()
+{
+	int size = 16;
+	void * array[16];
+	int stack_num = backtrace(array, size);
+	char ** stacktrace = backtrace_symbols(array, stack_num);
+	for (int i = 0; i < stack_num; ++i)
+	{
+		printf("%s\n", stacktrace[i]);
+	}
+	free(stacktrace);
+}
+#elif false
+void printStackTrace()
+{
+	unsigned int   i;
+	void         * stack[100];
+	unsigned short frames;
+	SYMBOL_INFO  * symbol;
+	HANDLE         process;
+
+	process = GetCurrentProcess();
+
+	SymInitializeW(process, NULL, TRUE);
+
+	frames = CaptureStackBackTrace(0, 100, stack, NULL);
+	symbol = (SYMBOL_INFO *)calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
+	symbol->MaxNameLen = 255;
+	symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+	char buffer[256] = { 0 };
+	for (i = 0; i < frames; i++)
+	{
+		SymFromAddr(process, (DWORD64)(stack[i]), 0, symbol);
+		memset(buffer, 256, 0);
+		sprintf_s(buffer, "%i: %s - 0x%0X\n", frames - i - 1, symbol->Name, symbol->Address);
+		//printf("%i: %s - 0x%0X\n", frames - i - 1, symbol->Name, symbol->Address);
+		buff.append(buffer);
+		buff.append("\n");
+	}
+
+	free(symbol);
+}
+
+#else
+void printStackTrace() {}
+#endif
 void LogContent(LoggerType eType, const char* format, ...)
 {
 	buff.clear();
@@ -57,6 +106,7 @@ void LogContent(LoggerType eType, const char* format, ...)
 	buff.append(cbuffer);
 	buff.append("\n");
 	va_end(valist);
+	printStackTrace();
 	switch (eType)
 	{
 	case LoggerType::LOGGER_ERROR:
