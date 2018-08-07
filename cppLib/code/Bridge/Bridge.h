@@ -70,6 +70,11 @@ EXPORT_API void DestroyCPP()
 
 }
 
+static int internalCall()
+{
+	return -1;
+}
+
 EXTERN_C_END
 
 #endif // _BEIDGE_H

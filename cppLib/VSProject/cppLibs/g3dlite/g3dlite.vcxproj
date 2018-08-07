@@ -19,11 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\code\G3D\source\Matrix3.cpp" />
-    <ClCompile Include="..\..\..\code\G3D\source\Matrix4.cpp" />
-    <ClCompile Include="..\..\..\code\G3D\source\Vector2int16.cpp" />
-    <ClCompile Include="..\..\..\code\G3D\source\Vector3.cpp" />
-    <ClCompile Include="..\..\..\code\G3D\source\Vector3int32.cpp" />
+    <ClCompile Include="..\..\..\code\dep\G3D\source\Matrix3.cpp" />
+    <ClCompile Include="..\..\..\code\dep\G3D\source\Matrix4.cpp" />
+    <ClCompile Include="..\..\..\code\dep\G3D\source\Vector2.cpp" />
+    <ClCompile Include="..\..\..\code\dep\G3D\source\Vector2int16.cpp" />
+    <ClCompile Include="..\..\..\code\dep\G3D\source\Vector3.cpp" />
+    <ClCompile Include="..\..\..\code\dep\G3D\source\Vector3int16.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -83,7 +84,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../../code/G3D/source;../../../code/G3D/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../code/dep/G3D/source;../../../code/dep/G3D/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
       <PreprocessorDefinitions>_UNICODE;UNICODE;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -94,7 +95,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../../code/G3D/source;../../../code/G3D/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../code/dep/G3D/source;../../../code/dep/G3D/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
       <PreprocessorDefinitions>_UNICODE;UNICODE;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -107,7 +108,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../../code/G3D/source;../../../code/G3D/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../code/dep/G3D/source;../../../code/dep/G3D/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
@@ -128,7 +129,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../../code/G3D/source;../../../code/G3D/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../code/dep/G3D/source;../../../code/dep/G3D/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>

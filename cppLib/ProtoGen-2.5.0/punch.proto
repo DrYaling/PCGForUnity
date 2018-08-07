@@ -1,0 +1,18 @@
+syntax = "proto2";
+package SkyDream;  
+  
+message Person {  
+  required string ip = 1;  
+  required int32 port = 2;
+  required int32 clientId = 3;    
+} 
+message ListConn{
+	repeated Person persons = 1; 
+}
+message C2S_Punch{
+	required int32 from = 1;
+	required int32 to = 2;
+}
+message IntValue{
+	required int32 value = 1;
+}
