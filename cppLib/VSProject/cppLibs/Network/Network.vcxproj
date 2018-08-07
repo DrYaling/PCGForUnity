@@ -119,6 +119,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\code\Network\Socket\SocketConfig.h" />
     <ClInclude Include="..\..\..\code\Network\Socket\TCPSocket.h" />
   </ItemGroup>
   <ItemGroup>
