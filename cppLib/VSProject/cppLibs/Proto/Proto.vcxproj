@@ -78,8 +78,10 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../../code/dep/;$(SolutionDir)../../code/Network/Proto</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/dep/;$(SolutionDir)../../code/dep/google;$(SolutionDir)../../code/Network/Proto</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -106,14 +108,16 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../../code/dep/;$(SolutionDir)../../code/Network/Proto</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/dep/;$(SolutionDir)../../code/dep/google;$(SolutionDir)../../code/Network/Proto</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -121,9 +125,49 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\compiler\code_generator.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\compiler\command_line_interface.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\compiler\importer.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\compiler\parser.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\compiler\plugin.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\compiler\plugin.pb.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\compiler\subprocess.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\compiler\zip_writer.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\descriptor.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\descriptor.pb.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\descriptor_database.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\dynamic_message.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\extension_set.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\extension_set_heavy.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\generated_message_reflection.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\generated_message_util.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\io\coded_stream.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\io\gzip_stream.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\io\printer.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\io\tokenizer.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\io\zero_copy_stream.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\io\zero_copy_stream_impl.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\io\zero_copy_stream_impl_lite.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\message.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\message_lite.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\reflection_ops.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\repeated_field.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\service.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\stubs\atomicops_internals_x86_msvc.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\stubs\common.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\stubs\once.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\stubs\stringprintf.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\stubs\structurally_valid.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\stubs\strutil.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\stubs\substitute.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\text_format.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\unknown_field_set.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\wire_format.cc" />
+    <ClCompile Include="..\..\..\code\dep\google\protobuf\wire_format_lite.cc" />
     <ClCompile Include="..\..\..\code\Network\Proto\punch.pb.cc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\code\dep\google\protobuf\generated_message_util.h" />
     <ClInclude Include="..\..\..\code\Network\Proto\punch.pb.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

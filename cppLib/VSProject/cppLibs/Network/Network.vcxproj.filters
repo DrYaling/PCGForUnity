@@ -15,15 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\code\Network\Socket\TCPSocket.h">
+    <ClInclude Include="..\..\..\code\Network\Socket\SocketConfig.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Network\Socket\SocketConfig.h">
-      <Filter>源文件</Filter>
+    <ClInclude Include="..\..\..\code\Network\Socket\MessageBuffer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\code\Network\TimeSpan.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\code\Network\Socket\CSocket.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\code\Network\Socket\TCPSocket.cpp">
+    <ClCompile Include="..\..\..\code\Network\Socket\CSocket.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
