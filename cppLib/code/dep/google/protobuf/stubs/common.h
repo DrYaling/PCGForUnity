@@ -34,7 +34,7 @@
 
 #ifndef GOOGLE_PROTOBUF_COMMON_H__
 #define GOOGLE_PROTOBUF_COMMON_H__
-
+#include <algorithm>
 #include <assert.h>
 #include <stdlib.h>
 #include <cstddef>

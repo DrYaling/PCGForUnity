@@ -78,7 +78,10 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../../code/;../../../code/Network;../../../code/dep/;../../../code/Network/Proto</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/Network;$(SolutionDir)../../code/dep/;$(SolutionDir)../../code/Network/Proto</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_MBCS;WIN32;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -111,7 +114,10 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../../code/;../../../code/Network;../../../code/dep/;../../../code/Network/Proto</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/Network;$(SolutionDir)../../code/dep/;$(SolutionDir)../../code/Network/Proto</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_MBCS;WIN32;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -119,11 +125,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\code\Network\Socket\MessageBuffer.h" />
     <ClInclude Include="..\..\..\code\Network\Socket\SocketConfig.h" />
-    <ClInclude Include="..\..\..\code\Network\Socket\TCPSocket.h" />
+    <ClInclude Include="..\..\..\code\Network\Socket\CSocket.h" />
+    <ClInclude Include="..\..\..\code\Network\TimeSpan.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\code\Network\Socket\TCPSocket.cpp" />
+    <ClCompile Include="..\..\..\code\Network\Socket\CSocket.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -91,7 +91,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../../code/Bridge;../../../code;../../../code/dep/G3D/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../code/Bridge;../../../code;../../../code/G3D/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_UNICODE;UNICODE;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
@@ -107,7 +107,6 @@
     </PreLinkEvent>
     <Link>
       <GenerateMapFile>true</GenerateMapFile>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -116,7 +115,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../../code/Bridge;../../../code;../../../code/dep/G3D/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../code/Bridge;../../../code;../../../code/G3D/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_UNICODE;UNICODE;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
@@ -129,7 +128,6 @@
     </PreBuildEvent>
     <Link>
       <GenerateMapFile>true</GenerateMapFile>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -140,18 +138,19 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../../code/Bridge;../../../code;../../../code/dep/G3D/include;../../code/G3D/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WINDLL;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
       <LanguageStandard>stdcpp14</LanguageStandard>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateMapFile>true</GenerateMapFile>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>Copy "$(SolutionDir)$(Configuration)\$(ProjectName).dll" "$(SolutionDir)../../../Project\Assets\Plugins\x86/$(ProjectName).dll"</Command>
@@ -172,18 +171,19 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../../code/Bridge;../../../code;../../../code/dep/G3D/include;../../code/G3D/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WINDLL;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
       <LanguageStandard>stdcpp14</LanguageStandard>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateMapFile>true</GenerateMapFile>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(SolutionDir)../../../Project\Assets\Plugins\x86_x64/$(ProjectName).dll"</Command>
@@ -196,11 +196,11 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\code\Bridge\Bridge.h" />
     <ClInclude Include="..\..\..\code\define.h" />
-    <ClInclude Include="..\..\..\code\Framework\core.h" />
     <ClInclude Include="..\..\..\code\Logger\Logger.h" />
     <ClInclude Include="..\..\..\code\Map\TransformMap.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\code\Logger\Logger.c" />
     <ClCompile Include="..\..\..\code\pch.c" />
   </ItemGroup>
   <ItemGroup>
