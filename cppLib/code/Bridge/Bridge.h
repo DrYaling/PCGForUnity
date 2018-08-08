@@ -9,7 +9,6 @@ typedef void(__stdcall *CPPUpdateCallback)(int tick);
 #define STD_CALL __stdcall
 EXTERN_C_BEGIN
 
-
 EXPORT_API void STD_CALL InitCppEngine()
 {
 	transformMap::InitTransformMap();
@@ -45,8 +44,6 @@ EXPORT_API void STD_CALL Update(int time_diff)
 		ret += i;
 	}
 	LogFormat("ret is %d", ret);*/
-<<<<<<< HEAD
-=======
 }
 EXPORT_API void SetIntTest(int32_t input)
 {
@@ -68,7 +65,6 @@ EXPORT_API int32_t GetIntTest()
 EXPORT_API vector3& GetObjTest()
 {
 	return v;
->>>>>>> cd4cd68a37b7becf61deecb696371f24cf8178a8
 }
 EXPORT_API void STD_CALL DestroyCPP()
 {

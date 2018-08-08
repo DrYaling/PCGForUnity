@@ -4,9 +4,6 @@
     <Filter Include="proto">
       <UniqueIdentifier>{8d3b0b6f-fdb2-4dcb-9c34-371fa430ba0a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="libprotoc">
-      <UniqueIdentifier>{4e157a05-1f64-4d13-92c7-7408ebc8408a}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\Network\Proto\punch.pb.cc">

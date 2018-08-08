@@ -101,7 +101,6 @@ void printStackTrace()
 #else
 void printStackTrace() {}
 #endif
->>>>>>> cd4cd68a37b7becf61deecb696371f24cf8178a8
 void LogContent(LoggerType eType, const char* format, ...)
 {
 	buff.clear();

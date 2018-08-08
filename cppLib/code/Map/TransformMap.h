@@ -5,7 +5,11 @@
 #include <map>
 #include <vector>
 #include "Logger/Logger.h"
-#include "Structure/Object.h"
+struct testObj {
+	int key;
+	int value;
+	float fvalue;
+};
 namespace transformMap 
 {
 	typedef std::function<void(int)> std_int_setter;
@@ -17,11 +21,9 @@ namespace transformMap
 	{
 		LogFormat("SetValue %d", value);
 	}
-	void SetObjectValue(testObj value)
+	void SetObjectValue(testObj obj)
 	{
-		testObj* v = &value;
-		testObj* c = dynamic_cast<testObj*>(v);
-		LogFormat("Set object Value %d,%d,%f", c->key,c->value,c->fvalue);
+		LogFormat("SetObjectValue %d", obj.key,obj.value,obj.fvalue);
 	}
 	class testClassObject {
 	public:
