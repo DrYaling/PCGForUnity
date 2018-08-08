@@ -23,6 +23,9 @@
     <ClInclude Include="..\..\..\code\Map\TransformMap.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\code\Structure\Object.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\pch.c">

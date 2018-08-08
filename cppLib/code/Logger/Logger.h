@@ -46,7 +46,12 @@ typedef void(__stdcall *CPPLogErrorCallback)(const char* log);
 static CPPLogCallback logCallBack = nullptr;
 static CPPLogWarningCallback logWarningCallBack = nullptr;
 static CPPLogErrorCallback logErrorCallBack = nullptr;
-
+void ClearLogger()
+{
+	logErrorCallBack = nullptr;
+	logCallBack = nullptr;
+	logWarningCallBack = nullptr;
+}
 void LogContent(LoggerType eType, const char* format, ...)
 {
 	buff.clear();
