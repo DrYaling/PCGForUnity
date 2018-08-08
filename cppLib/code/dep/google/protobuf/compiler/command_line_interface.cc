@@ -49,10 +49,8 @@
 #include <ctype.h>
 
 #include <google/protobuf/stubs/hash.h>
-#include <memory>
 
 #include <google/protobuf/stubs/common.h>
-#include <google/protobuf/stubs/stringprintf.h>
 #include <google/protobuf/compiler/importer.h>
 #include <google/protobuf/compiler/code_generator.h>
 #include <google/protobuf/compiler/plugin.pb.h>
@@ -66,7 +64,7 @@
 #include <google/protobuf/io/printer.h>
 #include <google/protobuf/stubs/strutil.h>
 #include <google/protobuf/stubs/substitute.h>
-#include <google/protobuf/stubs/map_util.h>
+#include <google/protobuf/stubs/map-util.h>
 #include <google/protobuf/stubs/stl_util.h>
 
 
@@ -162,7 +160,8 @@ bool VerifyDirectoryExists(const string& path) {
 // directories listed in |filename|.
 bool TryCreateParentDirectory(const string& prefix, const string& filename) {
   // Recursively create parent directories to the output file.
-  vector<string> parts = Split(filename, "/", true);
+  vector<string> parts;
+  SplitStringUsing(filename, "/", &parts);
   string path_so_far = prefix;
   for (int i = 0; i < parts.size() - 1; i++) {
     path_so_far += parts[i];
@@ -253,7 +252,6 @@ class CommandLineInterface::GeneratorContextImpl : public GeneratorContext {
 
   // implements GeneratorContext --------------------------------------
   io::ZeroCopyOutputStream* Open(const string& filename);
-  io::ZeroCopyOutputStream* OpenForAppend(const string& filename);
   io::ZeroCopyOutputStream* OpenForInsert(
       const string& filename, const string& insertion_point);
   void ListParsedFiles(vector<const FileDescriptor*>* output) {
@@ -273,8 +271,7 @@ class CommandLineInterface::GeneratorContextImpl : public GeneratorContext {
 class CommandLineInterface::MemoryOutputStream
     : public io::ZeroCopyOutputStream {
  public:
-  MemoryOutputStream(GeneratorContextImpl* directory, const string& filename,
-                     bool append_mode);
+  MemoryOutputStream(GeneratorContextImpl* directory, const string& filename);
   MemoryOutputStream(GeneratorContextImpl* directory, const string& filename,
                      const string& insertion_point);
   virtual ~MemoryOutputStream();
@@ -292,9 +289,6 @@ class CommandLineInterface::MemoryOutputStream
 
   // The string we're building.
   string data_;
-
-  // Whether we should append the output stream to the existing file.
-  bool append_mode_;
 
   // StringOutputStream writing to data_.
   scoped_ptr<io::StringOutputStream> inner_;
@@ -440,13 +434,7 @@ void CommandLineInterface::GeneratorContextImpl::AddJarManifest() {
 
 io::ZeroCopyOutputStream* CommandLineInterface::GeneratorContextImpl::Open(
     const string& filename) {
-  return new MemoryOutputStream(this, filename, false);
-}
-
-io::ZeroCopyOutputStream*
-CommandLineInterface::GeneratorContextImpl::OpenForAppend(
-    const string& filename) {
-  return new MemoryOutputStream(this, filename, true);
+  return new MemoryOutputStream(this, filename);
 }
 
 io::ZeroCopyOutputStream*
@@ -458,10 +446,9 @@ CommandLineInterface::GeneratorContextImpl::OpenForInsert(
 // -------------------------------------------------------------------
 
 CommandLineInterface::MemoryOutputStream::MemoryOutputStream(
-    GeneratorContextImpl* directory, const string& filename, bool append_mode)
+    GeneratorContextImpl* directory, const string& filename)
     : directory_(directory),
       filename_(filename),
-      append_mode_(append_mode),
       inner_(new io::StringOutputStream(&data_)) {
 }
 
@@ -484,12 +471,8 @@ CommandLineInterface::MemoryOutputStream::~MemoryOutputStream() {
   if (insertion_point_.empty()) {
     // This was just a regular Open().
     if (*map_slot != NULL) {
-      if (append_mode_) {
-        (*map_slot)->append(data_);
-      } else {
-        cerr << filename_ << ": Tried to write the same file twice." << endl;
-        directory_->had_error_ = true;
-      }
+      cerr << filename_ << ": Tried to write the same file twice." << endl;
+      directory_->had_error_ = true;
       return;
     }
 
@@ -582,7 +565,6 @@ CommandLineInterface::MemoryOutputStream::~MemoryOutputStream() {
 
 CommandLineInterface::CommandLineInterface()
   : mode_(MODE_COMPILE),
-    print_mode_(PRINT_NONE),
     error_format_(ERROR_FORMAT_GCC),
     imports_in_descriptor_set_(false),
     source_info_in_descriptor_set_(false),
@@ -650,9 +632,7 @@ int CommandLineInterface::Run(int argc, const char* const argv[]) {
   // Parse each file.
   for (int i = 0; i < input_files_.size(); i++) {
     // Import the file.
-    importer.AddUnusedImportTrackFile(input_files_[i]);
     const FileDescriptor* parsed_file = importer.Import(input_files_[i]);
-    importer.ClearUnusedImportTrackFiles();
     if (parsed_file == NULL) return 1;
     parsed_files.push_back(parsed_file);
 
@@ -741,25 +721,6 @@ int CommandLineInterface::Run(int argc, const char* const argv[]) {
     }
   }
 
-  if (mode_ == MODE_PRINT) {
-    switch (print_mode_) {
-      case PRINT_FREE_FIELDS:
-        for (int i = 0; i < parsed_files.size(); ++i) {
-          const FileDescriptor* fd = parsed_files[i];
-          for (int j = 0; j < fd->message_type_count(); ++j) {
-            PrintFreeFieldNumbers(fd->message_type(j));
-          }
-        }
-        break;
-      case PRINT_NONE:
-        GOOGLE_LOG(ERROR) << "If the code reaches here, it usually means a bug of "
-                     "flag parsing in the CommonadLineInterface.";
-        return 1;
-
-      // Do not add a default case.
-    }
-  }
-
   return 0;
 }
 
@@ -774,7 +735,6 @@ void CommandLineInterface::Clear() {
   descriptor_set_name_.clear();
 
   mode_ = MODE_COMPILE;
-  print_mode_ = PRINT_NONE;
   imports_in_descriptor_set_ = false;
   source_info_in_descriptor_set_ = false;
   disallow_services_ = false;
@@ -929,8 +889,7 @@ bool CommandLineInterface::ParseArgument(const char* arg,
       *name == "--include_imports" ||
       *name == "--include_source_info" ||
       *name == "--version" ||
-      *name == "--decode_raw" ||
-      *name == "--print_free_field_numbers") {
+      *name == "--decode_raw") {
     // HACK:  These are the only flags that don't take a value.
     //   They probably should not be hard-coded like this but for now it's
     //   not worth doing better.
@@ -960,8 +919,8 @@ CommandLineInterface::InterpretArgument(const string& name,
     // Java's -classpath (and some other languages) delimits path components
     // with colons.  Let's accept that syntax too just to make things more
     // intuitive.
-    vector<string> parts = Split(
-        value, kPathSeparator, true);
+    vector<string> parts;
+    SplitStringUsing(value, kPathSeparator, &parts);
 
     for (int i = 0; i < parts.size(); i++) {
       string virtual_path;
@@ -1102,19 +1061,6 @@ CommandLineInterface::InterpretArgument(const string& name,
 
     plugins_[plugin_name] = path;
 
-  } else if (name == "--print_free_field_numbers") {
-    if (mode_ != MODE_COMPILE) {
-      cerr << "Cannot use " << name << " and use --encode, --decode or print "
-           << "other info at the same time." << endl;
-      return PARSE_ARGUMENT_FAIL;
-    }
-    if (!output_directives_.empty() || !descriptor_set_name_.empty()) {
-      cerr << "Cannot use " << name
-           << " and generate code or descriptors at the same time." << endl;
-      return PARSE_ARGUMENT_FAIL;
-    }
-    mode_ = MODE_PRINT;
-    print_mode_ = PRINT_FREE_FIELDS;
   } else {
     // Some other flag.  Look it up in the generators list.
     const GeneratorInfo* generator_info =
@@ -1136,8 +1082,8 @@ CommandLineInterface::InterpretArgument(const string& name,
     } else {
       // It's an output flag.  Add it to the output directives.
       if (mode_ != MODE_COMPILE) {
-        cerr << "Cannot use --encode, --decode or print .proto info and "
-                "generate code at the same time." << endl;
+        cerr << "Cannot use --encode or --decode and generate code at the "
+                "same time." << endl;
         return PARSE_ARGUMENT_FAIL;
       }
 
@@ -1205,12 +1151,7 @@ void CommandLineInterface::PrintHelpText() {
 "                              well as surrounding comments.\n"
 "  --error_format=FORMAT       Set the format in which to print errors.\n"
 "                              FORMAT may be 'gcc' (the default) or 'msvs'\n"
-"                              (Microsoft Visual Studio format).\n"
-"  --print_free_field_numbers  Print the free field numbers of the messages\n"
-"                              defined in the given proto files. Groups share\n"
-"                              the same field number space with the parent \n"
-"                              message. Extension ranges are counted as \n"
-"                              occupied fields numbers."  << endl;
+"                              (Microsoft Visual Studio format)." << endl;
   if (!plugin_prefix_.empty()) {
     cerr <<
 "  --plugin=EXECUTABLE         Specifies a plugin executable to use.\n"
@@ -1489,113 +1430,6 @@ void CommandLineInterface::GetTransitiveDependencies(
     file->CopySourceCodeInfoTo(new_descriptor);
   }
 }
-
-namespace {
-
-// Utility function for PrintFreeFieldNumbers.
-// Stores occupied ranges into the ranges parameter, and next level of sub
-// message types into the nested_messages parameter.  The FieldRange is left
-// inclusive, right exclusive. i.e. [a, b).
-//
-// Nested Messages:
-// Note that it only stores the nested message type, iff the nested type is
-// either a direct child of the given descriptor, or the nested type is a
-// decendent of the given descriptor and all the nodes between the
-// nested type and the given descriptor are group types. e.g.
-//
-// message Foo {
-//   message Bar {
-//     message NestedBar {}
-//   }
-//   group Baz = 1 {
-//     group NestedBazGroup = 2 {
-//       message Quz {
-//         message NestedQuz {}
-//       }
-//     }
-//     message NestedBaz {}
-//   }
-// }
-//
-// In this case, Bar, Quz and NestedBaz will be added into the nested types.
-// Since free field numbers of group types will not be printed, this makes sure
-// the nested message types in groups will not be dropped. The nested_messages
-// parameter will contain the direct children (when groups are ignored in the
-// tree) of the given descriptor for the caller to traverse. The declaration
-// order of the nested messages is also preserved.
-typedef pair<int, int> FieldRange;
-void GatherOccupiedFieldRanges(const Descriptor* descriptor,
-                               set<FieldRange>* ranges,
-                               vector<const Descriptor*>* nested_messages) {
-  set<const Descriptor*> groups;
-  for (int i = 0; i < descriptor->field_count(); ++i) {
-    const FieldDescriptor* fd = descriptor->field(i);
-    ranges->insert(FieldRange(fd->number(), fd->number() + 1));
-    if (fd->type() == FieldDescriptor::TYPE_GROUP) {
-      groups.insert(fd->message_type());
-    }
-  }
-  for (int i = 0; i < descriptor->extension_range_count(); ++i) {
-    ranges->insert(FieldRange(descriptor->extension_range(i)->start,
-                              descriptor->extension_range(i)->end));
-  }
-  // Handle the nested messages/groups in declaration order to make it
-  // post-order strict.
-  for (int i = 0; i < descriptor->nested_type_count(); ++i) {
-    const Descriptor* nested_desc = descriptor->nested_type(i);
-    if (groups.find(nested_desc) != groups.end()) {
-      GatherOccupiedFieldRanges(nested_desc, ranges, nested_messages);
-    } else {
-      nested_messages->push_back(nested_desc);
-    }
-  }
-}
-
-// Utility function for PrintFreeFieldNumbers.
-// Actually prints the formatted free field numbers for given message name and
-// occupied ranges.
-void FormatFreeFieldNumbers(const string& name,
-                            const set<FieldRange>& ranges) {
-  string output;
-  StringAppendF(&output, "%-35s free:", name.c_str());
-  int next_free_number = 1;
-  for (set<FieldRange>::iterator i = ranges.begin();
-       i != ranges.end(); ++i) {
-    // This happens when groups re-use parent field numbers, in which
-    // case we skip the FieldRange entirely.
-    if (next_free_number >= i->second) continue;
-
-    if (next_free_number < i->first) {
-      if (next_free_number + 1 == i->first) {
-        // Singleton
-        StringAppendF(&output, " %d", next_free_number);
-      } else {
-        // Range
-        StringAppendF(&output, " %d-%d", next_free_number, i->first - 1);
-      }
-    }
-    next_free_number = i->second;
-  }
-  if (next_free_number <= FieldDescriptor::kMaxNumber) {
-    StringAppendF(&output, " %d-INF", next_free_number);
-  }
-  cout << output << endl;
-}
-
-}  // namespace
-
-void CommandLineInterface::PrintFreeFieldNumbers(
-    const Descriptor* descriptor) {
-  set<FieldRange> ranges;
-  vector<const Descriptor*> nested_messages;
-  GatherOccupiedFieldRanges(descriptor, &ranges, &nested_messages);
-
-  for (int i = 0; i < nested_messages.size(); ++i) {
-    PrintFreeFieldNumbers(nested_messages[i]);
-  }
-  FormatFreeFieldNumbers(descriptor->full_name(), ranges);
-}
-
 
 
 }  // namespace compiler

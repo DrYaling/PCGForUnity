@@ -31,50 +31,42 @@
 // Author: kenton@google.com (Kenton Varda)
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
+//
+// Generates C++ code for a given .proto file.
 
+#ifndef GOOGLE_PROTOBUF_COMPILER_CPP_GENERATOR_H__
+#define GOOGLE_PROTOBUF_COMPILER_CPP_GENERATOR_H__
+
+#include <string>
 #include <google/protobuf/compiler/code_generator.h>
-
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/stubs/strutil.h>
 
 namespace google {
 namespace protobuf {
 namespace compiler {
+namespace cpp {
 
-CodeGenerator::~CodeGenerator() {}
-GeneratorContext::~GeneratorContext() {}
+// CodeGenerator implementation which generates a C++ source file and
+// header.  If you create your own protocol compiler binary and you want
+// it to support C++ output, you can do so by registering an instance of this
+// CodeGenerator with the CommandLineInterface in your main() function.
+class LIBPROTOC_EXPORT CppGenerator : public CodeGenerator {
+ public:
+  CppGenerator();
+  ~CppGenerator();
 
-io::ZeroCopyOutputStream* GeneratorContext::OpenForInsert(
-    const string& filename, const string& insertion_point) {
-  GOOGLE_LOG(FATAL) << "This GeneratorContext does not support insertion.";
-  return NULL;  // make compiler happy
-}
+  // implements CodeGenerator ----------------------------------------
+  bool Generate(const FileDescriptor* file,
+                const string& parameter,
+                GeneratorContext* generator_context,
+                string* error) const;
 
-void GeneratorContext::ListParsedFiles(
-    vector<const FileDescriptor*>* output) {
-  GOOGLE_LOG(FATAL) << "This GeneratorContext does not support ListParsedFiles";
-}
+ private:
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(CppGenerator);
+};
 
-// Parses a set of comma-delimited name/value pairs.
-void ParseGeneratorParameter(const string& text,
-                             vector<pair<string, string> >* output) {
-  vector<string> parts;
-  SplitStringUsing(text, ",", &parts);
-
-  for (int i = 0; i < parts.size(); i++) {
-    string::size_type equals_pos = parts[i].find_first_of('=');
-    pair<string, string> value;
-    if (equals_pos == string::npos) {
-      value.first = parts[i];
-      value.second = "";
-    } else {
-      value.first = parts[i].substr(0, equals_pos);
-      value.second = parts[i].substr(equals_pos + 1);
-    }
-    output->push_back(value);
-  }
-}
-
+}  // namespace cpp
 }  // namespace compiler
 }  // namespace protobuf
+
 }  // namespace google
+#endif  // GOOGLE_PROTOBUF_COMPILER_CPP_GENERATOR_H__

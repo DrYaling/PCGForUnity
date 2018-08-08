@@ -32,49 +32,68 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include <google/protobuf/compiler/code_generator.h>
+#ifndef GOOGLE_PROTOBUF_COMPILER_CPP_FILE_H__
+#define GOOGLE_PROTOBUF_COMPILER_CPP_FILE_H__
 
+#include <string>
+#include <vector>
 #include <google/protobuf/stubs/common.h>
-#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/compiler/cpp/cpp_field.h>
+#include <google/protobuf/compiler/cpp/cpp_options.h>
 
 namespace google {
 namespace protobuf {
-namespace compiler {
-
-CodeGenerator::~CodeGenerator() {}
-GeneratorContext::~GeneratorContext() {}
-
-io::ZeroCopyOutputStream* GeneratorContext::OpenForInsert(
-    const string& filename, const string& insertion_point) {
-  GOOGLE_LOG(FATAL) << "This GeneratorContext does not support insertion.";
-  return NULL;  // make compiler happy
-}
-
-void GeneratorContext::ListParsedFiles(
-    vector<const FileDescriptor*>* output) {
-  GOOGLE_LOG(FATAL) << "This GeneratorContext does not support ListParsedFiles";
-}
-
-// Parses a set of comma-delimited name/value pairs.
-void ParseGeneratorParameter(const string& text,
-                             vector<pair<string, string> >* output) {
-  vector<string> parts;
-  SplitStringUsing(text, ",", &parts);
-
-  for (int i = 0; i < parts.size(); i++) {
-    string::size_type equals_pos = parts[i].find_first_of('=');
-    pair<string, string> value;
-    if (equals_pos == string::npos) {
-      value.first = parts[i];
-      value.second = "";
-    } else {
-      value.first = parts[i].substr(0, equals_pos);
-      value.second = parts[i].substr(equals_pos + 1);
-    }
-    output->push_back(value);
+  class FileDescriptor;        // descriptor.h
+  namespace io {
+    class Printer;             // printer.h
   }
 }
 
+namespace protobuf {
+namespace compiler {
+namespace cpp {
+
+class EnumGenerator;           // enum.h
+class MessageGenerator;        // message.h
+class ServiceGenerator;        // service.h
+class ExtensionGenerator;      // extension.h
+
+class FileGenerator {
+ public:
+  // See generator.cc for the meaning of dllexport_decl.
+  explicit FileGenerator(const FileDescriptor* file,
+                         const Options& options);
+  ~FileGenerator();
+
+  void GenerateHeader(io::Printer* printer);
+  void GenerateSource(io::Printer* printer);
+
+ private:
+  // Generate the BuildDescriptors() procedure, which builds all descriptors
+  // for types defined in the file.
+  void GenerateBuildDescriptors(io::Printer* printer);
+
+  void GenerateNamespaceOpeners(io::Printer* printer);
+  void GenerateNamespaceClosers(io::Printer* printer);
+
+  const FileDescriptor* file_;
+
+  scoped_array<scoped_ptr<MessageGenerator> > message_generators_;
+  scoped_array<scoped_ptr<EnumGenerator> > enum_generators_;
+  scoped_array<scoped_ptr<ServiceGenerator> > service_generators_;
+  scoped_array<scoped_ptr<ExtensionGenerator> > extension_generators_;
+
+  // E.g. if the package is foo.bar, package_parts_ is {"foo", "bar"}.
+  vector<string> package_parts_;
+
+  const Options options_;
+
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(FileGenerator);
+};
+
+}  // namespace cpp
 }  // namespace compiler
 }  // namespace protobuf
+
 }  // namespace google
+#endif  // GOOGLE_PROTOBUF_COMPILER_CPP_FILE_H__

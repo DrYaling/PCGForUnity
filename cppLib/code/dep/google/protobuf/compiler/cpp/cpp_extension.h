@@ -32,49 +32,55 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include <google/protobuf/compiler/code_generator.h>
+#ifndef GOOGLE_PROTOBUF_COMPILER_CPP_EXTENSION_H__
+#define GOOGLE_PROTOBUF_COMPILER_CPP_EXTENSION_H__
 
+#include <string>
 #include <google/protobuf/stubs/common.h>
-#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/compiler/cpp/cpp_options.h>
 
 namespace google {
 namespace protobuf {
-namespace compiler {
-
-CodeGenerator::~CodeGenerator() {}
-GeneratorContext::~GeneratorContext() {}
-
-io::ZeroCopyOutputStream* GeneratorContext::OpenForInsert(
-    const string& filename, const string& insertion_point) {
-  GOOGLE_LOG(FATAL) << "This GeneratorContext does not support insertion.";
-  return NULL;  // make compiler happy
-}
-
-void GeneratorContext::ListParsedFiles(
-    vector<const FileDescriptor*>* output) {
-  GOOGLE_LOG(FATAL) << "This GeneratorContext does not support ListParsedFiles";
-}
-
-// Parses a set of comma-delimited name/value pairs.
-void ParseGeneratorParameter(const string& text,
-                             vector<pair<string, string> >* output) {
-  vector<string> parts;
-  SplitStringUsing(text, ",", &parts);
-
-  for (int i = 0; i < parts.size(); i++) {
-    string::size_type equals_pos = parts[i].find_first_of('=');
-    pair<string, string> value;
-    if (equals_pos == string::npos) {
-      value.first = parts[i];
-      value.second = "";
-    } else {
-      value.first = parts[i].substr(0, equals_pos);
-      value.second = parts[i].substr(equals_pos + 1);
-    }
-    output->push_back(value);
+  class FieldDescriptor;       // descriptor.h
+  namespace io {
+    class Printer;             // printer.h
   }
 }
 
+namespace protobuf {
+namespace compiler {
+namespace cpp {
+
+// Generates code for an extension, which may be within the scope of some
+// message or may be at file scope.  This is much simpler than FieldGenerator
+// since extensions are just simple identifiers with interesting types.
+class ExtensionGenerator {
+ public:
+  // See generator.cc for the meaning of dllexport_decl.
+  explicit ExtensionGenerator(const FieldDescriptor* desycriptor,
+                              const Options& options);
+  ~ExtensionGenerator();
+
+  // Header stuff.
+  void GenerateDeclaration(io::Printer* printer);
+
+  // Source file stuff.
+  void GenerateDefinition(io::Printer* printer);
+
+  // Generate code to register the extension.
+  void GenerateRegistration(io::Printer* printer);
+
+ private:
+  const FieldDescriptor* descriptor_;
+  string type_traits_;
+  Options options_;
+
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ExtensionGenerator);
+};
+
+}  // namespace cpp
 }  // namespace compiler
 }  // namespace protobuf
+
 }  // namespace google
+#endif  // GOOGLE_PROTOBUF_COMPILER_CPP_MESSAGE_H__

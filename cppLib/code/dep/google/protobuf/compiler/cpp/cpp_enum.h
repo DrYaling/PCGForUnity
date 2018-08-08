@@ -32,49 +32,70 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include <google/protobuf/compiler/code_generator.h>
+#ifndef GOOGLE_PROTOBUF_COMPILER_CPP_ENUM_H__
+#define GOOGLE_PROTOBUF_COMPILER_CPP_ENUM_H__
 
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/stubs/strutil.h>
+#include <string>
+#include <google/protobuf/compiler/cpp/cpp_options.h>
+#include <google/protobuf/descriptor.h>
+
 
 namespace google {
 namespace protobuf {
-namespace compiler {
-
-CodeGenerator::~CodeGenerator() {}
-GeneratorContext::~GeneratorContext() {}
-
-io::ZeroCopyOutputStream* GeneratorContext::OpenForInsert(
-    const string& filename, const string& insertion_point) {
-  GOOGLE_LOG(FATAL) << "This GeneratorContext does not support insertion.";
-  return NULL;  // make compiler happy
-}
-
-void GeneratorContext::ListParsedFiles(
-    vector<const FileDescriptor*>* output) {
-  GOOGLE_LOG(FATAL) << "This GeneratorContext does not support ListParsedFiles";
-}
-
-// Parses a set of comma-delimited name/value pairs.
-void ParseGeneratorParameter(const string& text,
-                             vector<pair<string, string> >* output) {
-  vector<string> parts;
-  SplitStringUsing(text, ",", &parts);
-
-  for (int i = 0; i < parts.size(); i++) {
-    string::size_type equals_pos = parts[i].find_first_of('=');
-    pair<string, string> value;
-    if (equals_pos == string::npos) {
-      value.first = parts[i];
-      value.second = "";
-    } else {
-      value.first = parts[i].substr(0, equals_pos);
-      value.second = parts[i].substr(equals_pos + 1);
-    }
-    output->push_back(value);
+  namespace io {
+    class Printer;             // printer.h
   }
 }
 
+namespace protobuf {
+namespace compiler {
+namespace cpp {
+
+class EnumGenerator {
+ public:
+  // See generator.cc for the meaning of dllexport_decl.
+  explicit EnumGenerator(const EnumDescriptor* descriptor,
+                         const Options& options);
+  ~EnumGenerator();
+
+  // Header stuff.
+
+  // Generate header code defining the enum.  This code should be placed
+  // within the enum's package namespace, but NOT within any class, even for
+  // nested enums.
+  void GenerateDefinition(io::Printer* printer);
+
+  // Generate specialization of GetEnumDescriptor<MyEnum>().
+  // Precondition: in ::google::protobuf namespace.
+  void GenerateGetEnumDescriptorSpecializations(io::Printer* printer);
+
+  // For enums nested within a message, generate code to import all the enum's
+  // symbols (e.g. the enum type name, all its values, etc.) into the class's
+  // namespace.  This should be placed inside the class definition in the
+  // header.
+  void GenerateSymbolImports(io::Printer* printer);
+
+  // Source file stuff.
+
+  // Generate code that initializes the global variable storing the enum's
+  // descriptor.
+  void GenerateDescriptorInitializer(io::Printer* printer, int index);
+
+  // Generate non-inline methods related to the enum, such as IsValidValue().
+  // Goes in the .cc file.
+  void GenerateMethods(io::Printer* printer);
+
+ private:
+  const EnumDescriptor* descriptor_;
+  string classname_;
+  Options options_;
+
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(EnumGenerator);
+};
+
+}  // namespace cpp
 }  // namespace compiler
 }  // namespace protobuf
+
 }  // namespace google
+#endif  // GOOGLE_PROTOBUF_COMPILER_CPP_ENUM_H__
