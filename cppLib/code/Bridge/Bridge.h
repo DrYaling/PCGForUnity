@@ -4,7 +4,7 @@
 #include "Logger/Logger.h"
 #include "G3D/Vector3.h"
 #include "Map/TransformMap.h"
-#include "Structure/Object.h"
+#include <stdint.h>
 typedef void(__stdcall *CPPUpdateCallback)(int tick);
 #define STD_CALL __stdcall
 EXTERN_C_BEGIN
@@ -45,12 +45,41 @@ EXPORT_API void STD_CALL Update(int time_diff)
 		ret += i;
 	}
 	LogFormat("ret is %d", ret);*/
+<<<<<<< HEAD
+=======
+}
+EXPORT_API void SetIntTest(int32_t input)
+{
+
+}
+class EXPORT_COREMODULE vector3 {
+public:
+	int32_t x, y, z;
+};
+vector3 v;
+EXPORT_API void SetObjtest(vector3& v)
+{
+	LogFormat("x:%d,y:%d,z:%d",v.x, v.y, v.z);
+}
+EXPORT_API int32_t GetIntTest()
+{
+	return 111;
+}
+EXPORT_API vector3& GetObjTest()
+{
+	return v;
+>>>>>>> cd4cd68a37b7becf61deecb696371f24cf8178a8
 }
 EXPORT_API void STD_CALL DestroyCPP()
 {
 	LogFormat("DestroyCPP"); 
 	transformMap::ClearTransformMapTrees();
 	ClearLogger();
+}
+
+static int internalCall()
+{
+	return -1;
 }
 
 EXTERN_C_END

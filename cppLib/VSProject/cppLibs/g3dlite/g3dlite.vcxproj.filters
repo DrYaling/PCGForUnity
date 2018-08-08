@@ -15,19 +15,22 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\code\G3D\source\Vector3int32.cpp">
+    <ClCompile Include="..\..\..\code\dep\G3D\source\Vector2int16.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\G3D\source\Matrix3.cpp">
+    <ClCompile Include="..\..\..\code\dep\G3D\source\Vector3.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\G3D\source\Matrix4.cpp">
+    <ClCompile Include="..\..\..\code\dep\G3D\source\Vector3int16.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\G3D\source\Vector2int16.cpp">
+    <ClCompile Include="..\..\..\code\dep\G3D\source\Matrix3.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\G3D\source\Vector3.cpp">
+    <ClCompile Include="..\..\..\code\dep\G3D\source\Matrix4.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\dep\G3D\source\Vector2.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -6,9 +6,9 @@ public class test : MonoBehaviour {
 
 	// Use this for initialization
 	IEnumerator Start () {
-        Bridge.Init();
         yield return new WaitForSeconds(3);
-	}
+        Bridge.Init();
+    }
 	
 	// Update is called once per frame
 	void Update () {

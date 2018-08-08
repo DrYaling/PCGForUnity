@@ -269,3 +269,4 @@
 /Project/.vs/Project/v15/Server/sqlite3/*.ide
 /Project/.vs/Project/v15/Server/sqlite3/*.ide-shm
 /Project/.vs/Project/v15/Server/sqlite3/*.ide-wal
+/cppLib/VSProject/cppLibs/cppLibs/x64/Release/cppLibs.tlog/unsuccessfulbuild
