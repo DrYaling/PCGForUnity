@@ -14,5 +14,6 @@ int main()
 	printf_s("send ret %d,%d", t.nresult, t.nbytes);
 	char c;
 	std::cin >> c;
+	socket.Close();
 	return 0;
 }

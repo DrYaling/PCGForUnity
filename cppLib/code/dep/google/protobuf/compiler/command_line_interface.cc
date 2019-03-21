@@ -180,7 +180,7 @@ bool TryCreateParentDirectory(const string& prefix, const string& filename) {
 
 }  // namespace
 
-// A MultiFileErrorCollector that prints errors to stderr.
+//A MultiFileErrorCollector that prints errors to stderr.
 class CommandLineInterface::ErrorPrinter : public MultiFileErrorCollector,
                                            public io::ErrorCollector {
  public:

@@ -2,10 +2,6 @@
 #define _DEFINE_H
 #define EXPORT_API __declspec(dllexport)
 
-#ifndef BUILDING_COREMODULE
-#define BUILDING_COREMODULE 1
-#endif
-
 #if BUILDING_COREMODULE
 #define EXPORT_COREMODULE __declspec(dllexport)
 #else
