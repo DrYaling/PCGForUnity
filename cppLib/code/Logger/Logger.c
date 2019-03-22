@@ -62,7 +62,7 @@ void ClearLogger()
 	logWarningCallBack = nullptr;
 }
 
-void LogContent(LoggerType eType, const char* format, ...)
+void LogContent(LoggerType eType, const char	* f,int line, const char* func, const char* format, ...)
 {
 	logger_buff.clear();
 	memset(Logger_cbuffer, 0, sizeof(Logger_cbuffer));
@@ -72,7 +72,11 @@ void LogContent(LoggerType eType, const char* format, ...)
 	logger_buff.append(Logger_cbuffer);
 	logger_buff.append("\n");
 	va_end(valist);
-	printStackTrace();
+#ifdef LOG_TRACE
+	sprintf_s(Logger_cbuffer, "in file %s,function %s at line %d\n", f, func, line);
+	logger_buff.append(Logger_cbuffer);
+#endif // LOG_TRACE
+
 	switch (eType)
 	{
 	case LoggerType::LOGGER_ERROR:

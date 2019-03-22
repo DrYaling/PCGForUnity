@@ -6,20 +6,17 @@
 #include <stdarg.h>
 #include <iostream>
 #include <string.h>
+#include "define.h"
 #define LOG_IN_THREAD 0
 //#define LOG_TYPE_AS_TITLE
 #define LOG_SWITCH 1
+//#define LOG_TRACE
 #ifdef WIN32
-#include "windows.h"
 #include <Windows.h>
 #include "DbgHelp.h"
-//#pragma comment(lib, " dbghelp.lib")
-#define sleep(x) Sleep(x)
 #else
 #include <execinfo.h>
 #endif
-
-
 
 
 enum LoggerType
@@ -29,12 +26,12 @@ enum LoggerType
 	LOGGER_ERROR = 2
 };
 #if LOG_SWITCH
-#define LogFormat(format, ...) LogContent(LoggerType::LOGGER_LOG,  format, __VA_ARGS__)
-#define Log(format) LogContent(LoggerType::LOGGER_LOG,  format)
-#define LogWarningFormat(format, ...) LogContent(LoggerType::LOGGER_WARN,  format, __VA_ARGS__)
+#define LogFormat(format, ...) LogContent(LoggerType::LOGGER_LOG,__FILE__, __LINE__,__FUNCTION__, format, __VA_ARGS__)
+#define Log(format) LogContent(LoggerType::LOGGER_LOG,__FILE__, __LINE__,__FUNCTION__,  format)
+#define LogWarningFormat(format, ...) LogContent(LoggerType::LOGGER_WARN,__FILE__, __LINE__,__FUNCTION__,  format, __VA_ARGS__)
 #define LogWarning(format) LogContent(LoggerType::LOGGER_WARN,  format)
-#define LogErrorFormat(format, ...) LogContent(LoggerType::LOGGER_ERROR,  format, __VA_ARGS__)
-#define LogError(format) LogContent(LoggerType::LOGGER_ERROR,  format)
+#define LogErrorFormat(format, ...) LogContent(LoggerType::LOGGER_ERROR,__FILE__, __LINE__,__FUNCTION__,  format, __VA_ARGS__)
+#define LogError(format) LogContent(LoggerType::LOGGER_ERROR,__FILE__, __LINE__,__FUNCTION__,  format)
 #else
 #define LogFormat(logType,format, ...) 
 #define Log(logType,format)
@@ -55,7 +52,7 @@ static CPPLogErrorCallback logErrorCallBack = nullptr;
 extern "C"
 {
 #endif
-	void LogContent(LoggerType eType, const char* format, ...);
+	void LogContent(LoggerType eType,const char	* f, int line, const char* func, const char* format, ...);
 	void printStackTrace(void);
 	void ClearLogger(void);
 

@@ -92,8 +92,10 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../../../code/Bridge;../../../code;../../../code/G3D/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_UNICODE;UNICODE;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BUILDING_COREMODULE;_UNICODE;UNICODE;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
     <PostBuildEvent>
       <Command>Copy "$(SolutionDir)$(Configuration)\$(ProjectName).dll" "$(SolutionDir)../../../Project\Assets\Plugins\x86/$(ProjectName).dll"</Command>
@@ -116,8 +118,10 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../../../code/Bridge;../../../code;../../../code/G3D/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_UNICODE;UNICODE;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BUILDING_COREMODULE;_UNICODE;UNICODE;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
     <PostBuildEvent>
       <Command>Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(SolutionDir)../../../Project\Assets\Plugins\x86_x64/$(ProjectName).dll"</Command>
@@ -139,7 +143,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_WINDLL;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BUILDING_COREMODULE;_WINDLL;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
       <LanguageStandard>stdcpp14</LanguageStandard>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
@@ -172,7 +176,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_WINDLL;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BUILDING_COREMODULE;_WINDLL;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
       <LanguageStandard>stdcpp14</LanguageStandard>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
@@ -195,17 +199,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\code\Bridge\Bridge.h" />
-    <ClInclude Include="..\..\..\code\define.h" />
-    <ClInclude Include="..\..\..\code\Logger\Logger.h" />
     <ClInclude Include="..\..\..\code\Map\TransformMap.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\code\Logger\Logger.c" />
     <ClCompile Include="..\..\..\code\pch.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\g3dlite\g3dlite.vcxproj">
       <Project>{0033a2a2-8d2b-472c-bfbb-8326b06b7eaf}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Logger\Logger\Logger.vcxproj">
+      <Project>{35edf0d3-5175-4fdf-9c39-48894d61472c}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Network\Network.vcxproj">
       <Project>{9834b7f4-bbbc-4516-affb-5ab0cbaf50a3}</Project>

@@ -31,4 +31,9 @@ typedef uint32_t uint32;
 typedef uint16_t uint16;
 typedef uint8_t uint8;
 
+#ifdef WIN32
+//#pragma comment(lib, " dbghelp.lib")
+#define sleep(x) Sleep(x)
+#endif
+
 #endif

@@ -3,8 +3,11 @@
 #include <string.h>
 #include <fcntl.h>
 #include "TimeSpan.h"
+#include <thread>
+#include "Logger/Logger.h"
 //#include "Logger/Logger.h"
 #define INVALIDSOCKHANDLE   INVALID_SOCKET
+#define  RECV_BUFFER_SIZE 1024
 
 #if defined(_WIN32_PLATFROM_)
 #include <windows.h>
@@ -107,7 +110,7 @@ const char* GetSocketError(int r)
 
 SocketHandle SocketOpen(int tcpudp)
 {
-	printf_s("SocketOpen %d", InitializeSocketEnvironment());
+	printf_s("SocketOpen %d\n", InitializeSocketEnvironment());
 	int protocol = 0;
 	SocketHandle hs;
 #if defined(_WIN32_PLATFROM_)
@@ -144,11 +147,11 @@ void SocketSend(SocketHandle hs, const char *ptr, int nbytes, SockError &rt)
 {
 	rt.nbytes = 0;
 	rt.nresult = 0;
-	if (!ptr || nbytes<1) return;
+	if (!ptr || nbytes < 1) return;
 
 	//Linux: flag can be MSG_DONTWAIT, MSG_WAITALL, 使用MSG_WAITALL的时候, socket 必须是处于阻塞模式下，否则WAITALL不能起作用
 	rt.nbytes = send(hs, ptr, nbytes, NONBLOCKREADWRITE | SENDNOSIGNAL);
-	if (rt.nbytes>0)
+	if (rt.nbytes > 0)
 	{
 		rt.nresult = (rt.nbytes == nbytes) ? 0 : 1;
 	}
@@ -172,10 +175,10 @@ void SocketRecv(SocketHandle hs, char *ptr, int nbytes, SockError &rt)
 {
 	rt.nbytes = 0;
 	rt.nresult = 0;
-	if (!ptr || nbytes<1) return;
+	if (!ptr || nbytes < 1) return;
 
 	rt.nbytes = recv(hs, ptr, nbytes, BLOCKREADWRITE);
-	if (rt.nbytes>0)
+	if (rt.nbytes > 0)
 	{
 		return;
 	}
@@ -198,7 +201,7 @@ void SocketTrySend(SocketHandle hs, const char *ptr, int nbytes, int millisecond
 {
 	rt.nbytes = 0;
 	rt.nresult = 0;
-	if (!ptr || nbytes<1) return;
+	if (!ptr || nbytes < 1) return;
 
 
 	int n;
@@ -206,7 +209,7 @@ void SocketTrySend(SocketHandle hs, const char *ptr, int nbytes, int millisecond
 	while (1)
 	{
 		n = send(hs, ptr + rt.nbytes, nbytes, NONBLOCKREADWRITE | SENDNOSIGNAL);
-		if (n>0)
+		if (n > 0)
 		{
 			rt.nbytes += n;
 			nbytes -= n;
@@ -230,7 +233,7 @@ void SocketTrySend(SocketHandle hs, const char *ptr, int nbytes, int millisecond
 				break;
 			}
 		}
-		if (start.GetSpaninMilliseconds()>milliseconds) { rt.nresult = 1; break; }
+		if (start.GetSpaninMilliseconds() > milliseconds) { rt.nresult = 1; break; }
 	}
 }
 // if timeout occurs, nbytes=-1, nresult=1
@@ -240,15 +243,15 @@ void SocketTryRecv(SocketHandle hs, char *ptr, int nbytes, int milliseconds, Soc
 {
 	rt.nbytes = 0;
 	rt.nresult = 0;
-	if (!ptr || nbytes<1) return;
+	if (!ptr || nbytes < 1) return;
 
-	if (milliseconds>2)
+	if (milliseconds > 2)
 	{
 		TimeSpan start;
 		while (1)
 		{
 			rt.nbytes = recv(hs, ptr, nbytes, NONBLOCKREADWRITE);
-			if (rt.nbytes>0)
+			if (rt.nbytes > 0)
 			{
 				break;
 			}
@@ -292,10 +295,10 @@ void SocketClearRecvBuffer(SocketHandle hs)
 	int   nRet = 1;
 	char tmp[100];
 	int rt;
-	while (nRet>0)
+	while (nRet > 0)
 	{
 		nRet = select(FD_SETSIZE, &fds, NULL, NULL, &tmOut);
-		if (nRet>0)
+		if (nRet > 0)
 		{
 			nRet = recv(hs, tmp, 100, 0);
 		}
@@ -330,18 +333,18 @@ int SocketTimeOut(SocketHandle hs, int recvtimeout, int sendtimeout, int lingert
 	{
 		rt = 0;
 #if defined(_WIN32_PLATFROM_)
-		if (lingertimeout>-1)
+		if (lingertimeout > -1)
 		{
 			struct linger  lin;
 			lin.l_onoff = lingertimeout;
 			lin.l_linger = lingertimeout;
 			rt = setsockopt(hs, SOL_SOCKET, SO_DONTLINGER, (const char*)&lin, sizeof(linger)) == 0 ? 0 : 0x1;
 		}
-		if (recvtimeout>0 && rt == 0)
+		if (recvtimeout > 0 && rt == 0)
 		{
 			rt = rt | (setsockopt(hs, SOL_SOCKET, SO_RCVTIMEO, (char *)&recvtimeout, sizeof(int)) == 0 ? 0 : 0x2);
 		}
-		if (sendtimeout>0 && rt == 0)
+		if (sendtimeout > 0 && rt == 0)
 		{
 			rt = rt | (setsockopt(hs, SOL_SOCKET, SO_SNDTIMEO, (char *)&sendtimeout, sizeof(int)) == 0 ? 0 : 0x4);
 		}
@@ -403,11 +406,15 @@ void FreeSocketEnvironment()
 
 //==============================================================================================================
 //================================================================================================================
-Socket::Socket(SocketType tp)
+Socket::Socket(SocketType tp) :
+	m_bConnected(false), 
+	m_bIsServer(false),
+	m_socketType(tp), 
+	m_Socket(INVALIDSOCKHANDLE),
+	//m_pSendCallback(nullptr),
+	m_pRecvCallback(nullptr)
 {
 	memset(&m_stAddr, 0, sizeof(sockaddr_in));
-	m_socketType = tp;
-	m_Socket = INVALIDSOCKHANDLE;
 	Reopen(false);
 }
 
@@ -416,10 +423,18 @@ Socket::~Socket()
 {
 	SocketClose(m_Socket);
 }
+int Socket::Bind()
+{
+	return SocketBind(m_Socket, &m_stAddr);
+}
+int Socket::Bind(sockaddr_in * addr)
+{
+	return SocketBind(m_Socket, addr);
+}
 void Socket::Reopen(bool bForceClose)
 {
 	printf_s("Reopen %d\n", m_Socket);
-	if (ISSOCKHANDLE(m_Socket) && bForceClose) 
+	if (ISSOCKHANDLE(m_Socket) && bForceClose)
 		SocketClose(m_Socket);
 	if (!ISSOCKHANDLE(m_Socket))
 	{
@@ -429,14 +444,30 @@ void Socket::Reopen(bool bForceClose)
 }
 void Socket::Close()
 {
+	m_bConnected = false;
+	ClearRecvBuffer();
 	SocketClose(m_Socket);
-	ClearRecvBuffer();	
 }
 
 void Socket::Connect()
 {
+	if (m_bIsServer)
+	{
+		LogError("once socket is set to server,cant change it to client!");
+		return;
+	}
 	int ret = SocketConnect(m_Socket, &m_stAddr);
-	printf_s("Socket Connect ret %d,error %d", ret,GetLastSocketError());
+	printf_s("Socket Connect ret %d,error %d\n", ret, GetLastSocketError());
+	m_bIsServer = false;
+	if (ret == 0)
+	{
+		m_bConnected = true;
+		if (m_eMode == SocketSyncMode::SOCKET_ASYNC)
+		{
+			std::thread trecv(&Socket::SelectThread, this);
+			trecv.detach();
+		}
+	}
 }
 void Socket::Connect(const char* ip, int port)
 {
@@ -510,4 +541,203 @@ SockError Socket::TryRecv(void *ptr, int nbytes, int  milliseconds)
 void Socket::ClearRecvBuffer()
 {
 	SocketClearRecvBuffer(m_Socket);
+}
+
+int Socket::StartListen(int maxconn)
+{
+	int err = SocketListen(m_Socket, maxconn);
+	if (err == 0)
+	{
+		SetBlock(true);
+		std::thread trecv(&Socket::SelectThread, this);
+		trecv.detach();
+		m_bConnected = true;
+	}
+	m_bIsServer = true;
+	return err;
+}
+
+
+void Socket::OnDisconnected(SocketHandle socket)
+{
+}
+
+void Socket::OnConnected(SocketHandle socket)
+{
+}
+
+void Socket::SelectThread()
+{
+	int max_fd = 1;
+	fd_set ser_fdset;
+	char recv_buffer[RECV_BUFFER_SIZE];
+	Log("RecvThread start");
+	struct timeval mytime = {3,0};
+	std::vector<SocketHandle> m_vListeners;
+	m_vListeners.clear();
+	while (m_bConnected)
+	{
+		FD_ZERO(&ser_fdset);
+		if (max_fd < 0)
+		{
+			max_fd = 0;
+		}
+		FD_SET(m_Socket, &ser_fdset);
+		if (max_fd < m_Socket)
+		{
+			max_fd = m_Socket;
+		}
+		if (m_bIsServer)
+		{
+			for (auto h : m_vListeners)
+			{
+				FD_SET(h, &ser_fdset);
+				if (max_fd < h)
+				{
+					max_fd = h;
+					LogFormat("select max_fd %d", max_fd);
+				}
+			}
+		}
+		//select多路复用
+		int ret = select(max_fd + 1, &ser_fdset, nullptr, nullptr, nullptr);
+		if (ret < 0)
+		{
+			Log("select failure\n");
+			continue;
+		}
+
+		else if (ret == 0)
+		{
+			continue;
+		}
+		else
+		{
+			/*if (FD_ISSET(0, &ser_fdset)) //标准输入是否存在于ser_fdset集合中（也就是说，检测到输入时，做如下事情）
+			{
+				//do nothing
+			}*/
+			LogFormat("select ret %d", ret);
+			//accept 在accept线程
+			if (FD_ISSET(m_Socket, &ser_fdset))
+			{
+				if (IsServer())
+				{
+					LogFormat("select ret accept %d", ret);
+					struct sockaddr_in client_address;
+
+#if defined(_WIN32_PLATFROM_)
+					int cliaddr_len = sizeof(sockaddr_in);
+#else
+					socklen_t cliaddr_len = sizeof(sockaddr_in);
+#endif
+					int client_sock_fd = accept(m_Socket, (struct sockaddr *)&client_address, &cliaddr_len);
+					if (client_sock_fd > 0)
+					{
+						int flags = client_sock_fd;
+						m_vListeners.push_back(client_sock_fd);
+						SockError err;
+						SocketSend(client_sock_fd, "connect success", sizeof("connect success"),err);
+						if (err .nresult == 0)
+						{
+							LogFormat("new user client[%d] add sucessfully!\n", flags);
+
+						}
+
+						else //flags=-1
+						{
+
+						}
+					}
+				}
+				else//client
+				{
+					memset(recv_buffer, 0, RECV_BUFFER_SIZE);
+
+					int byte_num = recv(m_Socket, recv_buffer, RECV_BUFFER_SIZE, BLOCKREADWRITE);
+					if (byte_num > 0)
+					{
+						LogFormat("message form server %s", recv_buffer);
+						if (nullptr != m_pRecvCallback)
+						{
+							m_pRecvCallback(byte_num, recv_buffer);
+						}
+					}
+					else if (byte_num < 0)
+					{
+						int socketError = GetLastSocketError();
+						LogFormat("recv from server error %d!", socketError);
+						//connection is reset
+						if (10054 == socketError)
+						{
+							LogFormat("lost connection to server!\n");
+							//disconnected
+							Close();
+							OnDisconnected(m_Socket);
+							return;
+						}
+					}
+					else  //cancel fdset and set fd=0
+					{
+						LogFormat("server closed!\n");
+						Close();
+						OnDisconnected(m_Socket);
+						return;
+					}
+				}
+			}
+			if (IsServer())
+			{
+				for (auto itr = m_vListeners.begin(); itr != m_vListeners.end();)
+				{
+					SocketHandle client = *itr;
+					if (ISSOCKHANDLE(client))
+					{
+						if (FD_ISSET(client, &ser_fdset))
+						{
+							memset(recv_buffer, 0, RECV_BUFFER_SIZE);
+
+							int byte_num = recv(client, recv_buffer, RECV_BUFFER_SIZE, BLOCKREADWRITE);
+							if (byte_num > 0)
+							{
+								LogFormat("message form client[%d]:%s", client, recv_buffer);
+							}
+							else if (byte_num < 0)
+							{
+								int socketError = GetLastSocketError();
+								LogFormat("recv from client %d error %d!", client, socketError);
+								//connection is reset
+								if (10054 == socketError)
+								{
+									LogFormat("clien[%d] lost connection!\n", client);
+									FD_CLR(client, &ser_fdset);
+									SocketClearRecvBuffer(client);
+									SocketClose(client);
+									itr = m_vListeners.erase(itr);
+									continue;
+								}
+							}
+
+							//某个客户端退出
+							else  //cancel fdset and set fd=0
+							{
+								LogFormat("clien[%d] exit!\n", client);
+								FD_CLR(client, &ser_fdset);
+								SocketClearRecvBuffer(client);
+								SocketClose(client);
+								itr = m_vListeners.erase(itr);
+								continue;
+							}
+						}
+						itr++;
+					}
+					else
+					{
+						LogFormat("Invalid socket handle %d", client);
+					}
+				}
+			}
+			
+		}
+	}
 }
