@@ -32,6 +32,7 @@
 #define gxsprintf           snprintf
 #endif
 
+static int sockaddr_Len = sizeof(sockaddr);
 bool env_inited = false;
 void GetAddressFrom(sockaddr_in *addr, const char *ip, int port)
 {
@@ -516,25 +517,75 @@ int Socket::SetBlock(bool bblock)
 SockError Socket::Send(void *ptr, int nbytes)
 {
 	SockError rt;
-	SocketSend(m_Socket, (const char *)ptr, nbytes, rt);
+	if (m_socketType == SocketType::SOCKET_TCP)
+	{
+		SocketSend(m_Socket, (const char *)ptr, nbytes, rt);
+	}
+	else
+	{
+		int ret =sendto(m_Socket, (const char *)ptr, nbytes, 0, (sockaddr*)&m_stAddr, sizeof(sockaddr));
+		rt.nresult = ret > 0 ? 0 : -1;
+		rt.nbytes = ret;
+	}
 	return rt;
 }
 SockError Socket::Recv(void *ptr, int nbytes)
 {
 	SockError rt;
-	SocketRecv(m_Socket, (char *)ptr, nbytes, rt);
+	if (m_socketType == SocketType::SOCKET_TCP)
+	{
+		SocketRecv(m_Socket, (char *)ptr, nbytes, rt);
+	}
+	else
+	{
+		 int size = recvfrom(m_Socket, (char *)ptr, nbytes, 0, (sockaddr*)&m_stAddr, &sockaddr_Len);
+		 if (size > 0)
+		 {
+			 rt.nbytes = size;
+			 rt.nresult = 0;
+		 }
+		 else
+		 {
+			 rt.nresult = size;
+		 }
+	}
 	return rt;
 }
 SockError Socket::TrySend(void *ptr, int nbytes, int milliseconds)
 {
 	SockError rt;
-	SocketTrySend(m_Socket, (const char *)ptr, nbytes, milliseconds, rt);
+	if (m_socketType == SocketType::SOCKET_TCP)
+	{
+		SocketTrySend(m_Socket, (const char *)ptr, nbytes, milliseconds, rt);
+	}
+	else
+	{
+		int ret = sendto(m_Socket, (const char *)ptr, nbytes, 0, (sockaddr*)&m_stAddr, sizeof(sockaddr));
+		rt.nresult = ret > 0 ? 0 : -1;
+		rt.nbytes = ret;
+	}
 	return rt;
 }
 SockError Socket::TryRecv(void *ptr, int nbytes, int  milliseconds)
 {
 	SockError rt;
-	SocketTryRecv(m_Socket, (char *)ptr, nbytes, milliseconds, rt);
+	if (m_socketType == SocketType::SOCKET_TCP)
+	{
+		SocketTryRecv(m_Socket, (char *)ptr, nbytes, milliseconds, rt);
+	}
+	else
+	{
+		int size = recvfrom(m_Socket, (char *)ptr, nbytes, 0, (sockaddr*)&m_stAddr, &sockaddr_Len);
+		if (size > 0)
+		{
+			rt.nbytes = size;
+			rt.nresult = 0;
+		}
+		else
+		{
+			rt.nresult = size;
+		}
+	}
 	return rt;
 }
 
@@ -545,7 +596,11 @@ void Socket::ClearRecvBuffer()
 
 int Socket::StartListen(int maxconn)
 {
-	int err = SocketListen(m_Socket, maxconn);
+	int err = 0;
+	if (m_socketType == SocketType::SOCKET_TCP)
+	{
+		err = SocketListen(m_Socket, maxconn);
+	}
 	if (err == 0)
 	{
 		SetBlock(true);
@@ -575,6 +630,7 @@ void Socket::SelectThread()
 	struct timeval mytime = {3,0};
 	std::vector<SocketHandle> m_vListeners;
 	m_vListeners.clear();
+	sockaddr_in udp_recv_addr;
 	while (m_bConnected)
 	{
 		FD_ZERO(&ser_fdset);
@@ -587,7 +643,7 @@ void Socket::SelectThread()
 		{
 			max_fd = m_Socket;
 		}
-		if (m_bIsServer)
+		if (IsServer() && m_socketType == SocketType::SOCKET_TCP)
 		{
 			for (auto h : m_vListeners)
 			{
@@ -600,15 +656,16 @@ void Socket::SelectThread()
 			}
 		}
 		//select多路复用
-		int ret = select(max_fd + 1, &ser_fdset, nullptr, nullptr, nullptr);
+		int ret = select(max_fd + 1, &ser_fdset, nullptr, nullptr, &mytime);
 		if (ret < 0)
 		{
 			Log("select failure\n");
 			continue;
 		}
 
-		else if (ret == 0)
+		else if (ret == 0)//time out
 		{
+			//Log("select ret = 0");
 			continue;
 		}
 		else
@@ -623,32 +680,48 @@ void Socket::SelectThread()
 			{
 				if (IsServer())
 				{
-					LogFormat("select ret accept %d", ret);
-					struct sockaddr_in client_address;
+					if (m_socketType == SocketType::SOCKET_TCP)
+					{
+						LogFormat("select ret accept %d", ret);
+						struct sockaddr_in client_address;
 
 #if defined(_WIN32_PLATFROM_)
-					int cliaddr_len = sizeof(sockaddr_in);
+						int cliaddr_len = sizeof(sockaddr_in);
 #else
-					socklen_t cliaddr_len = sizeof(sockaddr_in);
+						socklen_t cliaddr_len = sizeof(sockaddr_in);
 #endif
-					int client_sock_fd = accept(m_Socket, (struct sockaddr *)&client_address, &cliaddr_len);
-					if (client_sock_fd > 0)
-					{
-						int flags = client_sock_fd;
-						m_vListeners.push_back(client_sock_fd);
-						SockError err;
-						SocketSend(client_sock_fd, "connect success", sizeof("connect success"),err);
-						if (err .nresult == 0)
+						int client_sock_fd = accept(m_Socket, (struct sockaddr *)&client_address, &cliaddr_len);
+						if (client_sock_fd > 0)
 						{
-							LogFormat("new user client[%d] add sucessfully!\n", flags);
+							int flags = client_sock_fd;
+							m_vListeners.push_back(client_sock_fd);
+							SockError err;
+							SocketSend(client_sock_fd, "connect success", sizeof("connect success"), err);
+							if (err.nresult == 0)
+							{
+								LogFormat("new user client[%d] add sucessfully!\n", flags);
 
-						}
+							}
 
-						else //flags=-1
-						{
+							else //flags=-1
+							{
 
+							}
 						}
 					}
+					else//udp
+					{
+						int dataSize = recvfrom(m_Socket, recv_buffer, sizeof(recv_buffer), 0, (sockaddr*)&udp_recv_addr, &sockaddr_Len);
+						if (dataSize > 0)
+						{
+							LogFormat("message form client[%s:%d]:%s", inet_ntoa(udp_recv_addr.sin_addr),udp_recv_addr.sin_port, recv_buffer);
+							if (nullptr != m_pRecvCallback)
+							{
+								m_pRecvCallback(dataSize, recv_buffer);
+							}
+						}
+					}
+					
 				}
 				else//client
 				{
@@ -686,7 +759,7 @@ void Socket::SelectThread()
 					}
 				}
 			}
-			if (IsServer())
+			if (IsServer() && m_socketType != SocketType::SOCKET_UDP)//tcp 连接
 			{
 				for (auto itr = m_vListeners.begin(); itr != m_vListeners.end();)
 				{

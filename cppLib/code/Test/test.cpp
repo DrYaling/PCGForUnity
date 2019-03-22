@@ -7,7 +7,7 @@
 #include <stdio.h>
 void StartTestServer()
 {
-	Socket server(SocketType::SOCKET_TCP);
+	Socket server(SocketType::SOCKET_UDP);
 	server.SetAddress("127.0.0.1", 8081);
 	int bret = server.Bind();
 	printf_s("Bind ret %d\n", bret);
@@ -18,11 +18,11 @@ void StartTestServer()
 	{
 		sleep(10);
 		memset(buff, 0, sizeof(buff));
-		auto ret = server.Recv(buff, sizeof(buff));
+		/*auto ret = server.Recv(buff, sizeof(buff));
 		if (ret.nresult == 0)
 		{
 			printf_s("Recv ret %d,%d\n", ret.nresult, ret.nbytes);
-		}
+		}*/
 	}
 }
 int main()
@@ -30,7 +30,7 @@ int main()
 	//LogFormat("Test.main");
 	std::thread thr(StartTestServer);
 	thr.detach();
-	sleep(2000);
+	sleep(4000);
 	
 	char c;
 	std::cin >> c;
