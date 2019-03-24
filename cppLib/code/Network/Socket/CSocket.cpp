@@ -119,6 +119,16 @@ SocketHandle SocketOpen(int tcpudp)
 	else if (tcpudp == SOCK_DGRAM) protocol = IPPROTO_UDP;
 #endif
 	hs = socket(AF_INET, tcpudp, protocol);
+#if defined(_WIN32_PLATFROM_)
+	if (hs > 0 && tcpudp == SOCK_DGRAM)
+	{
+		//È¥µôwindowµÄudp 10054´íÎó
+		BOOL bNewBehavior = FALSE;
+		DWORD dwBytesReturned = 0;
+#define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
+		WSAIoctl(hs, SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
+	}
+#endif
 	LogFormat("SocketOpen hs %d,tcpudp %d,protocol %d\n", hs, tcpudp, protocol);
 	return hs;
 }
@@ -369,9 +379,9 @@ int SocketTimeOut(SocketHandle hs, int recvtimeout, int sendtimeout, int lingert
 			timeout.tv_sec = sendtimeout / 1000;
 			timeout.tv_usec = (sendtimeout % 1000) * 1000;
 			rt = rt | (setsockopt(hs, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) == 0 ? 0 : 0x4);
-		}
-#endif
 	}
+#endif
+}
 	return rt;
 }
 
@@ -408,9 +418,9 @@ void FreeSocketEnvironment()
 //==============================================================================================================
 //================================================================================================================
 Socket::Socket(SocketType tp) :
-	m_bConnected(false), 
+	m_bConnected(false),
 	m_bIsServer(false),
-	m_socketType(tp), 
+	m_socketType(tp),
 	m_Socket(INVALIDSOCKHANDLE),
 	//m_pSendCallback(nullptr),
 	m_pRecvCallback(nullptr)
@@ -534,7 +544,7 @@ SockError Socket::SendTo(void *ptr, int nbytes, sockaddr_in& target)
 		rt.nbytes = ret;
 	}
 	return rt;
-}SockError Socket::SendTo(void *ptr, int nbytes,  SockAddr_t& target)
+}SockError Socket::SendTo(void *ptr, int nbytes, SockAddr_t& target)
 {
 	SockError rt;
 	if (m_socketType == SocketType::SOCKET_TCP)
@@ -558,16 +568,16 @@ SockError Socket::Recv(void *ptr, int nbytes)
 	}
 	else
 	{
-		 int size = recvfrom(m_Socket, (char *)ptr, nbytes, 0, (sockaddr*)&m_stAddr, &sockaddr_Len);
-		 if (size > 0)
-		 {
-			 rt.nbytes = size;
-			 rt.nresult = 0;
-		 }
-		 else
-		 {
-			 rt.nresult = size;
-		 }
+		int size = recvfrom(m_Socket, (char *)ptr, nbytes, 0, (sockaddr*)&m_stAddr, &sockaddr_Len);
+		if (size > 0)
+		{
+			rt.nbytes = size;
+			rt.nresult = 0;
+		}
+		else
+		{
+			rt.nresult = size;
+		}
 	}
 	return rt;
 }
@@ -623,7 +633,6 @@ int Socket::StartListen(int maxconn)
 	}
 	if (err == 0)
 	{
-		SetBlock(true);
 		std::thread trecv(&Socket::SelectThread, this);
 		trecv.detach();
 		m_bConnected = true;
@@ -655,7 +664,7 @@ void Socket::SelectThread()
 		recv_buffer = new char[RECV_BUFFER_SIZE];
 	}
 	Log("RecvThread start");
-	struct timeval mytime = {3,0};
+	struct timeval mytime = { 3,0 };
 	std::vector<SocketHandle> m_vListeners;
 	m_vListeners.clear();
 	while (m_bConnected)
@@ -738,7 +747,7 @@ void Socket::SelectThread()
 					}
 					else//udp
 					{
-						memset(&m_stRemoteAddr,0,sizeof(m_stRemoteAddr));
+						memset(&m_stRemoteAddr, 0, sizeof(m_stRemoteAddr));
 						int dataSize = recvfrom(m_Socket, recv_buffer, RECV_BUFFER_SIZE, 0, (sockaddr*)&m_stRemoteAddr, &sockaddr_Len);
 						if (dataSize > 0)
 						{
@@ -750,10 +759,10 @@ void Socket::SelectThread()
 						}
 						else
 						{
-							LogErrorFormat("recvfrom internal error:%d",GetLastSocketError());
+							LogErrorFormat("recvfrom internal error:%d", GetLastSocketError());
 						}
 					}
-					
+
 				}
 				else//client
 				{
@@ -842,7 +851,7 @@ void Socket::SelectThread()
 					}
 				}
 			}
-			
+
 		}
 	}
 	if (nullptr != m_pReadBuffer)

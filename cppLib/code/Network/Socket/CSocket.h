@@ -36,6 +36,8 @@ enum SocketSyncMode
 	SOCKET_SYNC,//同步模式
 	SOCKET_ASYNC//异步模式
 };
+
+//for udp mainly
 class Socket {
 public:
 	typedef std::function<void(int, char*)> SocketRecvCallBack;

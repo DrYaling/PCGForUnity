@@ -8,6 +8,7 @@
 void StartTestServer()
 {
 	SocketServer server(SocketType::SOCKET_UDP);
+	server.SetMTU(512);
 	server.SetAddress("127.0.0.1", 8081);
 	bool bret = server.StartUp();
 	LogFormat("StartUp ret %d\n", bret);

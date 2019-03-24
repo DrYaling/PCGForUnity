@@ -4,8 +4,9 @@
 #include <queue>
 #include "CSocket.h"
 #include "Network\Socket\MessageBuffer.h"
-
+#include <condition_variable>    // std::condition_variable
 typedef std::function<bool(int, uint8*,int)> SocketDataReceiveHandler;
+class ConditionNotifier;
 class SocketServer {
 	struct SocketWriteBuffer
 	{
@@ -31,21 +32,23 @@ public:
 	}
 	void Update();
 	bool Send(char* data, int32 dataSize, int client);
+	int16 GetMTU() { return m_nMTU; }
+	void SetMTU(int16 mtu) { m_nMTU = mtu; }
 protected:
 	void ReadHandlerInternal(int size, const char* buffer);
 	void ReadHandler();
 	ReadDataHandlerResult ReadDataHandler();
 	bool ReadHeaderHandler();
-	void SendDataHandler(int size);
+	bool SendDataHandler();
 	int GetNewClientId() { return ++m_nClientIndex; }
 private:
 	SocketServer() {}
 	MessageBuffer& GetReadBuffer() { return m_readBuffer; }
-	void WriteThread();
 	bool CloseClient(const SockAddr_t& client);
 	bool ContainsRemote(const SockAddr_t& remote);
 private:
 	Socket * m_pSocket;
+	ConditionNotifier* m_pSendNotifier;
 	std::queue<SocketWriteBuffer> _writeQueue;
 	MessageBuffer m_headerBuffer;
 	MessageBuffer m_packetBuffer;
@@ -54,5 +57,20 @@ private:
 	std::map<SockAddr_t, int16> m_mSocketClients;
 	SocketDataReceiveHandler m_pDataHandler;
 	int m_nClientIndex;
+	int16 m_nMTU;
+};
+typedef std::function<bool(void)> ContionThreadRunner;
+class ConditionNotifier {
+public:
+	ConditionNotifier(ContionThreadRunner runner) :m_pRunner(runner), m_bRunning(true){}
+	void Start();
+	void Notify();
+	void Exit();
+private:
+	void Run();
+	std::mutex m_mtx;
+	std::condition_variable m_condition;
+	ContionThreadRunner m_pRunner;
+	bool m_bRunning;
 };
 #endif // !SOCKET_SERVER_H

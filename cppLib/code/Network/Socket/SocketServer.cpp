@@ -2,7 +2,7 @@
 #include "Logger/Logger.h"
 #include <algorithm>
 #include <time.h>
-SocketServer::SocketServer(SocketType sock)
+SocketServer::SocketServer(SocketType sock) :m_nMTU(512), m_pSendNotifier(nullptr)
 {
 	m_pSocket = new	Socket(sock);
 	m_pSocket->SetSocketMode(SocketSyncMode::SOCKET_ASYNC);
@@ -16,19 +16,22 @@ SocketServer::~SocketServer()
 
 bool SocketServer::StartUp()
 {
+	m_pSendNotifier = new ConditionNotifier(std::bind(&SocketServer::SendDataHandler,this));
+	m_pSendNotifier->Start();
 	m_pSocket->SetReadBuffer(m_readBuffer.GetBasePointer());
 	m_pSocket->SetRecvCallback([&](int size, const char* data)->void {
 		this->ReadHandlerInternal(size, data);
 	});
 	m_pDataHandler = [&](int cmd, uint8* data, int size)->bool {
-		LogFormat("data handler %d: %s",cmd,data);
-		char buffer[204018] = { 26 };
-		for (auto client :this->m_mSocketClients)
+		LogFormat("data handler %d: %s", cmd, data);
+		char buffer[512] = { 26 };
+		for (auto client : this->m_mSocketClients)
 		{
 			this->Send(buffer, sizeof(buffer), client.second);
 		}
 		return true;
 	};
+	m_pSocket->SetBlock(true);
 	m_pSocket->Bind();
 	return m_pSocket->StartListen() == 0;
 }
@@ -38,6 +41,11 @@ bool SocketServer::Stop()
 	m_pSocket->SetRecvCallback(nullptr);
 	m_pSocket->Close();
 	m_pDataHandler = nullptr;
+	if (nullptr != m_pSendNotifier)
+	{
+		m_pSendNotifier->Exit();
+		delete m_pSendNotifier;
+	}
 	return true;
 }
 
@@ -54,19 +62,16 @@ void SocketServer::Update()
 bool SocketServer::Send(char * data, int32 dataSize, int client)
 {
 	//auto map_client = std::find(m_mSocketClients.begin(), m_mSocketClients.end(), client);
-	
+
 	for (auto mc : m_mSocketClients)
 	{
 		if (mc.second == client)
 		{
-			//std::lock_guard<std::mutex> lock_guard(_sendLock);
-			//SocketWriteBuffer buffer(client, data, dataSize);
-			//_writeQueue.push(std::move(SocketWriteBuffer(client, data, dataSize)));
-			clock_t startTime,endTime;
-			startTime = clock();//计时开始
-			auto err = m_pSocket->SendTo(data, dataSize, (SockAddr_t&)mc.first);
-			endTime = clock();//计时结束
-			LogFormat("socket server send data size %d,cost time %d,err %d",dataSize,endTime-startTime,err.nresult);
+			std::lock_guard<std::mutex> lock_guard(_sendLock);
+
+			SocketWriteBuffer buffer(client, data, dataSize);
+			_writeQueue.push(std::move(SocketWriteBuffer(client, data, dataSize)));
+			m_pSendNotifier->Notify();
 			return true;
 		}
 	}
@@ -95,7 +100,7 @@ void SocketServer::ReadHandler()
 	auto addr = m_pSocket->GetRecvSockAddr_t();
 	if (!ContainsRemote(addr))
 	{
-		m_mSocketClients.insert(std::make_pair<SockAddr_t&, int>(addr,GetNewClientId()));
+		m_mSocketClients.insert(std::make_pair<SockAddr_t&, int>(addr, GetNewClientId()));
 	}
 	MessageBuffer& packet = GetReadBuffer();
 	while (packet.GetActiveSize() > 0)
@@ -181,16 +186,23 @@ bool SocketServer::ReadHeaderHandler()
 	return true;
 }
 
-void SocketServer::SendDataHandler(int size)
+bool SocketServer::SendDataHandler()
 {
-}
-
-void SocketServer::WriteThread()
-{
-	while (true)
+	LogFormat("SendDataHandler");
+	if (!_writeQueue.empty())
 	{
-
+		auto buffer = _writeQueue.front();
+		_writeQueue.pop();
+		for (auto client : m_mSocketClients)
+		{
+			if (client.second == buffer.clientId)
+			{
+				m_pSocket->SendTo(buffer.buffer.GetBasePointer(), buffer.buffer.GetActiveSize(), const_cast<SockAddr_t&> (client.first));
+				break;
+			}
+		}
 	}
+	return _writeQueue.empty();
 }
 
 bool SocketServer::CloseClient(const SockAddr_t & client)
@@ -199,7 +211,7 @@ bool SocketServer::CloseClient(const SockAddr_t & client)
 
 	if (mc != m_mSocketClients.end())
 	{
-		LogFormat("client %d ,ip :%s,%d is closed by server!", mc->second, GetSocketAddrStr(mc->first),mc->first.port);
+		LogFormat("client %d ,ip :%s,%d is closed by server!", mc->second, GetSocketAddrStr(mc->first), mc->first.port);
 		char buff[] = { "disconnected by server" };
 		Send(buff, sizeof(buff), mc->second);
 		m_mSocketClients.erase(mc);
@@ -212,10 +224,54 @@ bool SocketServer::ContainsRemote(const SockAddr_t & remote)
 {
 	for (auto mc = m_mSocketClients.begin(); mc != m_mSocketClients.end(); mc++)
 	{
-		//if (mc->first == remote)
+		if (mc->first == remote)
 		{
 			return true;
 		}
 	}
 	return false;
+}
+
+void ConditionNotifier::Run()
+{
+	std::unique_lock <std::mutex> lck(m_mtx);
+	while (m_bRunning)
+	{
+		{
+			if (nullptr != m_pRunner)
+			{
+				if (m_pRunner())
+				{
+					Log("Waiting");
+					m_condition.wait(lck);
+					//满足条件,休眠
+				}
+			}
+			else
+			{
+				sleep(1000);
+				LogError("ConditonNotifier has no runner");
+			}
+		}
+	}
+}
+
+void ConditionNotifier::Start()
+{
+	std::thread t(std::bind(&ConditionNotifier::Run, this));
+	t.detach();
+}
+
+void ConditionNotifier::Notify()
+{
+	std::unique_lock <std::mutex> lck(m_mtx);
+	m_condition.notify_all();
+	LogFormat("ConditionNotifier::Notify");
+}
+
+void ConditionNotifier::Exit()
+{
+	m_pRunner = nullptr;
+	m_bRunning = false;
+	Notify();
 }
