@@ -37,8 +37,8 @@ enum SocketSyncMode
 	SOCKET_ASYNC//异步模式
 };
 class Socket {
-	typedef std::function<void(int, char*)> SocketRecvCallBack;
 public:
+	typedef std::function<void(int, char*)> SocketRecvCallBack;
 	Socket(SocketType tp);
 	~Socket();
 	int Bind();
@@ -55,6 +55,10 @@ public:
 	void Reopen(bool bForceClose);
 	void Close();
 	SockError Send(void *ptr, int nbytes);
+	//udp 阻塞模式下sendto不会阻塞
+	SockError SendTo(void *ptr, int nbytes, sockaddr_in& target);
+	//udp 阻塞模式下sendto不会阻塞
+	SockError SendTo(void *ptr, int nbytes, SockAddr_t& target);
 	SockError Recv(void *ptr, int nbytes);
 	SockError TrySend(void *ptr, int nbytes, int milliseconds);
 	SockError TryRecv(void *ptr, int nbytes, int  milliseconds);
@@ -67,7 +71,27 @@ public:
 	
 	void SetRecvCallback(SocketRecvCallBack receive) { m_pRecvCallback = receive; }
 	bool IsServer() { return m_bIsServer; }
-
+	bool IsSockAddr(const sockaddr_in& addr) {
+		return addr.sin_addr.S_un.S_addr == m_stRemoteAddr.sin_addr.S_un.S_addr && addr.sin_port == m_stRemoteAddr
+			.sin_port;
+	}
+	bool IsSockAddr(const SockAddr_t& addr) {
+		return addr.addr == m_stRemoteAddr.sin_addr.S_un.S_addr && addr.port == m_stRemoteAddr
+			.sin_port;
+	}
+	const sockaddr_in& GetRecvSockAddr() {
+		return m_stRemoteAddr;
+	}
+	SockAddr_t GetRecvSockAddr_t() {
+		return SockAddr_t(m_stRemoteAddr);
+	}
+	const sockaddr_in& GetSocketAddr() {
+		return m_stAddr;
+	}
+	SockAddr_t GetSocketAddr_t() {
+		return SockAddr_t(m_stAddr);
+	}
+	void SetReadBuffer(void* buffer) { m_pReadBuffer = buffer; }
 private:
 	void OnDisconnected(SocketHandle socket);
 	void OnConnected(SocketHandle socket);
@@ -76,8 +100,10 @@ private:
 protected:
 	//SocketSendCallBack m_pSendCallback;
 	SocketRecvCallBack m_pRecvCallback;
+	void* m_pReadBuffer;
 	SocketHandle  m_Socket;
 	sockaddr_in m_stAddr;
+	sockaddr_in m_stRemoteAddr;
 	SocketType m_socketType;
 	SocketSyncMode m_eMode;
 	bool m_bConnected;

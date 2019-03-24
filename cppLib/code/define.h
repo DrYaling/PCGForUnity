@@ -34,6 +34,28 @@ typedef uint8_t uint8;
 #ifdef WIN32
 //#pragma comment(lib, " dbghelp.lib")
 #define sleep(x) Sleep(x)
+
+#ifndef NOMINMAX
+
+#ifndef max
+#define max(a,b)            (((a) > (b)) ? (a) : (b))
 #endif
+
+#ifndef min
+#define min(a,b)            (((a) < (b)) ? (a) : (b))
+#endif
+
+#endif  /* NOMINMAX */
+#else
+#include <algorithm>
+#ifndef max
+#define max(a,b)            std::max(a,b)
+#endif
+
+#ifndef min
+#define min(a,b)            std::min(a,b)
+#endif
+#endif
+
 
 #endif

@@ -7,7 +7,7 @@
 #include "Logger/Logger.h"
 //#include "Logger/Logger.h"
 #define INVALIDSOCKHANDLE   INVALID_SOCKET
-#define  RECV_BUFFER_SIZE 1024
+#define  RECV_BUFFER_SIZE 4096
 
 #if defined(_WIN32_PLATFROM_)
 #include <windows.h>
@@ -111,7 +111,7 @@ const char* GetSocketError(int r)
 
 SocketHandle SocketOpen(int tcpudp)
 {
-	printf_s("SocketOpen %d\n", InitializeSocketEnvironment());
+	LogFormat("SocketOpen %d\n", InitializeSocketEnvironment());
 	int protocol = 0;
 	SocketHandle hs;
 #if defined(_WIN32_PLATFROM_)
@@ -119,7 +119,7 @@ SocketHandle SocketOpen(int tcpudp)
 	else if (tcpudp == SOCK_DGRAM) protocol = IPPROTO_UDP;
 #endif
 	hs = socket(AF_INET, tcpudp, protocol);
-	printf_s("SocketOpen hs %d,tcpudp %d,protocol %d\n", hs, tcpudp, protocol);
+	LogFormat("SocketOpen hs %d,tcpudp %d,protocol %d\n", hs, tcpudp, protocol);
 	return hs;
 }
 int SocketBind(SocketHandle hs, sockaddr_in *paddr)
@@ -517,13 +517,33 @@ int Socket::SetBlock(bool bblock)
 SockError Socket::Send(void *ptr, int nbytes)
 {
 	SockError rt;
+	SocketSend(m_Socket, (const char *)ptr, nbytes, rt);
+	return rt;
+}
+SockError Socket::SendTo(void *ptr, int nbytes, sockaddr_in& target)
+{
+	SockError rt;
 	if (m_socketType == SocketType::SOCKET_TCP)
 	{
 		SocketSend(m_Socket, (const char *)ptr, nbytes, rt);
 	}
 	else
 	{
-		int ret =sendto(m_Socket, (const char *)ptr, nbytes, 0, (sockaddr*)&m_stAddr, sizeof(sockaddr));
+		int ret = sendto(m_Socket, (const char *)ptr, nbytes, 0, (sockaddr*)&target, sockaddr_Len);
+		rt.nresult = ret > 0 ? 0 : -1;
+		rt.nbytes = ret;
+	}
+	return rt;
+}SockError Socket::SendTo(void *ptr, int nbytes,  SockAddr_t& target)
+{
+	SockError rt;
+	if (m_socketType == SocketType::SOCKET_TCP)
+	{
+		SocketSend(m_Socket, (const char *)ptr, nbytes, rt);
+	}
+	else
+	{
+		int ret = sendto(m_Socket, (const char *)ptr, nbytes, 0, (sockaddr*)&target.toSockAddr_in(), sockaddr_Len);
 		rt.nresult = ret > 0 ? 0 : -1;
 		rt.nbytes = ret;
 	}
@@ -625,12 +645,19 @@ void Socket::SelectThread()
 {
 	int max_fd = 1;
 	fd_set ser_fdset;
-	char recv_buffer[RECV_BUFFER_SIZE];
+	char* recv_buffer;
+	if (nullptr != m_pReadBuffer)
+	{
+		recv_buffer = (char*)m_pReadBuffer;
+	}
+	else
+	{
+		recv_buffer = new char[RECV_BUFFER_SIZE];
+	}
 	Log("RecvThread start");
 	struct timeval mytime = {3,0};
 	std::vector<SocketHandle> m_vListeners;
 	m_vListeners.clear();
-	sockaddr_in udp_recv_addr;
 	while (m_bConnected)
 	{
 		FD_ZERO(&ser_fdset);
@@ -683,7 +710,7 @@ void Socket::SelectThread()
 					if (m_socketType == SocketType::SOCKET_TCP)
 					{
 						LogFormat("select ret accept %d", ret);
-						struct sockaddr_in client_address;
+						sockaddr_in client_address;
 
 #if defined(_WIN32_PLATFROM_)
 						int cliaddr_len = sizeof(sockaddr_in);
@@ -711,14 +738,19 @@ void Socket::SelectThread()
 					}
 					else//udp
 					{
-						int dataSize = recvfrom(m_Socket, recv_buffer, sizeof(recv_buffer), 0, (sockaddr*)&udp_recv_addr, &sockaddr_Len);
+						memset(&m_stRemoteAddr,0,sizeof(m_stRemoteAddr));
+						int dataSize = recvfrom(m_Socket, recv_buffer, RECV_BUFFER_SIZE, 0, (sockaddr*)&m_stRemoteAddr, &sockaddr_Len);
 						if (dataSize > 0)
 						{
-							LogFormat("message form client[%s:%d]:%s", inet_ntoa(udp_recv_addr.sin_addr),udp_recv_addr.sin_port, recv_buffer);
+							LogFormat("message form client[%s:%d]:%s", inet_ntoa(m_stRemoteAddr.sin_addr), m_stRemoteAddr.sin_port, recv_buffer);
 							if (nullptr != m_pRecvCallback)
 							{
 								m_pRecvCallback(dataSize, recv_buffer);
 							}
+						}
+						else
+						{
+							LogErrorFormat("recvfrom internal error:%d",GetLastSocketError());
 						}
 					}
 					
@@ -812,5 +844,13 @@ void Socket::SelectThread()
 			}
 			
 		}
+	}
+	if (nullptr != m_pReadBuffer)
+	{
+		m_pReadBuffer = nullptr;
+	}
+	else
+	{
+		delete[] recv_buffer;
 	}
 }

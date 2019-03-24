@@ -1,4 +1,4 @@
-#include "Network/Socket/CSocket.h"
+#include "Network/Socket/SocketServer.h"
 //#include "Logger/Logger.h"
 #include "Network/Proto/punch.pb.h"
 #include <iostream>
@@ -7,12 +7,11 @@
 #include <stdio.h>
 void StartTestServer()
 {
-	Socket server(SocketType::SOCKET_UDP);
+	SocketServer server(SocketType::SOCKET_UDP);
 	server.SetAddress("127.0.0.1", 8081);
-	int bret = server.Bind();
-	printf_s("Bind ret %d\n", bret);
-	bret = server.StartListen();
-	printf_s("StartListen ret %d\n", bret);
+	bool bret = server.StartUp();
+	LogFormat("StartUp ret %d\n", bret);
+	//server.SetBlock(true);
 	char buff[1024];
 	while (true)
 	{

@@ -73,13 +73,13 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/Network;$(SolutionDir)../../code/dep/;$(SolutionDir)../../code/Network/Proto</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_MBCS;WIN32;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_MBCS; _WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;WIN32;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
@@ -97,6 +97,7 @@
       <AdditionalIncludeDirectories>../../../code/;../../../code/Network;../../../code/dep/;../../../code/Network/Proto</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PreprocessorDefinitions>_MBCS; _WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -108,18 +109,19 @@
       <AdditionalIncludeDirectories>../../../code/;../../../code/Network;../../../code/dep/;../../../code/Network/Proto</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PreprocessorDefinitions>_MBCS; _WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/Network;$(SolutionDir)../../code/dep/;$(SolutionDir)../../code/Network/Proto</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_MBCS;WIN32;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_MBCS; _WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;WIN32;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
@@ -132,10 +134,12 @@
     <ClInclude Include="..\..\..\code\Network\Socket\MessageBuffer.h" />
     <ClInclude Include="..\..\..\code\Network\Socket\SocketConfig.h" />
     <ClInclude Include="..\..\..\code\Network\Socket\CSocket.h" />
+    <ClInclude Include="..\..\..\code\Network\Socket\SocketServer.h" />
     <ClInclude Include="..\..\..\code\Network\TimeSpan.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\Network\Socket\CSocket.cpp" />
+    <ClCompile Include="..\..\..\code\Network\Socket\SocketServer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Logger\Logger\Logger.vcxproj">
