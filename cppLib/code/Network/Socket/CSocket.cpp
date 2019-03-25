@@ -31,8 +31,11 @@
 #define ETRYAGAIN(x)        (x==EAGAIN||x==EWOULDBLOCK)
 #define gxsprintf           snprintf
 #endif
-
-static int sockaddr_Len = sizeof(sockaddr);
+#if defined(_WIN32_PLATFROM_)
+int sockaddr_Len = sizeof(sockaddr_in);
+#else
+socklen_t sockaddr_Len = sizeof(sockaddr_in);
+#endif
 bool env_inited = false;
 void GetAddressFrom(sockaddr_in *addr, const char *ip, int port)
 {
@@ -544,7 +547,7 @@ SockError Socket::SendTo(void *ptr, int nbytes, sockaddr_in& target)
 		rt.nbytes = ret;
 	}
 	return rt;
-}SockError Socket::SendTo(void *ptr, int nbytes, SockAddr_t& target)
+}SockError Socket::SendTo(void *ptr, int nbytes,const SockAddr_t& target)
 {
 	SockError rt;
 	if (m_socketType == SocketType::SOCKET_TCP)
@@ -553,7 +556,8 @@ SockError Socket::SendTo(void *ptr, int nbytes, sockaddr_in& target)
 	}
 	else
 	{
-		int ret = sendto(m_Socket, (const char *)ptr, nbytes, 0, (sockaddr*)&target.toSockAddr_in(), sockaddr_Len);
+		m_sendAddr = target.toSockAddr_in(m_sendAddr);
+		int ret = sendto(m_Socket, (const char *)ptr, nbytes, 0, (sockaddr*)&m_sendAddr, sockaddr_Len);
 		rt.nresult = ret > 0 ? 0 : -1;
 		rt.nbytes = ret;
 	}

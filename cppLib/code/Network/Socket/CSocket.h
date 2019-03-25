@@ -60,7 +60,7 @@ public:
 	//udp 阻塞模式下sendto不会阻塞
 	SockError SendTo(void *ptr, int nbytes, sockaddr_in& target);
 	//udp 阻塞模式下sendto不会阻塞
-	SockError SendTo(void *ptr, int nbytes, SockAddr_t& target);
+	SockError SendTo(void *ptr, int nbytes, const SockAddr_t& target);
 	SockError Recv(void *ptr, int nbytes);
 	SockError TrySend(void *ptr, int nbytes, int milliseconds);
 	SockError TryRecv(void *ptr, int nbytes, int  milliseconds);
@@ -105,6 +105,7 @@ protected:
 	void* m_pReadBuffer;
 	SocketHandle  m_Socket;
 	sockaddr_in m_stAddr;
+	sockaddr_in m_sendAddr;
 	sockaddr_in m_stRemoteAddr;
 	SocketType m_socketType;
 	SocketSyncMode m_eMode;

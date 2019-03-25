@@ -16,7 +16,7 @@ SocketServer::~SocketServer()
 
 bool SocketServer::StartUp()
 {
-	m_pSendNotifier = new ConditionNotifier(std::bind(&SocketServer::SendDataHandler,this));
+	m_pSendNotifier = new ConditionNotifier(std::bind(&SocketServer::SendDataHandler, this));
 	m_pSendNotifier->Start();
 	m_pSocket->SetReadBuffer(m_readBuffer.GetBasePointer());
 	m_pSocket->SetRecvCallback([&](int size, const char* data)->void {
@@ -68,11 +68,12 @@ bool SocketServer::Send(char * data, int32 dataSize, int client)
 		if (mc.second == client)
 		{
 			std::lock_guard<std::mutex> lock_guard(_sendLock);
-
-			SocketWriteBuffer buffer(client, data, dataSize);
-			_writeQueue.push(std::move(SocketWriteBuffer(client, data, dataSize)));
-			m_pSendNotifier->Notify();
-			return true;
+			if (m_writeQueue.Push(data, dataSize, client))
+			{
+				m_pSendNotifier->Notify();
+				return true;
+			}
+			return false;
 		}
 	}
 	return false;
@@ -189,20 +190,37 @@ bool SocketServer::ReadHeaderHandler()
 bool SocketServer::SendDataHandler()
 {
 	LogFormat("SendDataHandler");
-	if (!_writeQueue.empty())
+	if (m_writeQueue.GetActiveSize() > 0)
 	{
-		auto buffer = _writeQueue.front();
-		_writeQueue.pop();
+		auto buffer = m_writeQueue.Front();
+		//find buffer client
 		for (auto client : m_mSocketClients)
 		{
-			if (client.second == buffer.clientId)
+			if (client.second == buffer->clientId)
 			{
-				m_pSocket->SendTo(buffer.buffer.GetBasePointer(), buffer.buffer.GetActiveSize(), const_cast<SockAddr_t&> (client.first));
+				SockError err;
+				size_t sendSize = buffer->buffer.GetActiveSize() > GetMTU() ? GetMTU() : buffer->buffer.GetActiveSize();
+				if (buffer->buffer.GetActiveSize() > GetMTU())
+				{
+					err = m_pSocket->SendTo(buffer->buffer.GetReadPointer(), GetMTU(), client.first);
+				}
+				else
+				{
+					err = m_pSocket->SendTo(buffer->buffer.GetReadPointer(), buffer->buffer.GetActiveSize(), client.first);
+				}
+				if (err.nresult == 0)
+				{
+					buffer->buffer.ReadCompleted(err.nbytes);
+					if (buffer->buffer.GetActiveSize() <= 0)
+					{
+						m_writeQueue.Pop();
+					}
+				}
 				break;
 			}
 		}
 	}
-	return _writeQueue.empty();
+	return m_writeQueue.GetActiveSize() <= 0;
 }
 
 bool SocketServer::CloseClient(const SockAddr_t & client)

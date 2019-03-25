@@ -61,6 +61,12 @@ typedef struct SockAddr_s
 		in.sin_family = family;
 		return in;
 	}
+	sockaddr_in& toSockAddr_in(sockaddr_in& in) const{
+		in.sin_addr.S_un.S_addr = addr;
+		in.sin_port = port;
+		in.sin_family = family;
+		return in;
+	}
 	 sockaddr_in toCSockAddr_in()const {
 		sockaddr_in in;
 		in.sin_addr.S_un.S_addr = addr;

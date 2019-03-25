@@ -5,22 +5,10 @@
 #include "CSocket.h"
 #include "Network\Socket\MessageBuffer.h"
 #include <condition_variable>    // std::condition_variable
+#include "WriteBufferQueue.h"
 typedef std::function<bool(int, uint8*,int)> SocketDataReceiveHandler;
 class ConditionNotifier;
 class SocketServer {
-	struct SocketWriteBuffer
-	{
-	public:
-		MessageBuffer buffer;
-		int32 clientId;
-
-		explicit SocketWriteBuffer(int32 id, char* buff,int32 buffSize) :
-			clientId(id),
-			buffer(buffSize)
-		{
-			buffer.Write(buff, buffSize);
-		}
-	};
 public:
 	SocketServer(SocketType sock);
 	~SocketServer();
@@ -49,7 +37,7 @@ private:
 private:
 	Socket * m_pSocket;
 	ConditionNotifier* m_pSendNotifier;
-	std::queue<SocketWriteBuffer> _writeQueue;
+	WriteBufferQueue m_writeQueue;
 	MessageBuffer m_headerBuffer;
 	MessageBuffer m_packetBuffer;
 	MessageBuffer m_readBuffer;

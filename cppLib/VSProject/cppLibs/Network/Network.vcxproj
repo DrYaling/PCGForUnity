@@ -135,11 +135,13 @@
     <ClInclude Include="..\..\..\code\Network\Socket\SocketConfig.h" />
     <ClInclude Include="..\..\..\code\Network\Socket\CSocket.h" />
     <ClInclude Include="..\..\..\code\Network\Socket\SocketServer.h" />
+    <ClInclude Include="..\..\..\code\Network\Socket\WriteBufferQueue.h" />
     <ClInclude Include="..\..\..\code\Network\TimeSpan.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\Network\Socket\CSocket.cpp" />
     <ClCompile Include="..\..\..\code\Network\Socket\SocketServer.cpp" />
+    <ClCompile Include="..\..\..\code\Network\Socket\WriteBufferQueue.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Logger\Logger\Logger.vcxproj">

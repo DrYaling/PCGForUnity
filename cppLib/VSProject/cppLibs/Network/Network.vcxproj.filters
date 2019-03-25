@@ -27,9 +27,21 @@
     <ClInclude Include="..\..\..\code\Network\Socket\CSocket.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\code\Network\Socket\SocketServer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\code\Network\Socket\WriteBufferQueue.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\Network\Socket\CSocket.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\Network\Socket\SocketServer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\Network\Socket\WriteBufferQueue.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
