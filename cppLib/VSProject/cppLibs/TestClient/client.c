@@ -9,7 +9,7 @@
 #include "Network/Socket/SocketTime.h"
 int main()
 {
-	sleep(100);
+	//sleep(100);
 	KcpClient client(0);
 	SocketTime.timeStampSinceStartUp = 0;
 	client.SetAddress("127.0.0.1", 8081);
@@ -18,19 +18,7 @@ int main()
 		//socket.SetRecvCallback(nullptr);
 		return true;
 	};
-	client.SetReceiveCallBack(callback);
-	client.Connect();
-	while (!client.IsConnected())
-	{
-		//socket.Send(NULL, 0);
-		sleep(1000);
-	}
-	char buff[345] = { "9" };
-	char data[2550] = { 5 };
-	int i = 1;
-	Log("connect to 127.0.0.1:8081 success");
 	std::mutex mtx;
-
 	std::thread t([&]()->void {
 		while (true)
 		{
@@ -44,11 +32,23 @@ int main()
 		}
 	});
 	t.detach();
+	client.SetReceiveCallBack(callback);
+	client.Connect();
+	while (!client.IsConnected())
+	{
+		//socket.Send(NULL, 0);
+		sleep(1000);
+	}
+	char buff[345] = { "9" };
+	char data[2550] = { 5 };
+	int i = 43;
+	Log("connect to 127.0.0.1:8081 success");
+
 	while (i-- > 0)
 	{
 		PacketHeader header;
 		header.Size = sizeof(buff);
-		header.Command = 2;
+		header.Command = 7;
 		memcpy(data, &header, sizeof(header));
 		sprintf_s(data + sizeof(header), header.Size, "%s", buff);
 		sleep(3276);
