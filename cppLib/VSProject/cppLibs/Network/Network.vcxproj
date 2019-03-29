@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -131,15 +131,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\code\Network\Socket\CoreOpcodes.h" />
+    <ClInclude Include="..\..\..\code\Network\Socket\KcpClient.h" />
+    <ClInclude Include="..\..\..\code\Network\Socket\KcpSession.h" />
+    <ClInclude Include="..\..\..\code\Network\Socket\kcp_config.h" />
     <ClInclude Include="..\..\..\code\Network\Socket\MessageBuffer.h" />
     <ClInclude Include="..\..\..\code\Network\Socket\SocketConfig.h" />
     <ClInclude Include="..\..\..\code\Network\Socket\CSocket.h" />
     <ClInclude Include="..\..\..\code\Network\Socket\SocketServer.h" />
+    <ClInclude Include="..\..\..\code\Network\Socket\SocketTime.h" />
     <ClInclude Include="..\..\..\code\Network\Socket\WriteBufferQueue.h" />
     <ClInclude Include="..\..\..\code\Network\TimeSpan.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\Network\Socket\CSocket.cpp" />
+    <ClCompile Include="..\..\..\code\Network\Socket\ikcp.c" />
+    <ClCompile Include="..\..\..\code\Network\Socket\KcpClient.cpp" />
+    <ClCompile Include="..\..\..\code\Network\Socket\KcpSession.cpp" />
     <ClCompile Include="..\..\..\code\Network\Socket\SocketServer.cpp" />
     <ClCompile Include="..\..\..\code\Network\Socket\WriteBufferQueue.cpp" />
   </ItemGroup>

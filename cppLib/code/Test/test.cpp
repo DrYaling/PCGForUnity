@@ -5,25 +5,29 @@
 #include <thread>
 #include "Logger/Logger.h"
 #include <stdio.h>
+#include "Network/Socket/SocketTime.h"
 void StartTestServer()
 {
-	SocketServer server(SocketType::SOCKET_UDP);
-	server.SetMTU(512);
-	server.SetAddress("127.0.0.1", 8081);
-	bool bret = server.StartUp();
+	SocketServer* server = sSocketServer;
+	server->SetMTU(512);
+	server->SetAddress("127.0.0.1", 8081);
+	bool bret = server->StartUp();
 	LogFormat("StartUp ret %d\n", bret);
-	//server.SetBlock(true);
+	//server->(true);
 	char buff[1024];
+	SocketTime.timeStampSinceStartUp = 0;
+	std::mutex _mtx;
 	while (true)
 	{
 		sleep(10);
-		memset(buff, 0, sizeof(buff));
-		/*auto ret = server.Recv(buff, sizeof(buff));
-		if (ret.nresult == 0)
+		SocketTime.Update(10);
 		{
-			printf_s("Recv ret %d,%d\n", ret.nresult, ret.nbytes);
-		}*/
+			std::lock_guard<std::mutex> lck(_mtx);
+			//LogFormat("Socket time %d", SocketTime.timeStampSinceStartUp);
+			sSocketServer->Update();
+		}
 	}
+	delete sSocketServer;
 }
 int main()
 {
@@ -34,5 +38,6 @@ int main()
 	
 	char c;
 	std::cin >> c;
+	SocketTime_t::Destroy();
 	return 0;
 }

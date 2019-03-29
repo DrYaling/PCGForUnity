@@ -11,7 +11,7 @@ void GetIpAddress(char *ip, sockaddr_in *addr);
 bool IsValidSocketHandle(SocketHandle handle);
 int GetLastSocketError();
 
-SocketHandle SocketOpen(int tcpudp);
+SocketHandle SocketOpen(int tcpudp,int family);
 void SocketClose(SocketHandle &handle);
 int SocketConnect(SocketHandle &handle, sockaddr_in *addr);
 int SocketBlock(SocketHandle hs, bool bblock);
@@ -37,10 +37,10 @@ enum SocketSyncMode
 	SOCKET_ASYNC//�첽ģʽ
 };
 
+typedef std::function<void(int, const char*)> SocketRecvCallBack;
 //for udp mainly
 class Socket {
 public:
-	typedef std::function<void(int, char*)> SocketRecvCallBack;
 	Socket(SocketType tp);
 	~Socket();
 	int Bind();

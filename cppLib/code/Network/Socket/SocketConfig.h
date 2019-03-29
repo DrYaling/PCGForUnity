@@ -3,6 +3,7 @@
 /************************************************************************/
 #ifndef _SOCKET_CONFIG_H
 #define _SOCKET_CONFIG_H
+
 #include "MessageBuffer.h"
 #if WIN32 
 #define _WIN32_PLATFROM_
@@ -50,7 +51,9 @@ typedef struct SockAddr_s
 
 	USHORT port;
 	ULONG addr;
-	SockAddr_s(const sockaddr_in& in) :addr(in.sin_addr.S_un.S_addr),port(in.sin_port), family(in.sin_family){}
+	SockAddr_s() :port(0), addr(0) {}
+	SockAddr_s(const sockaddr_in& in) :addr(in.sin_addr.S_un.S_addr), port(in.sin_port), family(in.sin_family) {}
+	SockAddr_s(const SockAddr_s& in) :addr(in.addr), port(in.port), family(in.family) {}
 	bool operator == (const SockAddr_s& right) const { return addr == right.addr && port == right.port; }
 	bool operator < (const SockAddr_s& right) const { return addr < right.addr; }
 	bool Equals(const SockAddr_s& right) const { return addr == right.addr && port == right.port; }
@@ -97,11 +100,79 @@ struct PacketHeader
 #define _WINSOCK_DEPRECATED_NO_WARNINGS 1
 #endif
 
+#define  RECV_BUFFER_SIZE 4096
 inline  char* GetSocketAddrStr(const sockaddr_in& in) {
 	return inet_ntoa(in.sin_addr);
 }
 inline  char* GetSocketAddrStr(const SockAddr_t& in) {
 	auto addr = in.toCSockAddr_in();
 	return inet_ntoa(addr.sin_addr);
+}
+#include "ikcp.h"
+
+/* encode 8 bits unsigned int */
+static inline char *utils_encode8u(char *p, unsigned char c)
+{
+	*(unsigned char*)p = c;
+	return p;
+}
+
+/* decode 8 bits unsigned int */
+static inline const char *utils_decode8u(const char *p, unsigned char *c)
+{
+	*c = *(unsigned char*)p;
+	return p;
+}
+
+/* encode 16 bits unsigned int (lsb) */
+static inline char *utils_encode16u(char *p, unsigned short w)
+{
+#if IWORDS_BIG_ENDIAN
+	*(unsigned char*)(p + 0) = (w & 255);
+	*(unsigned char*)(p + 1) = (w >> 8);
+#else
+	*(unsigned short*)(p) = w;
+#endif
+	return p;
+}
+
+/* decode 16 bits unsigned int (lsb) */
+static inline const char *utils_decode16u(const char *p, unsigned short *w)
+{
+#if IWORDS_BIG_ENDIAN
+	*w = *(const unsigned char*)(p + 1);
+	*w = *(const unsigned char*)(p + 0) + (*w << 8);
+#else
+	*w = *(const unsigned short*)p;
+#endif
+	return p;
+}
+
+/* encode 32 bits unsigned int (lsb) */
+static inline char *utils_encode32u(char *p, IUINT32 l)
+{
+#if IWORDS_BIG_ENDIAN
+	*(unsigned char*)(p + 0) = (unsigned char)((l >> 0) & 0xff);
+	*(unsigned char*)(p + 1) = (unsigned char)((l >> 8) & 0xff);
+	*(unsigned char*)(p + 2) = (unsigned char)((l >> 16) & 0xff);
+	*(unsigned char*)(p + 3) = (unsigned char)((l >> 24) & 0xff);
+#else
+	*(IUINT32*)p = l;
+#endif
+	return p;
+}
+
+/* decode 32 bits unsigned int (lsb) */
+static inline const char *utils_decode32u(const char *p, IUINT32 *l)
+{
+#if IWORDS_BIG_ENDIAN
+	*l = *(const unsigned char*)(p + 3);
+	*l = *(const unsigned char*)(p + 2) + (*l << 8);
+	*l = *(const unsigned char*)(p + 1) + (*l << 8);
+	*l = *(const unsigned char*)(p + 0) + (*l << 8);
+#else 
+	*l = *(const IUINT32*)p;
+#endif
+	return p;
 }
 #endif
