@@ -9,7 +9,7 @@ class KcpClient
 public:
 	KcpClient(int16 sid);
 	~KcpClient();
-	void SetAddress(const char* ip,int16 port);
+	void SetAddress(const char* ip, int16 port);
 	void Connect();
 	void Close();
 	void Send(char* buff, int length, bool immediately = false);
@@ -19,6 +19,7 @@ public:
 	bool IsClosed() { return m_nSessionStatus == SessionStatus::Disconnected; }
 	bool IsConnecting() { return m_nSessionStatus == SessionStatus::Connecting; }
 	bool IsConnected() { return m_nSessionStatus == SessionStatus::Connected; }
+	void SetConnectTimeout(int16 timeout) { m_nConnectTimeOut = timeout; }
 public:
 	void SetReceiveCallBack(SocketDataReceiveHandler cb) { m_pDataHandler = cb; }
 private:
@@ -31,6 +32,7 @@ private:
 	bool CheckCrc(const char* buff, int length) { return true; }
 	static int fnWriteDgram(const char *buf, int len, ikcpcb *kcp, void *user);
 	void SendHeartBeat();
+	void OnConnectFailed();
 private:
 	SocketDataReceiveHandler m_pDataHandler;
 	MessageBuffer m_headerBuffer;
@@ -48,6 +50,9 @@ private:
 	bool m_bAlive;
 	int16 m_nServerId;
 	bool m_bRecv;
+	int16 m_nConnectTimeOut;
+	int16 m_nReconnectTime;
+	const static int16 reconnectInterval = 1000;
 
 };
 #endif

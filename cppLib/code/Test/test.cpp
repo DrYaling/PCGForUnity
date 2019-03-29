@@ -31,6 +31,7 @@ void StartTestServer()
 }
 int main()
 {
+	sleep(5000);
 	//LogFormat("Test.main");
 	std::thread thr(StartTestServer);
 	thr.detach();
