@@ -5,40 +5,74 @@
 #include <thread>
 #include "Logger/Logger.h"
 #include <stdio.h>
+#include "Network/Socket/KcpClient.h"
+#include "Network/Socket/SocketTime.h"
 int main()
 {
-	//LogFormat("sockaddr_in size %d", sizeof(SockAddr_s));
-	sleep(2000);
-	Socket socket(SocketType::SOCKET_UDP);
-	socket.SetAddress("127.0.0.1", 8081);
-	socket.SetSocketMode(SocketSyncMode::SOCKET_ASYNC);
-	auto callback = [&socket](int size, char* buff)->void {
-		LogFormat("recv server msg len :%d,content:%s,sockaddr_in size %d", size, buff,sizeof(sockaddr_in));
-		socket.SetRecvCallback(nullptr);
+	sleep(100);
+	KcpClient client(0);
+	SocketTime.timeStampSinceStartUp = 0;
+	client.SetAddress("127.0.0.1", 8081);
+	auto callback = [&client](int cmd, const uint8* buff,int size)->bool {
+		LogFormat("recv server msg cmd :%d,content:%s,msg size %d", cmd, buff, size);
+		//socket.SetRecvCallback(nullptr);
+		return true;
 	};
-	socket.SetRecvCallback(callback);
-	while (!socket.Connected())
+	client.SetReceiveCallBack(callback);
+	client.Connect();
+	while (!client.IsConnected())
 	{
 		//socket.Send(NULL, 0);
-		socket.Connect();
 		sleep(1000);
-		SkyDream::ListConn l;
 	}
-	char buff[] = { "12312312" };
-	char data[255] = {};
-	int i = 9;
+	char buff[345] = { "9" };
+	char data[2550] = { 5 };
+	int i = 1;
 	Log("connect to 127.0.0.1:8081 success");
+	std::mutex mtx;
+
+	std::thread t([&]()->void {
+		while (true)
+		{
+			sleep(15);
+			SocketTime.Update(15);
+			{
+				std::lock_guard<std::mutex> lck(mtx);
+				//LogFormat("Socket time %d", SocketTime.timeStampSinceStartUp);
+				client.Update(15);
+			}
+		}
+	});
+	t.detach();
 	while (i-- > 0)
 	{
 		PacketHeader header;
 		header.Size = sizeof(buff);
-		header.Command = 1;
+		header.Command = 2;
 		memcpy(data, &header, sizeof(header));
-		sprintf_s(data + sizeof(header),255, "%s", buff);
-		auto t = socket.TrySend(data,sizeof(header)+ sizeof(buff), 0);
-		LogFormat("send ret %d,%d-buff size %d", t.nresult, t.nbytes,sizeof(buff));
+		sprintf_s(data + sizeof(header), header.Size, "%s", buff);
 		sleep(3276);
+		{
+			std::lock_guard<std::mutex> lck(mtx);
+			client.Send(data, sizeof(header) + sizeof(buff), false);
+			client.Send(data, sizeof(header) + sizeof(buff), false);
+			client.Send(data, sizeof(header) + sizeof(buff), false);
+			client.Send(data, sizeof(header) + sizeof(buff), false);
+			client.Send(data, sizeof(header) + sizeof(buff), false);
+		}
+		LogFormat("send buff size %d", sizeof(header) + sizeof(buff));
+		/*client.Send(data, sizeof(header) + sizeof(buff) + 1, true);
+		LogFormat("send buff size %d", sizeof(header) + sizeof(buff) + 1);
+		client.Send(data, sizeof(header) + sizeof(buff) + 2, true);
+		LogFormat("send buff size %d", sizeof(header) + sizeof(buff) + 2);
+		client.Send(data, sizeof(header) + sizeof(buff) + 3, true);
+		LogFormat("send buff size %d", sizeof(header) + sizeof(buff) + 3);*/
 	}
-	socket.Close();
+	//client.Close();
+	//SocketTime_t::Destroy();
+	while (true)
+	{
+		sleep(1);
+	}
 	return 0;
 }

@@ -11,7 +11,7 @@ void GetIpAddress(char *ip, sockaddr_in *addr);
 bool IsValidSocketHandle(SocketHandle handle);
 int GetLastSocketError();
 
-SocketHandle SocketOpen(int tcpudp);
+SocketHandle SocketOpen(int tcpudp,int family);
 void SocketClose(SocketHandle &handle);
 int SocketConnect(SocketHandle &handle, sockaddr_in *addr);
 int SocketBlock(SocketHandle hs, bool bblock);
@@ -37,10 +37,10 @@ enum SocketSyncMode
 	SOCKET_ASYNC//异步模式
 };
 
+typedef std::function<void(int, const char*)> SocketRecvCallBack;
 //for udp mainly
 class Socket {
 public:
-	typedef std::function<void(int, char*)> SocketRecvCallBack;
 	Socket(SocketType tp);
 	~Socket();
 	int Bind();
@@ -60,7 +60,7 @@ public:
 	//udp 阻塞模式下sendto不会阻塞
 	SockError SendTo(void *ptr, int nbytes, sockaddr_in& target);
 	//udp 阻塞模式下sendto不会阻塞
-	SockError SendTo(void *ptr, int nbytes, SockAddr_t& target);
+	SockError SendTo(void *ptr, int nbytes, const SockAddr_t& target);
 	SockError Recv(void *ptr, int nbytes);
 	SockError TrySend(void *ptr, int nbytes, int milliseconds);
 	SockError TryRecv(void *ptr, int nbytes, int  milliseconds);
@@ -105,6 +105,7 @@ protected:
 	void* m_pReadBuffer;
 	SocketHandle  m_Socket;
 	sockaddr_in m_stAddr;
+	sockaddr_in m_sendAddr;
 	sockaddr_in m_stRemoteAddr;
 	SocketType m_socketType;
 	SocketSyncMode m_eMode;

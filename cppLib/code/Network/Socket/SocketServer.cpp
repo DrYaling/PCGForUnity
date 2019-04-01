@@ -2,35 +2,45 @@
 #include "Logger/Logger.h"
 #include <algorithm>
 #include <time.h>
-SocketServer::SocketServer(SocketType sock) :m_nMTU(512), m_pSendNotifier(nullptr)
+#include "SocketTime.h"
+#include "CoreOpcodes.h"
+const static int PACKET_HEADER_SIZE = IKCP_OVERHEAD_LEN + 4 + sizeof(PacketHeader);
+char accept_pack_data[PACKET_HEADER_SIZE - IKCP_OVERHEAD_LEN] = { 0 };
+SocketServer::SocketServer(SocketType sock) :m_nMTU(512), m_pSendNotifier(nullptr), m_nServerId(0)
 {
 	m_pSocket = new	Socket(sock);
 	m_pSocket->SetSocketMode(SocketSyncMode::SOCKET_ASYNC);
-	m_readBuffer.Resize(4096);
-	m_headerBuffer.Resize(sizeof(PacketHeader));
+	LogFormat("Socket Server fd %d",m_pSocket->GetHandle());
+	m_readBuffer.Resize(RECV_BUFFER_SIZE);
+	PacketHeader acptHeader;
+	acptHeader.Command = C2S_CONNECT;
+	acptHeader.Size = 4;
+	memcpy(accept_pack_data, &acptHeader, sizeof(acptHeader));
+	memcpy(accept_pack_data + sizeof(acptHeader), "acpt", 4);
+	//LogFormat("accept_pack_data %s", accept_pack_data);
 }
 
 SocketServer::~SocketServer()
 {
 }
 
+KcpSession * SocketServer::CreateSession(IUINT32 conv, const SockAddr_t & addr)
+{
+	KcpSession* session = new KcpSession(conv, addr);
+
+	return session;
+}
+
 bool SocketServer::StartUp()
 {
-	m_pSendNotifier = new ConditionNotifier(std::bind(&SocketServer::SendDataHandler,this));
+	m_pSendNotifier = new ConditionNotifier(std::bind(&SocketServer::SendDataHandler, this));
 	m_pSendNotifier->Start();
 	m_pSocket->SetReadBuffer(m_readBuffer.GetBasePointer());
-	m_pSocket->SetRecvCallback([&](int size, const char* data)->void {
+	auto callback = std::bind(&SocketServer::ReadHandlerInternal, this,std::placeholders::_1,std::placeholders::_2);
+	m_pSocket->SetRecvCallback(callback);
+	/*m_pSocket->SetRecvCallback([&](int size, const char* data)->void {
 		this->ReadHandlerInternal(size, data);
-	});
-	m_pDataHandler = [&](int cmd, uint8* data, int size)->bool {
-		LogFormat("data handler %d: %s", cmd, data);
-		char buffer[512] = { 26 };
-		for (auto client : this->m_mSocketClients)
-		{
-			this->Send(buffer, sizeof(buffer), client.second);
-		}
-		return true;
-	};
+	});*/
 	m_pSocket->SetBlock(true);
 	m_pSocket->Bind();
 	return m_pSocket->StartListen() == 0;
@@ -40,7 +50,6 @@ bool SocketServer::Stop()
 {
 	m_pSocket->SetRecvCallback(nullptr);
 	m_pSocket->Close();
-	m_pDataHandler = nullptr;
 	if (nullptr != m_pSendNotifier)
 	{
 		m_pSendNotifier->Exit();
@@ -57,25 +66,50 @@ bool SocketServer::SetAddress(const char * ip, unsigned short port)
 
 void SocketServer::Update()
 {
+	for (auto aliveSession : m_mSessions)
+	{
+		KcpSession* session = aliveSession.second;
+		if (session)
+		{
+			aliveSession.second->Update(10);
+		}
+	}
+	//clear dead sessions
+	m_vClosingSessions.clear();
+	for (auto sSession  = m_mSleepSessions.begin();sSession != m_mSleepSessions.end();sSession++)
+	{
+		KcpSession* session = sSession->second;
+		if (session)
+		{
+			sSession->second->Update(10);
+			if (sSession->second->IsDead())
+			{
+				m_vClosingSessions.push_back(sSession);
+			}
+		}
+	}
+	/*if (m_vClosingSessions.size()>0)
+	{
+		for (auto itr :m_vClosingSessions)
+		{
+			OnSessionDead(itr->second);
+			m_mSleepSessions.erase(itr);
+		}
+		m_vClosingSessions.clear();
+	}*/
 }
 
-bool SocketServer::Send(char * data, int32 dataSize, int client)
+int32 SocketServer::Send(const char * data, int32 dataSize, const socketSessionId& session)
 {
 	//auto map_client = std::find(m_mSocketClients.begin(), m_mSocketClients.end(), client);
 
-	for (auto mc : m_mSocketClients)
+	std::lock_guard<std::mutex> lock_guard(_sendLock);
+	if (m_writeQueue.Push(data, dataSize, session.addr))
 	{
-		if (mc.second == client)
-		{
-			std::lock_guard<std::mutex> lock_guard(_sendLock);
-
-			SocketWriteBuffer buffer(client, data, dataSize);
-			_writeQueue.push(std::move(SocketWriteBuffer(client, data, dataSize)));
-			m_pSendNotifier->Notify();
-			return true;
-		}
+		m_pSendNotifier->Notify();
+		return dataSize;
 	}
-	return false;
+	return -1;
 }
 
 void SocketServer::ReadHandlerInternal(int size, const char * buffer)
@@ -98,138 +132,227 @@ void SocketServer::ReadHandler()
 	if (!m_pSocket->Connected())
 		return;
 	auto addr = m_pSocket->GetRecvSockAddr_t();
-	if (!ContainsRemote(addr))
+	KcpSession* session = GetSessionByRemote(addr);
+	//if cant find session,try create new session
+	if (nullptr == session)
 	{
-		m_mSocketClients.insert(std::make_pair<SockAddr_t&, int>(addr, GetNewClientId()));
+		//accept
+		session = OnAccept(addr);
+		if (nullptr != session)
+		{
+			session->OnConnected();
+		}
+		return;
 	}
-	MessageBuffer& packet = GetReadBuffer();
-	while (packet.GetActiveSize() > 0)
-	{
-		if (m_headerBuffer.GetRemainingSpace() > 0)
-		{
-			// need to receive the header
-			std::size_t readHeaderSize = min(packet.GetActiveSize(), m_headerBuffer.GetRemainingSpace());
-			//LogFormat("header size %d,pack active size %d",readHeaderSize,packet.GetActiveSize());
-			m_headerBuffer.Write(packet.GetReadPointer(), readHeaderSize);
-			packet.ReadCompleted(readHeaderSize);
+	//maybe receive a real pack
+	session->OnReceive(m_readBuffer.GetReadPointer(), m_readBuffer.GetActiveSize());
 
-			if (m_headerBuffer.GetRemainingSpace() > 0)
-			{
-				// Couldn't receive the whole header this time.
-				//ASSERT(packet.GetActiveSize() == 0);
-				break;
-			}
-
-			// We just received nice new header
-			if (!ReadHeaderHandler())
-			{
-				CloseClient(m_pSocket->GetRecvSockAddr());
-				return;
-			}
-		}
-
-		// We have full read header, now check the data payload
-		if (m_packetBuffer.GetRemainingSpace() > 0)
-		{
-			// need more data in the payload
-			std::size_t readDataSize = min(packet.GetActiveSize(), m_packetBuffer.GetRemainingSpace());
-			m_packetBuffer.Write(packet.GetReadPointer(), readDataSize);
-			packet.ReadCompleted(readDataSize);
-
-			if (m_packetBuffer.GetRemainingSpace() > 0)
-			{
-				// Couldn't receive the whole data this time.
-				//ASSERT(packet.GetActiveSize() == 0);
-				break;
-			}
-		}
-
-		// just received fresh new payload
-		ReadDataHandlerResult result = ReadDataHandler();
-		m_headerBuffer.Reset();
-		if (result != ReadDataHandlerResult::Ok)
-		{
-			if (result != ReadDataHandlerResult::WaitingForQuery)
-				CloseClient(m_pSocket->GetRecvSockAddr());
-
-			return;
-		}
-	}
 }
 
-ReadDataHandlerResult SocketServer::ReadDataHandler()
-{
-	PacketHeader* header = reinterpret_cast<PacketHeader*>(m_headerBuffer.GetReadPointer());
-	//LogFormat("UdpSocket read remote cmd %d,data size %d,%s", header->Command, header->Size, m_packetBuffer.GetReadPointer());
-	if (nullptr != m_pDataHandler)
-	{
-		if (m_pDataHandler(header->Command, m_packetBuffer.GetReadPointer(), m_packetBuffer.GetActiveSize()))
-		{
-			return ReadDataHandlerResult::Ok;
-		}
-	}
-	return ReadDataHandlerResult::Error;
-}
-
-bool SocketServer::ReadHeaderHandler()
-{
-	PacketHeader* header = reinterpret_cast<PacketHeader*>(m_headerBuffer.GetReadPointer());
-
-	if (!header->IsValidSize() || !header->IsValidOpcode())
-	{
-		LogErrorFormat("SocketServer::ReadHeaderHandler(): client %s sent malformed packet (size: %u, cmd: %u)", GetSocketAddrStr(m_pSocket->GetRecvSockAddr()), header->Size, header->Command);
-		return false;
-	}
-	m_packetBuffer.Reset();
-	m_packetBuffer.Resize(header->Size);
-	//LogFormat("ReadHeaderHandler data size %d",header->Size);
-	return true;
-}
 
 bool SocketServer::SendDataHandler()
 {
-	LogFormat("SendDataHandler");
-	if (!_writeQueue.empty())
+	//LogFormat("SendDataHandler buffer queue size %d",m_writeQueue.GetActiveSize());
+	if (m_writeQueue.GetActiveSize() > 0)
 	{
-		auto buffer = _writeQueue.front();
-		_writeQueue.pop();
-		for (auto client : m_mSocketClients)
+		auto buffer = m_writeQueue.Front();
+		SockError err;
+		size_t sendSize = buffer->buffer.GetActiveSize() > GetMTU() ? GetMTU() : buffer->buffer.GetActiveSize();
+		if (buffer->buffer.GetActiveSize() > GetMTU())
 		{
-			if (client.second == buffer.clientId)
+			err = m_pSocket->SendTo(buffer->buffer.GetReadPointer(), GetMTU(), buffer->addr);
+		}
+		else
+		{
+			err = m_pSocket->SendTo(buffer->buffer.GetReadPointer(), buffer->buffer.GetActiveSize(), buffer->addr);
+		}
+		if (err.nresult == 0)
+		{
+			buffer->buffer.ReadCompleted(err.nbytes);
+			//LogFormat("Send to %s:%d,size %d",GetSocketAddrStr(buffer->addr),buffer->addr.port,err.nbytes);
+			if (buffer->buffer.GetActiveSize() <= 0)
 			{
-				m_pSocket->SendTo(buffer.buffer.GetBasePointer(), buffer.buffer.GetActiveSize(), const_cast<SockAddr_t&> (client.first));
-				break;
+				m_writeQueue.Pop();
 			}
 		}
-	}
-	return _writeQueue.empty();
-}
-
-bool SocketServer::CloseClient(const SockAddr_t & client)
-{
-	auto mc = m_mSocketClients.find(client);
-
-	if (mc != m_mSocketClients.end())
-	{
-		LogFormat("client %d ,ip :%s,%d is closed by server!", mc->second, GetSocketAddrStr(mc->first), mc->first.port);
-		char buff[] = { "disconnected by server" };
-		Send(buff, sizeof(buff), mc->second);
-		m_mSocketClients.erase(mc);
-		return true;
-	}
-	return false;
-}
-
-bool SocketServer::ContainsRemote(const SockAddr_t & remote)
-{
-	for (auto mc = m_mSocketClients.begin(); mc != m_mSocketClients.end(); mc++)
-	{
-		if (mc->first == remote)
+		else
 		{
+			LogFormat("Socket Server Send fail %d",err.nresult);
+		}
+	}
+	return m_writeQueue.GetActiveSize() <= 0;
+}
+
+
+bool SocketServer::CloseSession(const SockAddr_t & client)
+{
+	for (auto mc = m_mSessions.begin(); mc != m_mSessions.end(); mc++)
+	{
+		if (mc->second->GetSessionId().addr == client)
+		{
+			LogFormat("client %d ,ip :%s,%d is closed by server!", mc->first, GetSocketAddrStr(mc->second->GetSessionId().addr), mc->second->GetSessionId().addr.port);
+			PacketHeader header = { 0,S2C_DISCONNECT };
+			Send((const char*)&header, sizeof(header), mc->second->GetSessionId());
+			mc->second->OnDisconnected(true);
+			m_mSessions.erase(mc);
 			return true;
 		}
 	}
 	return false;
+}
+
+bool SocketServer::CloseSession(KcpSession * session, bool remove)
+{
+	for (auto mc = m_mSessions.begin(); mc != m_mSessions.end(); mc++)
+	{
+		if (mc->second == session)
+		{
+			LogFormat("client %d ,ip :%s,%d is closed by server!", mc->first, GetSocketAddrStr(mc->second->GetSessionId().addr), mc->second->GetSessionId().addr.port);
+			PacketHeader header = { 0,S2C_DISCONNECT };
+			//disconnect msg 
+			Send((const char*)&header, sizeof(header), mc->second->GetSessionId());
+			m_mSessions.erase(mc);
+			session->OnDisconnected(remove);
+			if (!remove)
+			{
+				m_mSleepSessions.insert(std::make_pair(session->GetSessionId().conv, session));
+			}
+			return true;
+		}
+	}
+	session->OnDisconnected(remove);
+	return false;
+}
+std::map<IUINT32, KcpSession*>::iterator SocketServer::OnSessionDead(KcpSession * session)
+{
+	for (auto mc = m_mSleepSessions.begin(); mc != m_mSleepSessions.end(); mc++)
+	{
+		if (mc->second == session)
+		{
+			LogFormat("client %d ,ip :%s,%d is dead !", mc->first, GetSocketAddrStr(mc->second->GetSessionId().addr), mc->second->GetSessionId().addr.port);
+			char buff[] = { "disconnected by server" };
+			Send(buff, sizeof(buff), mc->second->GetSessionId());
+			session->OnDisconnected(true);
+			return m_mSleepSessions.erase(mc);
+		}
+	}
+	return m_mSleepSessions.end();
+}
+KcpSession* SocketServer::ContainsRemote(const SockAddr_t & remote, IUINT32 conv)
+{
+	for (auto mc = m_mSessions.begin(); mc != m_mSessions.end(); mc++)
+	{
+		if (mc->second->GetSessionId().addr == remote && mc->second->GetSessionId().conv == conv)
+		{
+			return mc->second;
+		}
+	}
+	return nullptr;
+}
+
+KcpSession * SocketServer::GetSessionByRemote(const SockAddr_t & remote)
+{
+	for (auto mc = m_mSessions.begin(); mc != m_mSessions.end(); mc++)
+	{
+		if (mc->second->GetSessionId().addr == remote)
+		{
+			return mc->second;
+		}
+	}
+	return nullptr;
+}
+
+MessageBuffer* SocketServer::GetWaitingConnectSession(const SockAddr_t & remote)
+{
+	for (auto mc = m_mWaitingForConnections.begin(); mc != m_mWaitingForConnections.end(); mc++)
+	{
+		if (mc->first == remote)
+		{
+			return &mc->second;
+		}
+	}
+	return nullptr;
+}
+
+bool SocketServer::CheckCrc(const char * buff, int length)
+{
+	return true;
+}
+
+bool SocketServer::AcceptPack(const uint8 * buff, int length)
+{
+	return memcmp(buff, accept_pack_data, length) == 0;
+}
+
+KcpSession * SocketServer::OnAccept(const SockAddr_t& remote)
+{
+	KcpSession* session = nullptr;
+	//not valid pack
+	//a accept pack should allways simple as accept_pack_data,or its bad connection
+	IUINT32 conv = 0;
+	auto msgBuffer = GetWaitingConnectSession(remote); 
+	//is not waiting for connection,parse this one
+	if (nullptr == msgBuffer)
+	{
+		
+		//if ((conv>>16 & 0xffff) == 0)//new connection
+		{
+			//m_readBuffer.ReadCompleted(IKCP_OVERHEAD_LEN);
+			MessageBuffer buff(m_readBuffer.GetActiveSize());
+			buff.Write(m_readBuffer.GetReadPointer(), m_readBuffer.GetActiveSize());
+			msgBuffer = &buff;
+			//not a accept pack
+			if (msgBuffer->GetActiveSize() > sizeof(accept_pack_data))
+				return nullptr;
+			// Couldn't receive the whole accept pack this time.
+			if (msgBuffer->GetActiveSize() != sizeof(accept_pack_data))
+			{
+				m_mWaitingForConnections.insert(std::make_pair(remote, buff));
+				return nullptr;
+			}
+			if (!AcceptPack(msgBuffer->GetReadPointer(),msgBuffer->GetActiveSize()))
+			{
+				// not accept pack
+				return nullptr;
+			}
+			conv = IUINT32(GetNewConv() << 16) + GetServerId();
+			session = CreateSession(conv, remote);
+			m_mSessions.insert(std::make_pair(conv, session));
+			return session;
+		}
+	}
+	else
+	{
+		//if ((conv>>16 & 0xffff) == 0)//new connection
+		{
+			//will never goes here,but for exception
+			//m_readBuffer.ReadCompleted(IKCP_OVERHEAD_LEN);
+			msgBuffer->EnsureFreeSpace(m_readBuffer.GetActiveSize());
+			msgBuffer->Write(m_readBuffer.GetReadPointer(), m_readBuffer.GetActiveSize());
+			for (auto itr = m_mWaitingForConnections.begin(); itr != m_mWaitingForConnections.end(); itr++)
+			{
+				if (itr->first == remote)
+				{
+					m_mWaitingForConnections.erase(itr);
+					break;
+				}
+			}
+			//not a accept pack,close this waiting session
+			if (msgBuffer->GetActiveSize() != sizeof(accept_pack_data))
+			{
+				return nullptr;
+			}
+			//invalid accept pack
+			if (!AcceptPack(msgBuffer->GetReadPointer(), msgBuffer->GetActiveSize()))
+			{
+				return nullptr;
+			}
+			conv = IUINT32(GetNewConv() << 16) + GetServerId();
+			session = CreateSession(conv, remote);
+			m_mSessions.insert(std::make_pair(conv, session));
+		}
+	}
+	return session;
 }
 
 void ConditionNotifier::Run()
@@ -242,7 +365,6 @@ void ConditionNotifier::Run()
 			{
 				if (m_pRunner())
 				{
-					Log("Waiting");
 					m_condition.wait(lck);
 					//Âú×ãÌõ¼þ,ÐÝÃß
 				}
@@ -266,7 +388,7 @@ void ConditionNotifier::Notify()
 {
 	std::unique_lock <std::mutex> lck(m_mtx);
 	m_condition.notify_all();
-	LogFormat("ConditionNotifier::Notify");
+	//LogFormat("ConditionNotifier::Notify");
 }
 
 void ConditionNotifier::Exit()

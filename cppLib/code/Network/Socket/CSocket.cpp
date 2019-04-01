@@ -7,7 +7,6 @@
 #include "Logger/Logger.h"
 //#include "Logger/Logger.h"
 #define INVALIDSOCKHANDLE   INVALID_SOCKET
-#define  RECV_BUFFER_SIZE 4096
 
 #if defined(_WIN32_PLATFROM_)
 #include <windows.h>
@@ -31,8 +30,11 @@
 #define ETRYAGAIN(x)        (x==EAGAIN||x==EWOULDBLOCK)
 #define gxsprintf           snprintf
 #endif
-
-static int sockaddr_Len = sizeof(sockaddr);
+#if defined(_WIN32_PLATFROM_)
+int sockaddr_Len = sizeof(sockaddr_in);
+#else
+socklen_t sockaddr_Len = sizeof(sockaddr_in);
+#endif
 bool env_inited = false;
 void GetAddressFrom(sockaddr_in *addr, const char *ip, int port)
 {
@@ -108,17 +110,19 @@ const char* GetSocketError(int r)
 	}
 	return "SUCCESS";
 }
-
-SocketHandle SocketOpen(int tcpudp)
+std::mutex _socket_open_mutex;
+SocketHandle SocketOpen(int tcpudp,int family)
 {
-	LogFormat("SocketOpen %d\n", InitializeSocketEnvironment());
+	std::lock_guard<std::mutex> lck(_socket_open_mutex);
+	InitializeSocketEnvironment();
+	//LogFormat("SocketOpen %d\n", InitializeSocketEnvironment());
 	int protocol = 0;
 	SocketHandle hs;
 #if defined(_WIN32_PLATFROM_)
 	if (tcpudp == SOCK_STREAM) protocol = IPPROTO_TCP;
 	else if (tcpudp == SOCK_DGRAM) protocol = IPPROTO_UDP;
 #endif
-	hs = socket(AF_INET, tcpudp, protocol);
+	hs = socket(family, tcpudp, protocol);
 #if defined(_WIN32_PLATFROM_)
 	if (hs > 0 && tcpudp == SOCK_DGRAM)
 	{
@@ -129,7 +133,7 @@ SocketHandle SocketOpen(int tcpudp)
 		WSAIoctl(hs, SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
 	}
 #endif
-	LogFormat("SocketOpen hs %d,tcpudp %d,protocol %d\n", hs, tcpudp, protocol);
+	//LogFormat("SocketOpen hs %d,tcpudp %d,protocol %d\n", hs, tcpudp, protocol);
 	return hs;
 }
 int SocketBind(SocketHandle hs, sockaddr_in *paddr)
@@ -444,14 +448,14 @@ int Socket::Bind(sockaddr_in * addr)
 }
 void Socket::Reopen(bool bForceClose)
 {
-	printf_s("Reopen %d\n", m_Socket);
+	//printf_s("Reopen %d\n", m_Socket);
 	if (ISSOCKHANDLE(m_Socket) && bForceClose)
 		SocketClose(m_Socket);
 	if (!ISSOCKHANDLE(m_Socket))
 	{
-		m_Socket = SocketOpen(m_socketType);
+		m_Socket = SocketOpen(m_socketType, AF_INET);
 	}
-	printf_s("Reopen %d\n", m_Socket);
+	printf_s("Socket %d\n", m_Socket);
 }
 void Socket::Close()
 {
@@ -468,16 +472,16 @@ void Socket::Connect()
 		return;
 	}
 	int ret = SocketConnect(m_Socket, &m_stAddr);
-	printf_s("Socket Connect ret %d,error %d\n", ret, GetLastSocketError());
+	//printf_s("Socket Connect ret %d,error %d\n", ret, GetLastSocketError());
 	m_bIsServer = false;
-	if (ret == 0)
+	if (ret == 0 && !m_bConnected)
 	{
-		m_bConnected = true;
 		if (m_eMode == SocketSyncMode::SOCKET_ASYNC)
 		{
 			std::thread trecv(&Socket::SelectThread, this);
 			trecv.detach();
 		}
+		m_bConnected = true;
 	}
 }
 void Socket::Connect(const char* ip, int port)
@@ -527,7 +531,16 @@ int Socket::SetBlock(bool bblock)
 SockError Socket::Send(void *ptr, int nbytes)
 {
 	SockError rt;
-	SocketSend(m_Socket, (const char *)ptr, nbytes, rt);
+	if (m_socketType == SocketType::SOCKET_TCP)
+	{
+		SocketSend(m_Socket, (const char *)ptr, nbytes, rt);
+	}
+	else
+	{
+		int ret = sendto(m_Socket, (const char *)ptr, nbytes, 0, (sockaddr*)&m_stAddr, sockaddr_Len);
+		rt.nresult = ret > 0 ? 0 : -1;
+		rt.nbytes = ret;
+	}
 	return rt;
 }
 SockError Socket::SendTo(void *ptr, int nbytes, sockaddr_in& target)
@@ -544,7 +557,7 @@ SockError Socket::SendTo(void *ptr, int nbytes, sockaddr_in& target)
 		rt.nbytes = ret;
 	}
 	return rt;
-}SockError Socket::SendTo(void *ptr, int nbytes, SockAddr_t& target)
+}SockError Socket::SendTo(void *ptr, int nbytes,const SockAddr_t& target)
 {
 	SockError rt;
 	if (m_socketType == SocketType::SOCKET_TCP)
@@ -553,7 +566,8 @@ SockError Socket::SendTo(void *ptr, int nbytes, sockaddr_in& target)
 	}
 	else
 	{
-		int ret = sendto(m_Socket, (const char *)ptr, nbytes, 0, (sockaddr*)&target.toSockAddr_in(), sockaddr_Len);
+		m_sendAddr = target.toSockAddr_in(m_sendAddr);
+		int ret = sendto(m_Socket, (const char *)ptr, nbytes, 0, (sockaddr*)&m_sendAddr, sockaddr_Len);
 		rt.nresult = ret > 0 ? 0 : -1;
 		rt.nbytes = ret;
 	}
@@ -631,7 +645,7 @@ int Socket::StartListen(int maxconn)
 	{
 		err = SocketListen(m_Socket, maxconn);
 	}
-	if (err == 0)
+	if (err == 0 && !m_bConnected)
 	{
 		std::thread trecv(&Socket::SelectThread, this);
 		trecv.detach();
@@ -710,7 +724,7 @@ void Socket::SelectThread()
 			{
 				//do nothing
 			}*/
-			LogFormat("select ret %d", ret);
+			//LogFormat("select ret %d", ret);
 			//accept ÔÚacceptÏß³Ì
 			if (FD_ISSET(m_Socket, &ser_fdset))
 			{
@@ -751,7 +765,7 @@ void Socket::SelectThread()
 						int dataSize = recvfrom(m_Socket, recv_buffer, RECV_BUFFER_SIZE, 0, (sockaddr*)&m_stRemoteAddr, &sockaddr_Len);
 						if (dataSize > 0)
 						{
-							LogFormat("message form client[%s:%d]:%s", inet_ntoa(m_stRemoteAddr.sin_addr), m_stRemoteAddr.sin_port, recv_buffer);
+							//LogFormat("message form client[%s:%d]:%s", inet_ntoa(m_stRemoteAddr.sin_addr), m_stRemoteAddr.sin_port, recv_buffer);
 							if (nullptr != m_pRecvCallback)
 							{
 								m_pRecvCallback(dataSize, recv_buffer);
@@ -771,7 +785,7 @@ void Socket::SelectThread()
 					int byte_num = recv(m_Socket, recv_buffer, RECV_BUFFER_SIZE, BLOCKREADWRITE);
 					if (byte_num > 0)
 					{
-						LogFormat("message form server %s", recv_buffer);
+						//LogFormat("message form server %d", byte_num);
 						if (nullptr != m_pRecvCallback)
 						{
 							m_pRecvCallback(byte_num, recv_buffer);
