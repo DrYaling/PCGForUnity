@@ -10,7 +10,7 @@
 #define LOG_IN_THREAD 0
 //#define LOG_TYPE_AS_TITLE
 #define LOG_SWITCH 1
-//#define LOG_TRACE
+#define LOG_TRACE
 #ifdef WIN32
 #include <Windows.h>
 #include "DbgHelp.h"
@@ -41,20 +41,16 @@ enum LoggerType
 #define LogError(logType,format) 
 #endif
 
-typedef void(__stdcall *CPPLogCallback)(const char* log);
-typedef void(__stdcall *CPPLogWarningCallback)(const char* log);
-typedef void(__stdcall *CPPLogErrorCallback)(const char* log);
-static CPPLogCallback logCallBack = nullptr;
-static CPPLogWarningCallback logWarningCallBack = nullptr;
-static CPPLogErrorCallback logErrorCallBack = nullptr;
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-	void LogContent(LoggerType eType,const char	* f, int line, const char* func, const char* format, ...);
+	typedef void(__stdcall *CPPLogCallback)(const char* log);
+	int LogContent(LoggerType eType,const char	* f, int line, const char* func, const char* format, ...);
 	void printStackTrace(void);
 	void ClearLogger(void);
+	void SetLogCallBack(int type, CPPLogCallback cb);
 
 #ifdef __cplusplus
 }
