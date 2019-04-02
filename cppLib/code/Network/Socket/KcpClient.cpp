@@ -59,6 +59,8 @@ void KcpClient::Close()
 {
 	m_bRecv = false;
 	m_bAlive = false;
+	m_pDataHandler = nullptr;
+	m_pResponce = nullptr;	
 }
 
 void KcpClient::Send(char * buff, int length, bool immediately)
@@ -262,6 +264,7 @@ void KcpClient::OnDisconnected(bool immediately)
 	m_nSessionStatus = SessionStatus::Disconnected;
 	//m_pKcp->conv = 0;
 	LogFormat("Socket OnDisconnected from server %d", immediately);
+	OnResponse(ClientResponse::CR_DISCONNECTED);
 }
 
 void KcpClient::OnConnected(bool success)
@@ -269,6 +272,7 @@ void KcpClient::OnConnected(bool success)
 	LogFormat("Socket Connect success %d", success);
 	m_nSessionStatus = success ? SessionStatus::Connected : SessionStatus::Disconnected;
 	m_bAlive = m_nSessionStatus == SessionStatus::Connected;
+	OnResponse(success?ClientResponse::CR_CONNECT_SUCCESS:ClientResponse::CR_CONNECT_FAIL);
 }
 
 int KcpClient::fnWriteDgram(const char * buf, int len, ikcpcb * kcp, void * user)
@@ -299,4 +303,13 @@ void KcpClient::OnConnectFailed()
 	m_headerBuffer.Reset();
 	m_nSessionStatus = SessionStatus::Disconnected;
 	LogFormat("OnConnectFail");
+	OnResponse(ClientResponse::CR_CONNECT_FAIL);
+}
+
+inline void KcpClient::OnResponse(ClientResponse response)
+{
+	if (m_pResponce)
+	{
+		m_pResponce(response);
+	}
 }

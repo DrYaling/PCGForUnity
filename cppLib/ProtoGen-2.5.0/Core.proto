@@ -1,0 +1,11 @@
+syntax = "proto2";
+package CoreProto;  
+ 
+message c2s_connect
+{
+	required string head = 1;
+}
+message s2c_accept
+{
+	required uint32 conv
+}

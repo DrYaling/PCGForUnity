@@ -1,12 +1,12 @@
 #ifndef _DEFINE_H
 #define _DEFINE_H
-#define EXPORT_API __declspec(dllexport)
 
 #if BUILDING_COREMODULE
-#define EXPORT_COREMODULE __declspec(dllexport)
+#define EXPORT_API __declspec(dllexport)
 #else
-#define EXPORT_COREMODULE __declspec(dllimport)
+#define EXPORT_API __declspec(dllimport)
 #endif
+
 #define UNITY_CPP_PLUGIN_VERSION  1.0.0
 #ifdef __cplusplus
 #define  EXTERN_C_BEGIN  extern "C"\
@@ -57,5 +57,6 @@ typedef uint8_t uint8;
 #endif
 #endif
 
+inline static const char* solutionDir() { return __FILE__; };
 
 #endif

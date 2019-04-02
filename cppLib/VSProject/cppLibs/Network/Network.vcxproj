@@ -131,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\code\Network\crcUtil.h" />
     <ClInclude Include="..\..\..\code\Network\Socket\CoreOpcodes.h" />
     <ClInclude Include="..\..\..\code\Network\Socket\KcpClient.h" />
     <ClInclude Include="..\..\..\code\Network\Socket\KcpSession.h" />

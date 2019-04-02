@@ -418,5 +418,5 @@ namespace G3D {
 #define NUMBER_TO_STRING(x) NUMBER_TO_STRING2(x)
 #define NUMBER_TO_STRING2(x) #x
 #define __LINE_AS_STRING__ NUMBER_TO_STRING(__LINE__)
-
+#include <algorithm> 
 #endif // Header guard

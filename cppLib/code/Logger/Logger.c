@@ -1,12 +1,17 @@
 #include "Logger.h"
-
-static char Logger_cbuffer[2 * 2048] = { 0 };
+#include <mutex>
+#define log_buffer_size 2048
+static char Logger_cbuffer[log_buffer_size] = { 0 };
 static std::string logger_buff;
-
+std::mutex _logMtx;
 static CPPLogCallback logCallBack = nullptr;
 static CPPLogCallback logWarningCallBack = nullptr;
 static CPPLogCallback logErrorCallBack = nullptr;
-
+#ifdef WIN32
+#define strsplit strtok_s
+#else
+#define strsplit strtok_r
+#endif
 #ifndef WIN32
 static void printStackTrace()
 {
@@ -57,7 +62,7 @@ void printStackTrace()
 
 }
 #endif
-
+static size_t exclude_dir_len = strlen(solutionDir()) - sizeof("define.h");
 
 void ClearLogger()
 {
@@ -80,29 +85,34 @@ void SetLogCallBack(int type, CPPLogCallback cb)
 		break;
 	}
 }
-
-int LogContent(LoggerType eType, const char	* f, int line, const char* func, const char* format, ...)
+int LogContent(LoggerType eType, const char	* fp, int line, const char* func, const char* format, ...)
 {
+	std::lock_guard<std::mutex> lck(_logMtx);
 	logger_buff.clear();
 	memset(Logger_cbuffer, 0, sizeof(Logger_cbuffer));
 	va_list valist;
 	va_start(valist, format);
-	vsprintf_s(Logger_cbuffer, format, valist);
+	_vsnprintf(Logger_cbuffer,log_buffer_size, format, valist);
 	logger_buff.append(Logger_cbuffer);
 	logger_buff.append("\n");
 	va_end(valist);
 #ifdef LOG_TRACE
-	sprintf_s(Logger_cbuffer, "in file %s,function %s at line %d\n", f, func, line);
+	if (exclude_dir_len < 0 || exclude_dir_len > 255)
+	{
+		exclude_dir_len = 0;
+	}
+	memset(Logger_cbuffer, 0, sizeof(Logger_cbuffer));
+	sprintf_s(Logger_cbuffer, "in file %s,function %s at line %d\n", fp + exclude_dir_len, func, line);
 	logger_buff.append(Logger_cbuffer);
 #endif // LOG_TRACE
-	int logtype = -1;
+	//int logtype = -1;
 	switch (eType)
 	{
 	case LoggerType::LOGGER_ERROR:
 		if (nullptr != logErrorCallBack)
 		{
 			logErrorCallBack(logger_buff.c_str());
-			logtype = 1;
+			//logtype = 1;
 		}
 		else
 			printf_s(logger_buff.c_str());
@@ -111,7 +121,7 @@ int LogContent(LoggerType eType, const char	* f, int line, const char* func, con
 		if (nullptr != logWarningCallBack)
 		{
 			logWarningCallBack(logger_buff.c_str());
-			logtype = 1;
+			//logtype = 1;
 		}
 		else
 			printf_s(logger_buff.c_str());
@@ -120,11 +130,11 @@ int LogContent(LoggerType eType, const char	* f, int line, const char* func, con
 		if (nullptr != logCallBack)
 		{
 			logCallBack(logger_buff.c_str());
-			logtype = 1;
+			//logtype = 1;
 		}
 		else
 			printf_s(logger_buff.c_str());
 		break;
 	}
-	return logCallBack == nullptr ? -5 : 3;
+	return 0;
 }

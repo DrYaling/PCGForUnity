@@ -3,7 +3,13 @@
 #include "kcp_config.h"
 #include "SocketConfig.h"
 #include "CSocket.h"
-
+enum ClientResponse
+{
+	CR_CONNECT_SUCCESS = 0,
+	CR_CONNECT_FAIL,
+	CR_DISCONNECTED,
+};
+typedef std::function<void(ClientResponse)> ClientRespanceCallBack;
 class KcpClient
 {
 public:
@@ -13,7 +19,6 @@ public:
 	void Connect();
 	void Close();
 	void Send(char* buff, int length, bool immediately = false);
-	void OnReceive(const uint8* buff, int length);
 	void Update(int32_t time);
 	bool IsAlive() { return m_nSessionStatus == SessionStatus::Connected; }
 	bool IsClosed() { return m_nSessionStatus == SessionStatus::Disconnected; }
@@ -22,7 +27,9 @@ public:
 	void SetConnectTimeout(int16 timeout) { m_nConnectTimeOut = timeout; }
 public:
 	void SetReceiveCallBack(SocketDataReceiveHandler cb) { m_pDataHandler = cb; }
+	void SetResponseCallBack(ClientRespanceCallBack cb) { m_pResponce = cb; }
 private:
+	void OnReceive(const uint8* buff, int length);
 	void ReadHandlerInternal(int size, const char * buffer);
 	ReadDataHandlerResult ReadDataHandler();
 	bool ReadHeaderHandler();
@@ -33,8 +40,10 @@ private:
 	static int fnWriteDgram(const char *buf, int len, ikcpcb *kcp, void *user);
 	void SendHeartBeat();
 	void OnConnectFailed();
+	inline void	OnResponse(ClientResponse response);
 private:
 	SocketDataReceiveHandler m_pDataHandler;
+	ClientRespanceCallBack m_pResponce;
 	MessageBuffer m_headerBuffer;
 	MessageBuffer m_packetBuffer;
 	MessageBuffer m_readBuffer;

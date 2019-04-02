@@ -10,7 +10,7 @@
 int main()
 {
 	//sleep(100);
-	KcpClient client(0);
+	KcpClient client(0);	
 	SocketTime.timeStampSinceStartUp = 0;
 	client.SetAddress("127.0.0.1", 8081);
 	auto callback = [&client](int cmd, const uint8* buff,int size)->bool {

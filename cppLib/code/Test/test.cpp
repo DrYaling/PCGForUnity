@@ -6,6 +6,9 @@
 #include "Logger/Logger.h"
 #include <stdio.h>
 #include "Network/Socket/SocketTime.h"
+#include "Generators/TerrianGenerator/Mountain.h"
+using namespace generator;
+
 void StartTestServer()
 {
 	SocketServer* server = sSocketServer;
@@ -31,7 +34,17 @@ void StartTestServer()
 }
 int main()
 {
-	sleep(5000);
+	/*DWORD start, stop;
+	start = GetTickCount();
+	auto p = Vector3();
+	p.x = 2370;
+	p.y = 5428;
+	p.z = 7562;
+	MountainGen gen = MountainGen(std::move(p), 4);
+	gen.Start();
+	stop = GetTickCount();
+	LogFormat("MountainGen gen time %d ms", stop - start);*/
+	sleep(3000);
 	//LogFormat("Test.main");
 	std::thread thr(StartTestServer);
 	thr.detach();

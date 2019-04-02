@@ -107,7 +107,6 @@ template<class T> struct HashTrait< shared_ptr<T> > {
     static size_t hashCode(shared_ptr<T> key) { return reinterpret_cast<size_t>( key.get() ); }
 };
 
-#include "G3D/Image.h"
 #include "G3D/CollisionDetection.h"
 #include "G3D/Intersect.h"
 #include "G3D/Log.h"
@@ -123,10 +122,6 @@ template<class T> struct HashTrait< shared_ptr<T> > {
 #include "G3D/Capsule.h"
 #include "G3D/Cylinder.h"
 #include "G3D/Triangle.h"
-#include "G3D/Color1unorm8.h"
-#include "G3D/Color2unorm8.h"
-#include "G3D/Color3unorm8.h"
-#include "G3D/Color4unorm8.h"
 #include "G3D/ConvexPolyhedron.h"
 #include "G3D/MeshAlg.h"
 #include "G3D/vectorMath.h"
