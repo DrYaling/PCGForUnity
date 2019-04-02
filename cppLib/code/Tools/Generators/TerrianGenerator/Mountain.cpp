@@ -508,6 +508,7 @@ void MountainGen::GenNext(char v, size_t& rpos)
 		LogErrorFormat("MountainGen GenNextFail at pos %d", rpos);
 	}
 }
+static float recored[3] = {.0f};
 void MountainGen::GenVar(char v, size_t rpos)
 {
 	float x = _currentPoint.x + _step * std::cos(_currentDir);
@@ -524,12 +525,16 @@ void MountainGen::GenVar(char v, size_t rpos)
 	{
 		z -= _mrandom(_minc, _c);;
 	}
-	if (_usePerlin)
+	int size = _mother.size();
+	if (_usePerlin && size > 2)
 	{
-		float f = PerlinNoise::noise(x, y, z);
-		//LogFormat("z : %d,noise %f", z, f);
-		z = f * z;
+		float f = PerlinNoise::noise(recored[0], recored[1], recored[2]);
+		LogFormat("z : %d,z1 %d,z2 %d,z3 %d,noise %f", z, recored[0], recored[1], recored[2], f);
+		z += f * z;
 	}
+	recored[0] = recored[1];
+	recored[1] = recored[2];
+	recored[2] = z;
 	_currentPoint.x = x;
 	_currentPoint.y = y;
 	_currentPoint.z = z;

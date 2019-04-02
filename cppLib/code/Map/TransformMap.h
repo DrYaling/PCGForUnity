@@ -19,17 +19,17 @@ namespace transformMap
 
 	void SetValue(int value)
 	{
-		LogFormat("SetValue %d", value);
+		//LogFormat("SetValue %d", value);
 	}
 	void SetObjectValue(testObj obj)
 	{
-		LogFormat("SetObjectValue %d", obj.key,obj.value,obj.fvalue);
+		//LogFormat("SetObjectValue %d", obj.key,obj.value,obj.fvalue);
 	}
 	class testClassObject {
 	public:
 		testClassObject() {}
 		void Set(int value) {
-			LogFormat("testClassObject set %d", value);
+			//LogFormat("testClassObject set %d", value);
 		}
 		void Init() {
 

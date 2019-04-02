@@ -19,11 +19,11 @@ rules:(T->^[<C+SRTSR-S>T]^S^[RT]^>S<C[+T^C]^[-R]),
 */
 #define NORMAL_STEP 10*100 //meter
 
-static inline int _mrandom(int min, int max)
+static inline float _mrandom(int min, int max)
 {
 	if (min >= max)
 		return min;
-	return std::rand() % (max - min) + min;
+	return std::rand() % (max - min) + min + std::rand() % 10 / 10.0f;
 }
 static inline void _msrandom(int seed)
 {
@@ -67,15 +67,15 @@ class MountainGen
 public:
 	explicit MountainGen(Vector3&& p, int depth);
 	~MountainGen();
-	void Init(int seed,int step, int32_t maxHeight, bool usePerlin = false);
+	void Init(int seed, int step, int32_t maxHeight, bool usePerlin = false);
 	void Start(std::vector<int32_t>& triangles, std::vector<Vector3>& v3);
 private:
 	bool Gen();
 	//生成下一个Block
 	size_t GenNextBlock(char prev, size_t& rpos);
 	//生成下一个var
-	void GenNext(char v,size_t& rpos);
-	void GenVar(char v,size_t rpos);
+	void GenNext(char v, size_t& rpos);
+	void GenVar(char v, size_t rpos);
 	//生成岩石
 	void GenRock();
 	inline bool CheckRP(size_t rpos)

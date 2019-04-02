@@ -7,12 +7,10 @@ std::vector<Vector3> vertexs;
 std::vector<int32_t> indexes;
 void InitGenerator(Vector3 pos, int32_t seed, int32_t depth, int32_t step,int32_t maxHeight, bool usePerlin)
 {
-	LogFormat("InitMeshGenerator 0");
 	mtg = new MountainGen(std::move(pos), depth);
 	mtg->Init(seed,step,maxHeight,usePerlin);
 	vertexs.clear();
 	indexes.clear();
-	LogFormat("InitMeshGenerator 1");
 }
 
 void GenrateMountain(int32_t& vSize, int32_t& idxSize)
@@ -31,7 +29,6 @@ void GenrateMountain(int32_t& vSize, int32_t& idxSize)
 
 void GetGeneratorData(Vector3 * pV, int32_t * pI)
 {
-	LogFormat("GetMeshData 0");
 	if (pV)
 	{
 		for (auto v :vertexs)
@@ -39,7 +36,6 @@ void GetGeneratorData(Vector3 * pV, int32_t * pI)
 			*pV++ = v;
 		}
 	}
-	LogFormat("GetMeshData 1");
 	if (pI)
 	{
 		for (auto i: indexes)
@@ -47,7 +43,6 @@ void GetGeneratorData(Vector3 * pV, int32_t * pI)
 			*pI++ = i;
 		}
 	}
-	LogFormat("GetMeshData 2");
 }
 
 void ReleaseGenerator()

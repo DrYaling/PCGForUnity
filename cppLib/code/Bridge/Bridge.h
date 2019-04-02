@@ -18,12 +18,10 @@ EXPORT_API void STD_CALL InitCppEngine()
 
 EXPORT_API void STD_CALL HandleSetInt(int key, int value)
 {
-	LogFormat("HandleSetInt");
 	transformMap::TransformMapHandleSetter(key, value);
 }
 EXPORT_API void STD_CALL HandleSetObject(int key, testObj value)
 {
-	LogFormat("HandleSetObject");
 	transformMap::TransformMapHandleSetter(key, value);
 }
 
@@ -59,7 +57,6 @@ EXPORT_API struct vector3 {
 vector3 v;
 EXPORT_API void  STD_CALL SetObjtest(vector3& v)
 {
-	LogFormat("x:%d,y:%d,z:%d",v.x, v.y, v.z);
 }
 EXPORT_API int32_t GetIntTest()
 {
@@ -78,7 +75,6 @@ EXPORT_API void STD_CALL DestroyCPP()
 
 EXPORT_API void	STD_CALL InitMeshGenerator(int32_t seed, int32_t depth,int32_t step,int32_t maxHeight, Vector3 pos,bool usePerlin)
 {
-	LogFormat("InitMeshGenerator");
 	generator::InitGenerator(pos,seed, depth,step, maxHeight, usePerlin);
 }
 EXPORT_API void	 STD_CALL ReleaseMeshGenerator()
