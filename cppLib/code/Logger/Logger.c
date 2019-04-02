@@ -3,6 +3,10 @@
 static char Logger_cbuffer[2 * 2048] = { 0 };
 static std::string logger_buff;
 
+static CPPLogCallback logCallBack = nullptr;
+static CPPLogCallback logWarningCallBack = nullptr;
+static CPPLogCallback logErrorCallBack = nullptr;
+
 #ifndef WIN32
 static void printStackTrace()
 {
@@ -61,8 +65,23 @@ void ClearLogger()
 	logCallBack = nullptr;
 	logWarningCallBack = nullptr;
 }
+void SetLogCallBack(int type, CPPLogCallback cb)
+{
+	switch (type)
+	{
+	case 1:
+		logWarningCallBack = cb;
+		break;
+	case 2:
+		logErrorCallBack = cb;
+		break;
+	default:
+		logCallBack = cb;
+		break;
+	}
+}
 
-void LogContent(LoggerType eType, const char	* f,int line, const char* func, const char* format, ...)
+int LogContent(LoggerType eType, const char	* f, int line, const char* func, const char* format, ...)
 {
 	logger_buff.clear();
 	memset(Logger_cbuffer, 0, sizeof(Logger_cbuffer));
@@ -76,26 +95,36 @@ void LogContent(LoggerType eType, const char	* f,int line, const char* func, con
 	sprintf_s(Logger_cbuffer, "in file %s,function %s at line %d\n", f, func, line);
 	logger_buff.append(Logger_cbuffer);
 #endif // LOG_TRACE
-
+	int logtype = -1;
 	switch (eType)
 	{
 	case LoggerType::LOGGER_ERROR:
 		if (nullptr != logErrorCallBack)
+		{
 			logErrorCallBack(logger_buff.c_str());
+			logtype = 1;
+		}
 		else
 			printf_s(logger_buff.c_str());
 		break;
 	case LoggerType::LOGGER_WARN:
 		if (nullptr != logWarningCallBack)
+		{
 			logWarningCallBack(logger_buff.c_str());
+			logtype = 1;
+		}
 		else
 			printf_s(logger_buff.c_str());
 		break;
 	default:
 		if (nullptr != logCallBack)
+		{
 			logCallBack(logger_buff.c_str());
+			logtype = 1;
+		}
 		else
 			printf_s(logger_buff.c_str());
 		break;
 	}
+	return logCallBack == nullptr ? -5 : 3;
 }
