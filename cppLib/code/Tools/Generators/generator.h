@@ -15,6 +15,31 @@
 
 #define  UNITY_CORE 1
 
+static inline int _irandom(int min, int max)
+{
+	if (min >= max)
+		return min;
+	return std::rand() % (max - min) + min;
+}
+static inline float _frandom(int min, int max)
+{
+	if (min >= max)
+		return min;
+	return (float)(std::rand() % (max - min) + min) + (std::rand() % 10000) / 10000.0f;
+}
+static inline float _frandom_f(float min, float max)
+{
+	if (min	>= max)
+	{
+		return min;
+	}
+	int i(min * 10000), a(max * 10000);
+	return (float)(_irandom(i, a) / 10000.0f);
+}
+static inline void setRandomSeed(int seed)
+{
+	std::srand(seed);
+}
 //µØÐÎ
 enum eGeographyType :int16_t
 {
@@ -47,6 +72,21 @@ typedef struct geographyProperties
 	uint64_t e : 8;
 
 }*pGeographyProperties;
+struct TerrianGeneratorData
+{
+	G3D::Vector3 pos;
+	int32_t seed;
+	bool optimaze;
+};
+class TerrianGenerator
+{
+public:
+	TerrianGenerator() {};
+	virtual ~TerrianGenerator() {};
 
+private:
+
+};
+#define MAX_MESH_COUNT 36
 // typedef geography* pGeography;
 #endif

@@ -66,6 +66,9 @@
     <ClInclude Include="..\..\..\code\Tools\Noises\PerlinNoise.h">
       <Filter>源文件\Noises</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\code\Tools\Generators\TerrianGenerator\Diamond_Square.h">
+      <Filter>源文件\Generators\TerrianGenerator</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\Tools\Generators\TerrianGenerator\Mountain.cpp">
@@ -79,6 +82,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\code\Tools\Mesh\UnityMesh.cpp">
       <Filter>源文件\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\Tools\Generators\TerrianGenerator\Diamond_Square.cpp">
+      <Filter>源文件\Generators\TerrianGenerator</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

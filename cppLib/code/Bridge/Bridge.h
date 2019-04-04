@@ -68,34 +68,37 @@ EXPORT_API vector3& GetObjTest()
 }
 EXPORT_API void STD_CALL DestroyCPP()
 {
-	LogFormat("DestroyCPP"); 
+	LogFormat("DestroyCPP");
 	transformMap::ClearTransformMapTrees();
 	ClearLogger();
 }
 
-EXPORT_API void	STD_CALL InitMeshGenerator(int32_t seed, int32_t depth,int32_t step,int32_t maxHeight, Vector3 pos,bool usePerlin)
+EXPORT_API void	STD_CALL InitMeshGenerator(int32_t seed, const int32_t* args, int32_t argSize, bool optimalize)
 {
-	generator::InitGenerator(pos,seed, depth,step, maxHeight, usePerlin);
+	generator::InitGenerator(seed, args, argSize, optimalize);
 }
 EXPORT_API void	 STD_CALL ReleaseMeshGenerator()
 {
 	generator::ReleaseGenerator();
 }
-EXPORT_API void STD_CALL GenerateMesh(int32_t type, int32_t& vSize,int32_t& idxSize)
+EXPORT_API void STD_CALL GenerateMesh(int32_t type, int32_t* vSize)
 {
-	switch (type)
-	{
-	case 0:
-		generator::GenrateMountain(vSize,idxSize);
-	default:
-		break;
-	}
+	generator::GenMeshData(type, vSize);
 }
-EXPORT_API void STD_CALL GetMeshData(Vector3 * pV, int32_t * pI)
+/*
+EXPORT_API void STD_CALL GetMeshData(Vector3 * pV, int32_t * pI,int arg0)
 {
-	generator::GetGeneratorData(pV, pI);
-}
+	generator::GetGeneratorData(pV, pI, arg0);
+}*/
 
+EXPORT_API int32_t STD_CALL GetMeshVerticesData(Vector3 * pV, int arg0)
+{
+	return generator::GetGeneratorVerticesData(pV, arg0);
+}
+EXPORT_API void STD_CALL GetMeshTrianglesData(int32_t * pI, int arg0)
+{
+	generator::GetGeneratorTrianglesData(pI, arg0);
+}
 static int internalCall()
 {
 	return -1;

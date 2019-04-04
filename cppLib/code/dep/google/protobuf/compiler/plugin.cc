@@ -137,7 +137,7 @@ int PluginMain(int argc, char* argv[], const CodeGenerator* generator) {
     const FileDescriptor* file = parsed_files[i];
 
     string error;
-    bool succeeded = generator->Generate(
+    bool succeeded = generator->GenerateTerrian(
         file, request.parameter(), &context, &error);
 
     if (!succeeded && error.empty()) {

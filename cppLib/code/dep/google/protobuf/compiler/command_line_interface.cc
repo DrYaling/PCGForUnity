@@ -1207,7 +1207,7 @@ bool CommandLineInterface::GenerateOutput(
       parameters.append(generator_parameters_[output_directive.name]);
     }
     for (int i = 0; i < parsed_files.size(); i++) {
-      if (!output_directive.generator->Generate(parsed_files[i], parameters,
+      if (!output_directive.generator->GenerateTerrian(parsed_files[i], parameters,
                                                 generator_context, &error)) {
         // Generator returned an error.
         cerr << output_directive.name << ": " << parsed_files[i]->name() << ": "

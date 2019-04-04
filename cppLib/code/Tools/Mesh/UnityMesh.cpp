@@ -5,6 +5,7 @@ NS_UMESH_START
 void trianglate(const std::vector<G3D::Vector3>& input,std::vector<int32_t>& out)
 {
 	std::vector<Vector2> v2;
+	v2.resize(input.size());
 	int index = 0;
 	for (auto v3 : input)
 	{

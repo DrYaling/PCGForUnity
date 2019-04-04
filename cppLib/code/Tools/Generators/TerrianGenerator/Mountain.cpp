@@ -62,7 +62,7 @@ float GetChangeF(char from, char to)
 }
 bool GetChange(char from, char to)
 {
-	float chance = _mrandom(0, 10000) / 10000.0;
+	float chance = _frandom(0, 1);
 	return chance <= GetChangeF(from, to);
 }
 MountainGen::MountainGen(Vector3&& p, int depth) :
@@ -381,7 +381,7 @@ bool MountainGen::Gen()
 static int _cmpStep;
 void MountainGen::Init(int seed, int step, int32_t maxHeight, bool usePerlin)
 {
-	_msrandom(seed);
+	setRandomSeed(seed);
 	_step = step;
 	if (_step <= 0)
 		_step = NORMAL_STEP;
@@ -515,15 +515,15 @@ void MountainGen::GenVar(char v, size_t rpos)
 	float y = _currentPoint.y + _step * std::sin(_currentDir);
 	float height = 0;
 	if (v == 'C')
-		height -= _mrandom(_minc, _c);
+		height -= _frandom(_minc, _c);
 	else if (v == 'T')
-		height += _mrandom(_mint, _t);
+		height += _frandom(_mint, _t);
 	else if (v == 'S')
-		height += _mrandom(-_s, _s);
+		height += _frandom(-_s, _s);
 	float z = _currentPoint.z + height;
 	if (z > _maxHeight)
 	{
-		z -= _mrandom(_minc, _c);;
+		z -= _frandom(_minc, _c);;
 	}
 	int size = _mother.size();
 	if (_usePerlin && size > 2)

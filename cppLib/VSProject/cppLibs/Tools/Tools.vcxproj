@@ -73,7 +73,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
@@ -120,6 +120,7 @@
     <ClInclude Include="..\..\..\code\Tools\Generators\generator.h" />
     <ClInclude Include="..\..\..\code\Tools\Generators\MeshGenerator.h" />
     <ClInclude Include="..\..\..\code\Tools\Generators\Plants\Plants.h" />
+    <ClInclude Include="..\..\..\code\Tools\Generators\TerrianGenerator\Diamond_Square.h" />
     <ClInclude Include="..\..\..\code\Tools\Generators\TerrianGenerator\Mountain.h" />
     <ClInclude Include="..\..\..\code\Tools\Generators\TerrianGenerator\Terrian.h" />
     <ClInclude Include="..\..\..\code\Tools\Mesh\Delaunay.h" />
@@ -132,6 +133,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\Tools\Generators\MeshGenerator.cpp" />
+    <ClCompile Include="..\..\..\code\Tools\Generators\TerrianGenerator\Diamond_Square.cpp" />
     <ClCompile Include="..\..\..\code\Tools\Generators\TerrianGenerator\Mountain.cpp" />
     <ClCompile Include="..\..\..\code\Tools\Generators\TerrianGenerator\Terrian.cpp" />
     <ClCompile Include="..\..\..\code\Tools\Mesh\UnityMesh.cpp" />

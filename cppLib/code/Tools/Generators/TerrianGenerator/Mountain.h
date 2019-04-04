@@ -19,17 +19,7 @@ rules:(T->^[<C+SRTSR-S>T]^S^[RT]^>S<C[+T^C]^[-R]),
 */
 #define NORMAL_STEP 10*100 //meter
 
-static inline float _mrandom(int min, int max)
-{
-	if (min >= max)
-		return min;
-	return std::rand() % (max - min) + min + std::rand() % 10 / 10.0f;
-}
-static inline void _msrandom(int seed)
-{
-	std::srand(seed);
-}
-#define ROCK_STEP _mrandom(100,1200)
+#define ROCK_STEP _frandom(100,1200)
 //Lsystem_MountainGen_Point
 struct L_M_Point {
 public:
@@ -62,11 +52,12 @@ public:
 	Vector3 v;
 };
 static MemoryPoint mp_zero = MemoryPoint(Vector3(), 0, 0, 0);
-class MountainGen
+class MountainGen:public TerrianGenerator
 {
 public:
-	explicit MountainGen(Vector3&& p, int depth);
-	~MountainGen();
+	MountainGen() {}
+	MountainGen(Vector3&& p, int depth);
+	virtual ~MountainGen();
 	void Init(int seed, int step, int32_t maxHeight, bool usePerlin = false);
 	void Start(std::vector<int32_t>& triangles, std::vector<Vector3>& v3);
 private:

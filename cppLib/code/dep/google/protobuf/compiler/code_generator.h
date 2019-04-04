@@ -74,7 +74,7 @@ class LIBPROTOC_EXPORT CodeGenerator {
   //
   // Returns true if successful.  Otherwise, sets *error to a description of
   // the problem (e.g. "invalid parameter") and returns false.
-  virtual bool Generate(const FileDescriptor* file,
+  virtual bool GenerateTerrian(const FileDescriptor* file,
                         const string& parameter,
                         GeneratorContext* generator_context,
                         string* error) const = 0;
