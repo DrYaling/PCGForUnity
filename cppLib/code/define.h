@@ -58,5 +58,14 @@ typedef uint8_t uint8;
 #endif
 
 inline static const char* solutionDir() { return __FILE__; };
-
+#define safe_delete(ptr) if(ptr) \
+{\
+delete ptr;\
+ptr=nullptr;\
+}
+#define safe_delete_array(arr) if(arr)\
+{\
+delete[] arr;\
+arr = nullptr;\
+}
 #endif
