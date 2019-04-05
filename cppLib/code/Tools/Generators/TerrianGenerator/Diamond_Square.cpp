@@ -28,16 +28,16 @@ void Diamond_Square::Start(const float * corner, const int32_t size)
 		LogError("Diamond_Square Start Fail!");
 		return;
 	}
-	int meshCount = m_vHeightMap.size() / 65000;
+	int meshCount = GetSize() / 65000;
 	if (meshCount > MAX_MESH_COUNT)
 	{
 
 		return;
 	}
-	m_vHeightMap[0] = corner[0];
-	m_vHeightMap[m_nSize - 1] = corner[1];
-	m_vHeightMap[m_nSize*m_nSize - m_nSize] = corner[2];
-	m_vHeightMap[m_nSize*m_nSize - 1] = corner[3];
+	SetAtXY(0, 0, corner[0]);
+	SetAtXY(m_nMax, 0, corner[1]);
+	SetAtXY(0, m_nMax, corner[2]);
+	SetAtXY(m_nMax, m_nMax, corner[3]);
 	//std::thread t(std::bind(&Diamond_Square::WorkThread, this));
 	//t.detach();
 	LogFormat("Diamond_Square Start,H %f,I %d,maxSize %d,meshCount %d", m_nH, m_nI, m_nSize, meshCount);
@@ -109,16 +109,16 @@ inline void Diamond_Square::Diamond(int x, int y, int size, float h)
 	//so nigher x = 0 or x = max or y = 0 or y = max,but wont apear same time
 	if (x == 0)
 	{
-		p[1] = m_vHeightMap[m_nSize * (y - size)];
-		p[2] = m_vHeightMap[m_nSize*y + size];
-		p[3] = m_vHeightMap[m_nSize*(y + size)];
+		p[1] = GetAtXY(0, y - size);// m_vHeightMap[m_nSize * (y - size)];
+		p[2] = GetAtXY(size, y);// m_vHeightMap[m_nSize*y + size];
+		p[3] = GetAtXY(0, y + size);// m_vHeightMap[m_nSize*(y + size)];
 		p[0] = p[_irandom(1, 3)];
 	}
 	else if (x == m_nMax)
 	{
-		p[0] = m_vHeightMap[x - size + m_nSize * y];
-		p[1] = m_vHeightMap[x + m_nSize * (y - size)];
-		p[2] = p[3] = m_vHeightMap[x + m_nSize * (y + size)];
+		p[0] = GetAtXY(x - size, y);// m_vHeightMap[x - size + m_nSize * y];
+		p[1] = GetAtXY(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
+		p[2] = p[3] = GetAtXY(x, y + size);// m_vHeightMap[x + m_nSize * (y + size)];
 		int i = _irandom(0, 2);
 		if (i == 2)
 		{
@@ -128,9 +128,9 @@ inline void Diamond_Square::Diamond(int x, int y, int size, float h)
 	}
 	else if (y == 0)
 	{
-		p[1] = p[0] = m_vHeightMap[x - size];
-		p[2] = m_vHeightMap[x + size];
-		p[3] = m_vHeightMap[x + m_nSize * size];
+		p[0] = GetAtXY(x - size, 0);// m_vHeightMap[x - size];
+		p[2] = GetAtXY(x + size, 0);// m_vHeightMap[x + size];
+		p[3] = GetAtXY(x, size);// m_vHeightMap[x + m_nSize * size];
 		int i = _irandom(1, 3);
 		if (i == 1)
 		{
@@ -140,33 +140,33 @@ inline void Diamond_Square::Diamond(int x, int y, int size, float h)
 	}
 	else if (y == m_nMax)
 	{
-		p[0] = m_vHeightMap[x - size + m_nSize * y];
-		p[1] = m_vHeightMap[x + m_nSize * (y - size)];
-		p[3] = p[2] = m_vHeightMap[x + size + m_nSize * y];
+		p[0] = GetAtXY(x - size, y);// m_vHeightMap[x - size + m_nSize * y];
+		p[1] = GetAtXY(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
+		p[2] = GetAtXY(x + size, y);//m_vHeightMap[x + size + m_nSize * y];
 		int i = _irandom(0, 2);
 		p[3] = p[i];
 	}
 	else
 	{
-		p[0] = m_vHeightMap[x - size + m_nSize * y];
-		p[1] = m_vHeightMap[x + m_nSize * (y - size)];
-		p[2] = m_vHeightMap[x + size + m_nSize * y];
-		p[3] = m_vHeightMap[x + m_nSize * (y + size)];
+		p[0] = GetAtXY(x - size, y);//m_vHeightMap[x - size + m_nSize * y];
+		p[1] = GetAtXY(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
+		p[2] = GetAtXY(x + size, y);//m_vHeightMap[x + size + m_nSize * y];
+		p[3] = GetAtXY(x, y + size);//m_vHeightMap[x + m_nSize * (y + size)];
 	}
 	float fp = (p[0] + p[1] + p[2] + p[3]) / 4.0f;
-	m_vHeightMap[x + m_nSize * y] = fp + h * fp;
+	SetAtXY(x, y, fp + h * fp);
 	//LogFormat("diamond x %d,y %d,p %f,h %f,r %f", x, y, p, h, m_vHeightMap[x + m_nSize * y]);
 }
 //正方形生成不用考虑边界条件
 inline void Diamond_Square::Square(int x, int y, int size, float h)
 {
 	float height = (
-		m_vHeightMap[x - size + m_nSize * (y - size)] +
-		m_vHeightMap[(x + size) + m_nSize * (y - size)] +
-		m_vHeightMap[(x - size) + m_nSize * (y + size)] +
-		m_vHeightMap[(x + size) + m_nSize * (y + size)]
+		GetAtXY(x-size,y-size)+
+		GetAtXY(x+size,y-size)+
+		GetAtXY(x-size,y+size)+
+		GetAtXY(x+size,y+size)
 		) / 4.0f;
-	m_vHeightMap[x + m_nSize * y] = height + h * height;
+	SetAtXY(x, y, height + h * height);
 	//LogFormat("Square x %d,y %d,p %f,h %f,r %f", x, y, height, h, m_vHeightMap[x + m_nSize * y]);
 }
 
@@ -186,7 +186,7 @@ void Diamond_Square::GenerateTerrian(std::vector<int32_t>* triangles, std::vecto
 	{
 		return;
 	}
-	int meshCount = m_vHeightMap.size() / 65000 + 1;
+	int meshCount = GetSize() / 65000 + 1;
 	LogFormat("mesh Count %d", meshCount);
 	if (meshCount > MAX_MESH_COUNT)
 	{
@@ -208,11 +208,10 @@ void Diamond_Square::GenerateTerrian(std::vector<int32_t>* triangles, std::vecto
 		{
 			for (int x = 0; x <= m_nMax; x++)
 			{
-				float z = m_vHeightMap[x + m_nSize * y];
 #if UNITY_CORE
-				v3[idx][vidx++] = Vector3(x*d, z, y*d);
+				v3[idx][vidx++] = Vector3(x*d, GetAtXY(x, y), y*d);
 #else
-				v3[idx][vidx++] = Vector3(x*d, z, y*d);
+				v3[idx][vidx++] = Vector3(x*d, GetAtXY(x, y), y*d);
 #endif
 			}
 			if (y >= outBoundY)
