@@ -32,6 +32,7 @@ private:
 private:
 	std::function<void(int32_t)> m_cbProcessHandler;
 	std::vector<float> m_vHeightMap;
+	float m_aPointBuffer[5];
 	int32_t m_nSize;//总数 2^(2*i)+1
 	float m_nH;//粗糙度
 	int32_t	m_nI;//级数

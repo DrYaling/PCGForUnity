@@ -104,7 +104,7 @@ void Diamond_Square::WorkThread()
 //菱形如果遇到边界情况，简单的从非边界点取一个来做边界数据
 inline void Diamond_Square::Diamond(int x, int y, int size, float h)
 {
-	float p[4] = { 0 };// p0/*left*/, p1/*bottom*/, p2/*right*/, p3/*top*/;
+	float *p = m_aPointBuffer;// p0/*left*/, p1/*bottom*/, p2/*right*/, p3/*top*/;
 	//four corner is excluded
 	//so nigher x = 0 or x = max or y = 0 or y = max,but wont apear same time
 	if (x == 0)
@@ -153,20 +153,20 @@ inline void Diamond_Square::Diamond(int x, int y, int size, float h)
 		p[2] = GetAtXY(x + size, y);//m_vHeightMap[x + size + m_nSize * y];
 		p[3] = GetAtXY(x, y + size);//m_vHeightMap[x + m_nSize * (y + size)];
 	}
-	float fp = (p[0] + p[1] + p[2] + p[3]) / 4.0f;
-	SetAtXY(x, y, fp + h * fp);
+	p[4] = (p[0] + p[1] + p[2] + p[3]) / 4.0f;
+	SetAtXY(x, y, p[4] + h * p[4]);
 	//LogFormat("diamond x %d,y %d,p %f,h %f,r %f", x, y, p, h, m_vHeightMap[x + m_nSize * y]);
 }
 //正方形生成不用考虑边界条件
 inline void Diamond_Square::Square(int x, int y, int size, float h)
 {
-	float height = (
+	m_aPointBuffer[4] = (
 		GetAtXY(x-size,y-size)+
 		GetAtXY(x+size,y-size)+
 		GetAtXY(x-size,y+size)+
 		GetAtXY(x+size,y+size)
 		) / 4.0f;
-	SetAtXY(x, y, height + h * height);
+	SetAtXY(x, y, m_aPointBuffer[4] + h * m_aPointBuffer[4]);
 	//LogFormat("Square x %d,y %d,p %f,h %f,r %f", x, y, height, h, m_vHeightMap[x + m_nSize * y]);
 }
 
