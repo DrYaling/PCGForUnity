@@ -73,9 +73,9 @@ void GenMeshData(int32_t type, int32_t* vSize)
 		}
 		auto dsg = new Diamond_Square(_seed, _args[0], _args[1]);
 
-		float h[4] = { _args[3],_args[4],_args[5],_args[6] };
+		float h[4] = { _args[4],_args[5],_args[6],_args[7] };
 		dsg->Start(h);
-		dsg->GenerateTerrian(indexes, vertexs,normals, _args[2]);
+		dsg->GenerateTerrian(indexes, vertexs,normals, _args[2],_args[3]);
 		for (int i = 0; i < MAX_MESH_COUNT; i++)
 			vSize[i] = vertexs[i].size();
 		pGenerator = dsg;
@@ -129,6 +129,19 @@ void GetGeneratorTrianglesData(int32_t * pI, int arg0)
 			*pI++ = i;
 		}
 	}
+}
+
+int32_t * GetGeneratorTrianglesData(int arg0)
+{
+	if (!_initilized)
+	{
+		return nullptr;
+	}
+	if (arg0 >= MAX_MESH_COUNT || arg0 < 0)
+	{
+		return nullptr;
+	}
+	return indexes[arg0].data();
 }
 
 int32_t GetGeneratorVerticesData(Vector3 * pV, Vector3* pN, int index)

@@ -35,7 +35,7 @@ class MeshGenerator
         _seed = seed;
         _size = size;
         //InitMeshGenerator(2, 4, 1000/*mm*/, 100000,new Vector3(100,50,100), false);
-        int[] conor = new int[] { 4/*I*/,40/*rough *100*/, 10000/*map coord size*/, 50, 2500, 5000, 850 };
+        int[] conor = new int[] { 1/*I*/,40/*rough *100*/, 10000/*map coord size*/,0/*default lod*/, 50, 2500, 5000, 850 };
         InitMeshGenerator(0, conor, conor.Length, false);
     }
     public Mesh[] Generate()
@@ -63,6 +63,7 @@ class MeshGenerator
             if (sizeI > 0)
             {
                 int[] indexes = new int[sizeI];
+                int[] indexes1 = new int[sizeI-3];
                 for (int i = 0; i < sizeV; i++)
                 {
                     //Debug.LogFormat(" {0},y {1}", i, vertexes[i]);
@@ -71,9 +72,14 @@ class MeshGenerator
                     go.transform.position = vertexes[i];*/
                 }
                 GetMeshTrianglesData(indexes, sizeIdx);  
+                for (int i = 0;i<sizeI-3;i++)
+                {
+                    indexes1[i] = indexes[i];
+                }
                 mesh[sizeIdx] = new Mesh();
                 mesh[sizeIdx].vertices = vertexes;
-                mesh[sizeIdx].triangles = indexes;
+                mesh[sizeIdx].triangles = indexes1;//lod 0  200个三角形
+                mesh[sizeIdx].triangles = indexes;//lod 1  100个三角形
                 mesh[sizeIdx].normals = normalList;
             }
         }

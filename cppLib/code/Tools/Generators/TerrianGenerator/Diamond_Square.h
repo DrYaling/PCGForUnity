@@ -16,8 +16,9 @@ public:
 	void SetProcessHandler(std::function<void(int32_t)> handler) { m_cbProcessHandler = handler; }
 	void Start(const float* corner, const int32_t size = 4);
 	//根据传入的最大坐标maxCoord计算地图
-	void GenerateTerrian(std::vector<int32_t>* triangles, std::vector<G3D::Vector3>* v3, std::vector<G3D::Vector3>* normal, float maxCoord);
+	void GenerateTerrian(std::vector<int32_t>* triangles, std::vector<G3D::Vector3>* v3, std::vector<G3D::Vector3>* normal, float maxCoord,int lod = 0);
 	bool IsFinished() { return m_bIsFinished; }
+	void CaculateTriangles(std::vector<int32_t>& triangle, int lod);
 private:
 	void WorkThread();
 	inline void Diamond(int x, int y, int size, float h);

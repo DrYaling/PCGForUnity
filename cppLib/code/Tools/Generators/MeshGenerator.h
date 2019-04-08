@@ -9,6 +9,7 @@ void InitGenerator(int32_t seed, const int32_t* args, int32_t argSize, bool opti
 void GenMeshData(int32_t type,int32_t* vSize);
 void GetGeneratorData(Vector3* pV, int32_t* pI, int arg0);
 void GetGeneratorTrianglesData(int32_t* pI, int arg0);
+int32_t* GetGeneratorTrianglesData(int arg0);
 int32_t GetGeneratorVerticesData(Vector3* pV,Vector3* pN, int index);
 void ReleaseGenerator();
 NS_GNRT_END

@@ -24,8 +24,8 @@ public class test : MonoBehaviour
                 GameObject go = new GameObject();
                 go.AddComponent<MeshFilter>().mesh = mesh[i];
                 var mat = Resources.Load<Material>("Terrian");
-                int texSize = UnityEngine.Mathf.FloorToInt((float)Math.Sqrt(mesh[i].vertexCount));
-               /* Texture2D heightMap = new Texture2D(texSize, texSize, TextureFormat.Alpha8, true);
+                /* int texSize = UnityEngine.Mathf.FloorToInt((float)Math.Sqrt(mesh[i].vertexCount));
+                Texture2D heightMap = new Texture2D(texSize, texSize, TextureFormat.Alpha8, true);
                 Color[] colors = new Color[mesh[i].vertexCount];
                 for (int idx = 0; idx < mesh[i].vertexCount; idx++)
                 {

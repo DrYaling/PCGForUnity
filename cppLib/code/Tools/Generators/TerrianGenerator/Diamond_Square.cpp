@@ -206,7 +206,7 @@ inline float Diamond_Square::Randomize(float h)
 }
 
 
-void Diamond_Square::GenerateTerrian(std::vector<int32_t>* triangles, std::vector<Vector3>* v3, std::vector<G3D::Vector3>* normal, float maxCoord)
+void Diamond_Square::GenerateTerrian(std::vector<int32_t>* triangles, std::vector<Vector3>* v3, std::vector<G3D::Vector3>* normal, float maxCoord, int lod)
 {
 	if (maxCoord <= 0)
 	{
@@ -320,6 +320,9 @@ void Diamond_Square::GenerateTerrian(std::vector<int32_t>* triangles, std::vecto
 		outBoundY += obY;
 		idx++;
 	}
+}
+void Diamond_Square::CaculateTriangles(std::vector<int32_t>& triangle, int lod)
+{
 }
 void Diamond_Square::AddEdge(const Vector3 * edge, int32_t size, int32_t edgeType)
 {

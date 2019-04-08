@@ -12,7 +12,6 @@ EXTERN_C_BEGIN
 
 EXPORT_API void STD_CALL InitCppEngine()
 {
-	LogFormat("InitCppEngine");
 	transformMap::InitTransformMap();
 }
 
