@@ -7,12 +7,14 @@ using namespace G3D;
 Diamond_Square::Diamond_Square(int32_t seed, int32_t I, float H) :
 	m_nI(I),
 	m_nH(H / 100.0f),
-	m_bIsFinished(false)
+	m_bIsFinished(false),
+	m_bEdgeExtended(false)
 {
 	setRandomSeed(seed);
 	m_nSize = std::pow(2, 2 * I) + 1;
 	m_nMax = m_nSize - 1;
 	m_vHeightMap.resize(m_nSize*m_nSize);
+	m_vExtendPoints.resize((m_nSize + 2)*(m_nSize + 2));
 }
 
 Diamond_Square::~Diamond_Square()
@@ -112,39 +114,67 @@ inline void Diamond_Square::Diamond(int x, int y, int size, float h)
 		p[1] = GetAtXY(0, y - size);// m_vHeightMap[m_nSize * (y - size)];
 		p[2] = GetAtXY(size, y);// m_vHeightMap[m_nSize*y + size];
 		p[3] = GetAtXY(0, y + size);// m_vHeightMap[m_nSize*(y + size)];
-		p[0] = p[_irandom(1, 3)];
+		if (m_bEdgeExtended)
+		{
+			p[0] = GetExtendedPoint(-1, y).y;
+		}
+		else
+		{
+			p[0] = p[_irandom(1, 3)];
+		}
 	}
 	else if (x == m_nMax)
 	{
 		p[0] = GetAtXY(x - size, y);// m_vHeightMap[x - size + m_nSize * y];
 		p[1] = GetAtXY(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
 		p[2] = p[3] = GetAtXY(x, y + size);// m_vHeightMap[x + m_nSize * (y + size)];
-		int i = _irandom(0, 2);
-		if (i == 2)
+		if (m_bEdgeExtended)
 		{
-			i++;
+			p[2] = GetExtendedPoint(m_nMax + 1, y).y;
 		}
-		p[2] = p[i];
+		else
+		{
+			int i = _irandom(0, 2);
+			if (i == 2)
+			{
+				i++;
+			}
+			p[2] = p[i];
+		}
 	}
 	else if (y == 0)
 	{
 		p[0] = GetAtXY(x - size, 0);// m_vHeightMap[x - size];
 		p[2] = GetAtXY(x + size, 0);// m_vHeightMap[x + size];
 		p[3] = GetAtXY(x, size);// m_vHeightMap[x + m_nSize * size];
-		int i = _irandom(1, 3);
-		if (i == 1)
+		if (m_bEdgeExtended)
 		{
-			i--;
+			p[1] = GetExtendedPoint(x, -1).y;
 		}
-		p[1] = p[i];
+		else
+		{
+			int i = _irandom(1, 3);
+			if (i == 1)
+			{
+				i--;
+			}
+			p[1] = p[i];
+		}
 	}
 	else if (y == m_nMax)
 	{
 		p[0] = GetAtXY(x - size, y);// m_vHeightMap[x - size + m_nSize * y];
 		p[1] = GetAtXY(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
 		p[2] = GetAtXY(x + size, y);//m_vHeightMap[x + size + m_nSize * y];
-		int i = _irandom(0, 2);
-		p[3] = p[i];
+		if (m_bEdgeExtended)
+		{
+			p[3] = GetExtendedPoint(x, m_nMax + 1).y;
+		}
+		else
+		{
+			int i = _irandom(0, 2);
+			p[3] = p[i];
+		}
 	}
 	else
 	{
@@ -161,10 +191,10 @@ inline void Diamond_Square::Diamond(int x, int y, int size, float h)
 inline void Diamond_Square::Square(int x, int y, int size, float h)
 {
 	m_aPointBuffer[4] = (
-		GetAtXY(x-size,y-size)+
-		GetAtXY(x+size,y-size)+
-		GetAtXY(x-size,y+size)+
-		GetAtXY(x+size,y+size)
+		GetAtXY(x - size, y - size) +
+		GetAtXY(x + size, y - size) +
+		GetAtXY(x - size, y + size) +
+		GetAtXY(x + size, y + size)
 		) / 4.0f;
 	SetAtXY(x, y, m_aPointBuffer[4] + h * m_aPointBuffer[4]);
 	//LogFormat("Square x %d,y %d,p %f,h %f,r %f", x, y, height, h, m_vHeightMap[x + m_nSize * y]);
@@ -176,7 +206,7 @@ inline float Diamond_Square::Randomize(float h)
 }
 
 
-void Diamond_Square::GenerateTerrian(std::vector<int32_t>* triangles, std::vector<Vector3>* v3, float maxCoord)
+void Diamond_Square::GenerateTerrian(std::vector<int32_t>* triangles, std::vector<Vector3>* v3, std::vector<G3D::Vector3>* normal, float maxCoord)
 {
 	if (maxCoord <= 0)
 	{
@@ -200,19 +230,69 @@ void Diamond_Square::GenerateTerrian(std::vector<int32_t>* triangles, std::vecto
 	outBoundY = obY = m_nMax / meshCount;
 	LogFormat("outBoundY %d,d %f", outBoundY, d);
 	int startY(0);
+	for (int y = 0; y <= m_nMax; y++)
+	{
+		if (!m_bEdgeExtended)
+		{
+			if (y == 0)
+			{
+				SetExtendedPoint(-1, -1, -d, GetAtXY(0, 0), -d);//x = -1,
+				SetExtendedPoint(m_nSize, -1, m_nSize  * d, GetAtXY(m_nMax, 0), -d);//x = m_nSize
+			}
+			else if (y == m_nMax)
+			{
+				SetExtendedPoint(-1, m_nSize, -d, GetAtXY(0, m_nMax), d*m_nSize);//x = -1,
+				SetExtendedPoint(m_nSize, m_nSize, m_nSize  * d, GetAtXY(m_nMax, m_nMax), d*m_nSize);//x = m_nSize
+			}
+			SetExtendedPoint(-1, y, -d, GetAtXY(0, y), d*y);//x = -1,
+			SetExtendedPoint(m_nSize, y, m_nSize  * d, GetAtXY(m_nMax, y), d*y);//x = m_nSize
+		}
+		for (int x = 0; x <= m_nMax; x++)
+		{
+			float height = GetAtXY(x, y);
+			SetExtendedPoint(x, y, x*d, height, y*d);
+			if (!m_bEdgeExtended)//Ìí¼ÓÉÏÏÂ±ßÑØ
+			{
+				if (y == 0)
+				{
+					SetExtendedPoint(x, -1, x*d, height, -d);
+				}
+				else if (y == m_nMax)
+				{
+					SetExtendedPoint(x, m_nSize, x*d, height, m_nSize*d);
+				}
+			}
+		}
+	}
+	Vector3 pNeibor[4];
+	Vector3 _normal[4];
 	while (idx < meshCount)
 	{
 		v3[idx].resize(m_nSize*(outBoundY - startY + 1));
+		normal[idx].resize(v3[idx].size());
 		int vidx = 0;
 		for (int y = startY; y <= m_nMax; y++)
 		{
 			for (int x = 0; x <= m_nMax; x++)
 			{
+				Vector3 p = GetExtendedPoint(x, y);
 #if UNITY_CORE
-				v3[idx][vidx++] = Vector3(x*d, GetAtXY(x, y), y*d);
+				v3[idx][vidx] = GetExtendedPoint(x, y);
 #else
-				v3[idx][vidx++] = Vector3(x*d, GetAtXY(x, y), y*d);
+				v3[idx][vidx] = GetExtendedPoint(x, y);
 #endif
+				pNeibor[0] = GetExtendedPoint(x - 1, y);
+				pNeibor[1] = GetExtendedPoint(x, y - 1);
+				pNeibor[2] = GetExtendedPoint(x + 1, y);
+				pNeibor[3] = GetExtendedPoint(x, y + 1);
+
+				_normal[0] = -unityMesh::getNormal(p - pNeibor[0], p - pNeibor[1]);
+				_normal[1] = -unityMesh::getNormal(p - pNeibor[1], p - pNeibor[2]);
+				_normal[2] = -unityMesh::getNormal(p - pNeibor[2], p - pNeibor[3]);
+				_normal[3] = -unityMesh::getNormal(p - pNeibor[3], p - pNeibor[0]);
+				_normal[0] = _normal[0] + _normal[1] + _normal[2] + _normal[3];
+				normal[idx][vidx] = unityMesh::normalize(_normal[0]);
+				vidx++;
 			}
 			if (y >= outBoundY)
 			{
@@ -241,8 +321,51 @@ void Diamond_Square::GenerateTerrian(std::vector<int32_t>* triangles, std::vecto
 		idx++;
 	}
 }
-void Diamond_Square::AddEdge(const Vector3 * edge, int32_t size, int32_t coord)
+void Diamond_Square::AddEdge(const Vector3 * edge, int32_t size, int32_t edgeType)
 {
+	if (!edge)
+	{
+		LogErrorFormat("Add Edge With Empty data");
+		return;
+	}
+	if (size != m_nSize + 1)
+	{
+		LogErrorFormat("Add Edge With Wrong size!");
+		return;
+	}
+	if (edgeType == 0)//y = -1
+	{
+		for (int x = -1; x <= m_nMax; x++)
+		{
+			const G3D::Vector3& p = edge[x + 1];
+			SetExtendedPoint(x, -1, p.x, p.y, p.z);
+		}
+	}
+	else if (edgeType == 1) //x = m_nMax,
+	{
+		for (int y = -1; y <= m_nMax; y++)
+		{
+			const G3D::Vector3& p = edge[y + 1];
+			SetExtendedPoint(m_nMax, y, p.x, p.y, p.z);
+		}
+	}
+	else if (edgeType == 2)//y = m_nMax
+	{
+		for (int x = -1; x <= m_nMax; x++)
+		{
+			const G3D::Vector3& p = edge[x + 1];
+			SetExtendedPoint(x, m_nMax, p.x, p.y, p.z);
+		}
+	}
+	else//x = -1
+	{
+		for (int y = -1; y <= m_nMax; y++)
+		{
+			const G3D::Vector3& p = edge[y + 1];
+			SetExtendedPoint(-1, y, p.x, p.y, p.z);
+		}
+	}
+	m_bEdgeExtended = true;
 }
 
 NS_GNRT_END

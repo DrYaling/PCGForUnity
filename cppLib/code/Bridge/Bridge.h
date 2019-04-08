@@ -91,9 +91,9 @@ EXPORT_API void STD_CALL GetMeshData(Vector3 * pV, int32_t * pI,int arg0)
 	generator::GetGeneratorData(pV, pI, arg0);
 }*/
 
-EXPORT_API int32_t STD_CALL GetMeshVerticesData(Vector3 * pV, int arg0)
+EXPORT_API int32_t STD_CALL GetMeshVerticesData(Vector3 * pV,Vector3* pN, int arg0)
 {
-	return generator::GetGeneratorVerticesData(pV, arg0);
+	return generator::GetGeneratorVerticesData(pV,pN, arg0);
 }
 EXPORT_API void STD_CALL GetMeshTrianglesData(int32_t * pI, int arg0)
 {

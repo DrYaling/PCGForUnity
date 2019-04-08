@@ -29,7 +29,7 @@ static inline float _frandom(int min, int max)
 }
 static inline float _frandom_f(float min, float max)
 {
-	if (min	>= max)
+	if (min >= max)
 	{
 		return min;
 	}
@@ -59,7 +59,7 @@ enum eGeographySubType :int16_t
 {
 	eg_sub_volcano = 1,//»ğÉ½
 	eg_sub_marsh = 2,//ÕÓÔó
-	eg_sub_forest= 3,//É­ÁÖ
+	eg_sub_forest = 3,//É­ÁÖ
 	eg_sub_desert = 4,//É³Ä®
 	eg_sub_grassland = 5,//²İÔ­
 	eg_sub_lake = 6,//ºş²´

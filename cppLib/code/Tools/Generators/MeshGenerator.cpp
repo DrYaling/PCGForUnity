@@ -6,6 +6,7 @@ NS_GNRT_START
 
 TerrianGenerator* pGenerator = nullptr;
 std::vector<Vector3> vertexs[MAX_MESH_COUNT];
+std::vector<Vector3> normals[MAX_MESH_COUNT];
 std::vector<int32_t> indexes[MAX_MESH_COUNT];
 int32_t _seed;
 std::vector<int32_t> _args;
@@ -18,12 +19,14 @@ void InitGenerator(int32_t seed, const int32_t* args, int32_t argSize, bool opti
 		_initilized = false;
 		return;
 	}
+	_seed = seed;
 	_initilized = true;
 	_optimalize = optimalize;
 	for (int i = 0; i < MAX_MESH_COUNT; i++)
 	{
 		vertexs[i].clear();
 		indexes[i].clear();
+		normals[i].clear();
 	}
 	_args.clear();
 	for (int i = 0; i < argSize; i++)
@@ -72,7 +75,7 @@ void GenMeshData(int32_t type, int32_t* vSize)
 
 		float h[4] = { _args[3],_args[4],_args[5],_args[6] };
 		dsg->Start(h);
-		dsg->GenerateTerrian(indexes, vertexs, _args[2]);
+		dsg->GenerateTerrian(indexes, vertexs,normals, _args[2]);
 		for (int i = 0; i < MAX_MESH_COUNT; i++)
 			vSize[i] = vertexs[i].size();
 		pGenerator = dsg;
@@ -128,7 +131,7 @@ void GetGeneratorTrianglesData(int32_t * pI, int arg0)
 	}
 }
 
-int32_t GetGeneratorVerticesData(Vector3 * pV, int index)
+int32_t GetGeneratorVerticesData(Vector3 * pV, Vector3* pN, int index)
 {
 	if (!_initilized)
 	{
@@ -138,12 +141,20 @@ int32_t GetGeneratorVerticesData(Vector3 * pV, int index)
 	{
 		return 0;
 	}
-	LogFormat("v %d size %d", index, vertexs[index].size());
+	LogFormat("vertexs %d size %d", index, vertexs[index].size());
 	if (pV)
 	{
 		for (auto v : vertexs[index])
 		{
 			*pV++ = v;
+		}
+	}
+	//LogFormat("normals %d size %d", index, normals[index].size());
+	if (pN)
+	{
+		for (auto n : normals[index])
+		{
+			*pN++ = n;
 		}
 	}
 	return indexes[index].size();
@@ -155,6 +166,7 @@ void ReleaseGenerator()
 	{
 		vertexs[i].clear();
 		indexes[i].clear();
+		normals[i].clear();
 	}
 	if (pGenerator)
 	{
@@ -163,5 +175,6 @@ void ReleaseGenerator()
 	}
 	_initilized = false;
 	_args.clear();
+	_seed = 0;
 }
 NS_GNRT_END

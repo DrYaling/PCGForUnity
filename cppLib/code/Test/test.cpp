@@ -57,8 +57,9 @@ int main()
 	stop = GetTickCount();
 	LogFormat("Diamond_Square caculate time %d ms", stop - start);
 	std::vector<Vector3> v3[3];
+	std::vector<Vector3> normals[3];
 	std::vector<int32_t> idx[3];
-	ds.GenerateTerrian(idx, v3,10);
+	ds.GenerateTerrian(idx, v3, normals, 10);
 	stop = GetTickCount();
 	LogFormat("Diamond_Square total gen time %d ms", stop - start);
 	//while (1) sleep(1000);

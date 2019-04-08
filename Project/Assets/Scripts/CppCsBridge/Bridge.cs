@@ -47,8 +47,8 @@ public class Bridge
         RegisterLogWarning(CSLogWarning);
         RegisterLogError(CSLogError);
         InitCppEngine();
-        HandleSetInt(0, 666);
-        HandleSetObject(0, new csObject() { fvalue = 0.58f, key = 666, value= 1246});
+        /*HandleSetInt(0, 666);
+        HandleSetObject(0, new csObject() { fvalue = 0.58f, key = 666, value= 1246});*/
         UnityEngine.Profiling.Profiler.EndSample();
     }
     public static void Destroy()
@@ -68,7 +68,7 @@ public class Bridge
 #if UNITY_EDITOR
         if (mainThreadId != System.Threading.Thread.CurrentThread.ManagedThreadId)
         {
-            Debug.LogError("CSUpdate Is Running not in main thread");
+            //Debug.LogError("CSUpdate Is Running not in main thread");
             return;
         }
 #endif
