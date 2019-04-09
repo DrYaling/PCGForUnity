@@ -57,6 +57,7 @@ typedef uint8_t uint8;
 #endif
 #endif
 
+#define STD_CALL __stdcall
 inline static const char* solutionDir() { return __FILE__; };
 #define safe_delete(ptr) if(ptr) \
 {\

@@ -34,13 +34,13 @@ KcpSession::~KcpSession()
 void KcpSession::Close()
 {
 	m_nSessionStatus = SessionStatus::Disconnected;
-	SocketServer::GetInstance()->CloseSession(this,false);
+	SocketServer::GetInstance()->CloseSession(this, false);
 	//m_pDataHandler = nullptr;
 }
 int KcpSession::fnWriteDgram(const char *buf, int len, ikcpcb *kcp, void *user) {
 	KcpSession* session = (KcpSession*)user;
 	IUINT32 cmd = 0;
-	utils_decode32u(buf + IKCP_OVERHEAD_LEN+4,&cmd);
+	utils_decode32u(buf + IKCP_OVERHEAD_LEN + 4, &cmd);
 	if (cmd == S2C_ACCEPT_ACT)
 	{
 		MessageBuffer acceptBuffer(len);
@@ -83,7 +83,7 @@ void KcpSession::OnReceive(const uint8 * buff, int length)
 	IUINT32 conv = ikcp_getconv(buff);
 	//error server target
 
-	if (conv &0xffff != sSocketServer->GetServerId())
+	if ((conv & 0xffff) != sSocketServer->GetServerId())
 	{
 		//ignore erro pack
 		LogErrorFormat("error serverId %d", conv >> 16);
@@ -100,7 +100,7 @@ void KcpSession::OnReceive(const uint8 * buff, int length)
 	int bytes = ikcp_input(m_pKcp, (char*)buff, length);
 	int recv_size = ikcp_recv(m_pKcp, (char*)m_readBuffer.GetWritePointer(), m_readBuffer.GetRemainingSpace());
 	if (recv_size > 0)
-	{		
+	{
 		if (!sSocketServer->CheckCrc((const char*)m_packetBuffer.GetReadPointer(), m_packetBuffer.GetActiveSize()))
 		{
 			return;
@@ -109,9 +109,9 @@ void KcpSession::OnReceive(const uint8 * buff, int length)
 		ReadHandler();
 		m_readBuffer.Reset();
 	}
-	else if(recv_size == -3)
+	else if (recv_size == -3)
 	{
-		LogErrorFormat("OnReceive size %d",recv_size);
+		LogErrorFormat("OnReceive size %d", recv_size);
 	}
 }
 
@@ -124,13 +124,13 @@ void KcpSession::Update(int32_t time)
 	else
 	{
 		m_nTick += time;
-		if (m_nTick> HEART_BEAT_INTERVAL)
+		if (m_nTick > HEART_BEAT_INTERVAL)
 		{
 			m_nTick = 0;
 			SendHeartBeat();
 		}
-		if (m_bNeedUpdate || m_pKcp->current + 10 >= m_nNeedUpdateTime ) {
-			ikcp_update(m_pKcp, m_pKcp->current+10);
+		if (m_bNeedUpdate || m_pKcp->current + 10 >= m_nNeedUpdateTime) {
+			ikcp_update(m_pKcp, m_pKcp->current + 10);
 			m_nNeedUpdateTime = ikcp_check(m_pKcp, time);
 			m_bNeedUpdate = false;
 		}
@@ -160,10 +160,10 @@ void KcpSession::Update(int32_t time)
 }
 
 void KcpSession::Disconnect()
-{	
+{
 	Log("SessionDisconnect");
 	PacketHeader header = { 0,S2C_DISCONNECT };
-	Send((char*)&header, sizeof(header),true);
+	Send((char*)&header, sizeof(header), true);
 	m_nSessionStatus = SessionStatus::Disconnected;
 	sSocketServer->CloseSession(this, true);
 }
@@ -254,7 +254,7 @@ void KcpSession::OnConnected(IUINT32 conv, const SockAddr_t& addr)
 {
 	m_stSessionId = socketSessionId(conv, addr);
 	m_bAlive = true;
-	if(m_pKcp)
+	if (m_pKcp)
 		ikcp_release(m_pKcp);
 	m_pKcp = ikcp_create(conv, this);
 	m_pKcp->mtu = sSocketServer->GetMTU();
@@ -271,7 +271,7 @@ void KcpSession::OnConnected()
 	char buff[sizeof(PacketHeader) + 4] = {};
 	memcpy(buff, &header, sizeof(PacketHeader));
 	memcpy(buff + sizeof(PacketHeader), &GetSessionId().conv, sizeof(IUINT32));
-	Send(buff, sizeof(buff),true);
+	Send(buff, sizeof(buff), true);
 	m_bAlive = true;
 	m_nSessionStatus = SessionStatus::Connected;
 }

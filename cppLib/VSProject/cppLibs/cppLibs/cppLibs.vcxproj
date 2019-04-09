@@ -200,6 +200,7 @@ Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).pdb" "$(Solution
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\code\Bridge\Bridge.h" />
+    <ClInclude Include="..\..\..\code\Bridge\MeshBindings.h" />
     <ClInclude Include="..\..\..\code\Map\TransformMap.h" />
   </ItemGroup>
   <ItemGroup>

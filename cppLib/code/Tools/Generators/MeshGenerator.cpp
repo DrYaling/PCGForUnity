@@ -1,10 +1,7 @@
 #include "MeshGenerator.h"
 #include "Logger/Logger.h"
-#include "TerrianGenerator/Mountain.h"
-#include "TerrianGenerator/Diamond_Square.h"
-NS_GNRT_START
 
-TerrianGenerator* pGenerator = nullptr;
+/*TerrianGenerator* pGenerator = nullptr;
 std::vector<Vector3> vertexs[MAX_MESH_COUNT];
 std::vector<Vector3> normals[MAX_MESH_COUNT];
 std::vector<int32_t> indexes[MAX_MESH_COUNT];
@@ -49,7 +46,7 @@ void GenMeshData(int32_t type, int32_t* vSize)
 	{
 	case 0:
 	{
-		/*auto mtg = new MountainGen(std::move(Vector3()), _arg0);
+		/ *auto mtg = new MountainGen(std::move(Vector3()), _arg0);
 		mtg->Init(_seed, _arg1, _arg2, _optimalize);
 		if (mtg)
 		{
@@ -62,7 +59,7 @@ void GenMeshData(int32_t type, int32_t* vSize)
 		{
 			pGenerator = nullptr;
 			vSize = idxSize = 0;
-		}*/
+		}* /
 	}
 	break;
 	case 1:
@@ -71,14 +68,6 @@ void GenMeshData(int32_t type, int32_t* vSize)
 		{
 			return;
 		}
-		auto dsg = new Diamond_Square(_seed, _args[0], _args[1]);
-
-		float h[4] = { _args[4],_args[5],_args[6],_args[7] };
-		dsg->Start(h);
-		dsg->GenerateTerrian(indexes, vertexs,normals, _args[2],_args[3]);
-		for (int i = 0; i < MAX_MESH_COUNT; i++)
-			vSize[i] = vertexs[i].size();
-		pGenerator = dsg;
 	}
 	break;;
 	default:
@@ -172,22 +161,118 @@ int32_t GetGeneratorVerticesData(Vector3 * pV, Vector3* pN, int index)
 	}
 	return indexes[index].size();
 }
+*/
+#include "Terrian/TerrianMesh.h"
+using namespace generator;
+static std::map<int32_t, TerrianMesh*> mTerrianBindings;
 
-void ReleaseGenerator()
+NS_GNRT_START
+
+static inline TerrianMesh* Internal_GetTerrianMesh(int32_t instance)
 {
-	for (int i = 0; i < MAX_MESH_COUNT; i++)
+
+	auto itr = mTerrianBindings.find(instance);
+	if (itr != mTerrianBindings.end())
 	{
-		vertexs[i].clear();
-		indexes[i].clear();
-		normals[i].clear();
+		return mTerrianBindings[instance];
 	}
-	if (pGenerator)
+	else
 	{
-		delete pGenerator;
-		pGenerator = nullptr;
+		return nullptr;
 	}
-	_initilized = false;
-	_args.clear();
-	_seed = 0;
+}
+void Internal_InitTerrianMesh(int32_t instanceId, int32_t* args, int32_t argsize, ResizeIndicesCallBack cb)
+{
+	LogFormat("Internal_InitTerrianMesh %d", instanceId);
+	TerrianMesh* mesh = Internal_GetTerrianMesh(instanceId);
+	if (mesh)
+	{
+		LogFormat("Init Terrian %d", instanceId);
+		mesh->Init(args, argsize, cb);
+	}
+}
+
+void Internal_StartGenerateOrLoad(int32_t instanceId)
+{
+	TerrianMesh* mesh = Internal_GetTerrianMesh(instanceId);
+	if (mesh)
+	{
+		mesh->Start();
+	}
+}
+
+void Internal_ResetLod(int32_t instanceId, int32_t lod)
+{
+	TerrianMesh* mesh = Internal_GetTerrianMesh(instanceId);
+	if (mesh)
+	{
+		mesh->SetLod(lod);
+		mesh->RecaculateTriangles(lod);
+	}
+}
+
+void Internal_RegisterTerrianMeshBinding(int32_t instance)
+{
+	auto itr = mTerrianBindings.find(instance);
+	if (itr == mTerrianBindings.end())
+	{
+		LogFormat("register %d", instance);
+		auto terrian = new TerrianMesh();
+		mTerrianBindings.insert(std::make_pair(instance, terrian));
+	}
+	else
+	{
+		LogErrorFormat("terrian of instance %d already exist!", instance);
+	}
+}
+
+void Internal_ReleaseGenerator(int32_t instance)
+{
+	auto itr = mTerrianBindings.find(instance);
+	if (itr != mTerrianBindings.end())
+	{
+		mTerrianBindings[instance]->Release();
+		delete mTerrianBindings[instance];
+		mTerrianBindings.erase(itr);
+	}
+}
+void Internal_InitMeshVerticeData(int32_t instance, G3D::Vector3 * vertices, int32_t size, int32_t mesh)
+{
+	auto itr = mTerrianBindings.find(instance);
+	if (itr != mTerrianBindings.end())
+	{
+		mTerrianBindings[instance]->InitTerrianVerticesData(vertices, size, mesh);
+	}
+}
+void Internal_InitMeshNormalData(int32_t instance, G3D::Vector3 * normals, int32_t size, int32_t mesh)
+{
+	auto itr = mTerrianBindings.find(instance);
+	if (itr != mTerrianBindings.end())
+	{
+		mTerrianBindings[instance]->InitMeshNormalData(normals, size, mesh);
+	}
+}
+void Internal_InitMeshUVData(int32_t instance, G3D::Vector2 * uvs, int32_t size, int32_t mesh, int32_t uv)
+{
+	auto itr = mTerrianBindings.find(instance);
+	if (itr != mTerrianBindings.end())
+	{
+		mTerrianBindings[instance]->InitMeshUVData(uvs, size, mesh, uv);
+	}
+}
+void Internal_InitMeshTrianglesData(int32_t instance, int32_t * triangles, int32_t size, int32_t mesh, int32_t lod)
+{
+	auto itr = mTerrianBindings.find(instance);
+	if (itr != mTerrianBindings.end())
+	{
+		mTerrianBindings[instance]->InitMeshTriangleData(triangles, size, mesh, lod);
+	}
+}
+void Internal_InitMeshNeighbor(int32_t instanceId, int32_t neighborId, int32_t neighborDirection)
+{
+	auto itr = mTerrianBindings.find(instanceId);
+	if (itr != mTerrianBindings.end())
+	{
+	}
 }
 NS_GNRT_END

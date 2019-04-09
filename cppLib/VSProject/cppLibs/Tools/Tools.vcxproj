@@ -130,6 +130,7 @@
     <ClInclude Include="..\..\..\code\Tools\Mesh\UnityMesh.h" />
     <ClInclude Include="..\..\..\code\Tools\Mesh\Vector2Lite.h" />
     <ClInclude Include="..\..\..\code\Tools\Noises\PerlinNoise.h" />
+    <ClInclude Include="..\..\..\code\Tools\Terrian\TerrianMesh.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\Tools\Generators\MeshGenerator.cpp" />
@@ -137,6 +138,7 @@
     <ClCompile Include="..\..\..\code\Tools\Generators\TerrianGenerator\Mountain.cpp" />
     <ClCompile Include="..\..\..\code\Tools\Generators\TerrianGenerator\Terrian.cpp" />
     <ClCompile Include="..\..\..\code\Tools\Mesh\UnityMesh.cpp" />
+    <ClCompile Include="..\..\..\code\Tools\Terrian\TerrianMesh.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\g3dlite\g3dlite.vcxproj">

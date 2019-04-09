@@ -7,12 +7,11 @@
 #include "Generators/MeshGenerator.h"
 #include <stdint.h>
 typedef void(__stdcall *CPPUpdateCallback)(int tick);
-#define STD_CALL __stdcall
 EXTERN_C_BEGIN
 
-EXPORT_API void STD_CALL InitCppEngine()
+EXPORT_API void STD_CALL InitCppEngine(const char* engineDir)
 {
-	transformMap::InitTransformMap();
+	transformMap::InitTransformMap(engineDir);
 }
 
 EXPORT_API void STD_CALL HandleSetInt(int key, int value)
@@ -71,24 +70,21 @@ EXPORT_API void STD_CALL DestroyCPP()
 	transformMap::ClearTransformMapTrees();
 	ClearLogger();
 }
+/*
 
 EXPORT_API void	STD_CALL InitMeshGenerator(int32_t seed, const int32_t* args, int32_t argSize, bool optimalize)
 {
 	generator::InitGenerator(seed, args, argSize, optimalize);
 }
-EXPORT_API void	 STD_CALL ReleaseMeshGenerator()
-{
-	generator::ReleaseGenerator();
-}
 EXPORT_API void STD_CALL GenerateMesh(int32_t type, int32_t* vSize)
 {
 	generator::GenMeshData(type, vSize);
 }
-/*
+/ *
 EXPORT_API void STD_CALL GetMeshData(Vector3 * pV, int32_t * pI,int arg0)
 {
 	generator::GetGeneratorData(pV, pI, arg0);
-}*/
+}* /
 
 EXPORT_API int32_t STD_CALL GetMeshVerticesData(Vector3 * pV,Vector3* pN, int arg0)
 {
@@ -97,7 +93,7 @@ EXPORT_API int32_t STD_CALL GetMeshVerticesData(Vector3 * pV,Vector3* pN, int ar
 EXPORT_API void STD_CALL GetMeshTrianglesData(int32_t * pI, int arg0)
 {
 	generator::GetGeneratorTrianglesData(pI, arg0);
-}
+}*/
 static int internalCall()
 {
 	return -1;

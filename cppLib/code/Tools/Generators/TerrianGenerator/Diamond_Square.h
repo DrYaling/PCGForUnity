@@ -10,17 +10,17 @@ NS_GNRT_START
 class Diamond_Square :public TerrianGenerator
 {
 public:
-	Diamond_Square() {}
-	Diamond_Square(int32_t seed, int32_t I, float H);
+	Diamond_Square(int32_t seed, int32_t I, float H, std::vector<float>& heightMap);
 	virtual ~Diamond_Square();
 	void SetProcessHandler(std::function<void(int32_t)> handler) { m_cbProcessHandler = handler; }
-	void Start(const float* corner, const int32_t size = 4);
+	void Start(const float* corner, const int32_t size = 4,std::function<void(void)> cb = nullptr);
 	//根据传入的最大坐标maxCoord计算地图
-	void GenerateTerrian(std::vector<int32_t>* triangles, std::vector<G3D::Vector3>* v3, std::vector<G3D::Vector3>* normal, float maxCoord,int lod = 0);
+	void GenerateTerrian(G3D::Vector3** v3, G3D::Vector3** normal, float maxCoord, ResizeIndicesCallBack cb);
 	bool IsFinished() { return m_bIsFinished; }
 	void CaculateTriangles(std::vector<int32_t>& triangle, int lod);
+	int32_t GetSquareSize() { return m_nSize; }
 private:
-	void WorkThread();
+	void WorkThread(std::function<void(void)> cb);
 	inline void Diamond(int x, int y, int size, float h);
 	inline void Square(int x, int y, int size, float h);
 	inline float Randomize(float h);
@@ -50,6 +50,16 @@ private:
 		return GetAtXY(x, y);
 	}
 	inline size_t GetSize() { return m_vHeightMap.size(); }
+	size_t GetMeshCount() {
+		if (GetSize() % MAX_MESH_VERTICES == 0)
+		{
+			return GetSize() / MAX_MESH_VERTICES;
+		}
+		else
+		{
+			return GetSize() / MAX_MESH_VERTICES + 1;
+		}
+	}
 	inline void	 SetExtendedPoint(int x, int y, float fx, float fy, float fz)/*x y from -1~m_nSize+1*/
 	{
 		m_vExtendPoints[x + 1 + (y + 1) * (m_nSize + 2)] = G3D::Vector3(fx, fy, fz);
@@ -60,7 +70,7 @@ private:
 	}
 private:
 	std::function<void(int32_t)> m_cbProcessHandler;
-	std::vector<float> m_vHeightMap;
+	std::vector<float>& m_vHeightMap;
 	std::vector<G3D::Vector3> m_vExtendPoints;/*x = -1,y = -1,x = m_nSize,y = m_nSize*/
 	float m_aPointBuffer[5];
 	int32_t m_nSize;//总数 2^(2*i)+1

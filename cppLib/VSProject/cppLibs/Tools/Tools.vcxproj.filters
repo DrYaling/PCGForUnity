@@ -28,6 +28,9 @@
     <Filter Include="源文件\Noises">
       <UniqueIdentifier>{2c6c1a60-0b7e-4be1-9354-ab175c34725b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\Terrian">
+      <UniqueIdentifier>{81806a14-2f5a-4f3f-8a2d-9cd168c4caef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\code\Tools\Generators\generator.h">
@@ -69,6 +72,9 @@
     <ClInclude Include="..\..\..\code\Tools\Generators\TerrianGenerator\Diamond_Square.h">
       <Filter>源文件\Generators\TerrianGenerator</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\code\Tools\Terrian\TerrianMesh.h">
+      <Filter>源文件\Terrian</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\Tools\Generators\TerrianGenerator\Mountain.cpp">
@@ -85,6 +91,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\code\Tools\Generators\TerrianGenerator\Diamond_Square.cpp">
       <Filter>源文件\Generators\TerrianGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\Tools\Terrian\TerrianMesh.cpp">
+      <Filter>源文件\Terrian</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

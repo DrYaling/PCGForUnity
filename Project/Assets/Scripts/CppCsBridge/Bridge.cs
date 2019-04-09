@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Bridge
 {
-    [StructLayout(LayoutKind.Sequential,CharSet = CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     struct csObject
     {
         public int key;
@@ -22,7 +22,7 @@ public class Bridge
     public delegate void LogWarning(string content);
     public delegate void LogError(string content);
     [DllImport(dllName)]
-    extern static void InitCppEngine();
+    extern static void InitCppEngine(string engineDir);
     [DllImport(dllName)]
     extern static void HandleSetInt(int key, int val);
     [DllImport(dllName)]
@@ -46,7 +46,10 @@ public class Bridge
         RegisterLog(CSLog);
         RegisterLogWarning(CSLogWarning);
         RegisterLogError(CSLogError);
-        InitCppEngine();
+        string dir = Application.persistentDataPath + "/cppEngine/";
+        if (!System.IO.Directory.Exists(dir))
+            System.IO.Directory.CreateDirectory(dir);
+        InitCppEngine(dir);
         /*HandleSetInt(0, 666);
         HandleSetObject(0, new csObject() { fvalue = 0.58f, key = 666, value= 1246});*/
         UnityEngine.Profiling.Profiler.EndSample();
@@ -76,15 +79,15 @@ public class Bridge
         //cost 4 ms (average) ms on my book
         Update(time_diff);
         UnityEngine.Profiling.Profiler.EndSample();
-       /* UnityEngine.Profiling.Profiler.BeginSample("CSUpdate");
-        //cost 95 ms (average) on my book
-        long ret = 0;
-        for (int i = 0; i < 10000000; i++)
-        {
-            ret += i;
-        }
-        CSLog("ret is " + ret);
-        UnityEngine.Profiling.Profiler.EndSample();*/
+        /* UnityEngine.Profiling.Profiler.BeginSample("CSUpdate");
+         //cost 95 ms (average) on my book
+         long ret = 0;
+         for (int i = 0; i < 10000000; i++)
+         {
+             ret += i;
+         }
+         CSLog("ret is " + ret);
+         UnityEngine.Profiling.Profiler.EndSample();*/
     }
     private static void CSLog(string content)
     {

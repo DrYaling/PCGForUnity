@@ -12,6 +12,7 @@ struct testObj {
 };
 namespace transformMap 
 {
+	const char* pEngineDir;
 	typedef std::function<void(int)> std_int_setter;
 	typedef std::function<void(testObj)> std_obj_setter;
 	std::map<int, std::vector<std_int_setter>> map_01;
@@ -41,8 +42,9 @@ namespace transformMap
 		map_01.clear();
 		map_02.clear();
 	}
-	void InitTransformMap()
+	void InitTransformMap(const char* engineDir)
 	{
+		pEngineDir = engineDir;
 		map_01.clear();
 		map_02.clear();
 		std::vector<std_int_setter> vSetter;

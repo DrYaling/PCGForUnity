@@ -249,7 +249,9 @@ void KcpClient::ReadHandler()
 		if (result != ReadDataHandlerResult::Ok)
 		{
 			if (result != ReadDataHandlerResult::WaitingForQuery)//error message ,disconnect
-				;
+			{
+
+			}
 		}
 	}
 }

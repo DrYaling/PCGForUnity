@@ -5,6 +5,7 @@
 #include "Triangle2D.h"
 #include <vector>
 #include <algorithm>
+#include "define.h"
 NS_UMESH_START
 class Delaunay
 {
@@ -34,7 +35,7 @@ public:
 
 		float dx = maxX - minX;
 		float dy = maxY - minY;
-		float deltaMax = std::max(dx, dy);
+		float deltaMax = max(dx, dy);
 		float midx = (minX + maxX) / 2.f;
 		float midy = (minY + maxY) / 2.f;
 
