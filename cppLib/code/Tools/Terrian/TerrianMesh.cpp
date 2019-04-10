@@ -143,8 +143,13 @@ namespace generator {
 				while (idx < meshCount)
 				{
 					m_pTerrianData->triangleSize[idx] = nMax * (outBoundY - startY) * 6;
+					LogFormat("triangle of mesh %d count %d",idx,m_pTerrianData->triangleSize[idx]);
 					startY = outBoundY;//因为最上面和最右边一排不计算三角形，所以在交界处需要多计算一次
 					outBoundY += obY;
+					if (outBoundY >=nMax)
+					{
+						outBoundY = nMax;
+					}
 					idx++;
 				}
 				return m_pTerrianData->triangleSize[mesh];

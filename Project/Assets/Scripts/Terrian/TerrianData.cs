@@ -15,7 +15,7 @@ namespace SkyDram
         [DllImport(dllName)]
         extern static void GetMeshTriangleData(int ins, [In, Out] int[] triangles, int size, int mesh, int lod);
         [DllImport(dllName)]
-        extern static void GetMeshVerticeData(int ins, [In, Out] Vector3[] vertices, [In, Out] Vector3[] normals, int mesh/*not used*/, int size/*not used*/);
+        extern static void GetMeshVerticeData(int ins, [In, Out] Vector3[] vertices, [In, Out] Vector3[] normals, int size/*not used*/, int mesh/*not used*/);
         [DllImport(dllName)]
         extern static void GetMeshUVData(int ins, [In, Out] Vector2[] uvs, int size, int mesh, int uv);
         /// <summary>
@@ -102,7 +102,8 @@ namespace SkyDram
         }
         private void InitVertices(int meshIndex, int verticesCount)
         {
-            if (meshIndex >= 0 && meshIndex < _vertices.Length)
+            Debug.LogFormat("InitVertices mesh {0},size {1}", meshIndex, verticesCount);
+            if (meshIndex >= 0 && meshIndex < meshCount)
             {
                 _vertices[meshIndex] = new Vector3[verticesCount];
                 _normals[meshIndex] = new Vector3[verticesCount];
@@ -159,6 +160,7 @@ namespace SkyDram
         }
         private void InitLod(int mesh, int lod, int triangleSize)
         {
+            Debug.LogFormat("InitLod mesh {0},lod {1},size {2}",mesh,lod,triangleSize);
             if (lod < 0 || lod >= _lodCount)
             {
                 Debug.LogFormat("Init Lod fail");
@@ -226,7 +228,7 @@ namespace SkyDram
         }
         private void LoadVertices(int mesh)
         {
-            GetMeshVerticeData(owner, _vertices[mesh], _normals[mesh], _vertices[0].Length, _vertices[0].Length);
+            GetMeshVerticeData(owner, _vertices[mesh], _normals[mesh], _vertices[mesh].Length, mesh);
 
         }
         private void LoadTriangle(int mesh, int lod)

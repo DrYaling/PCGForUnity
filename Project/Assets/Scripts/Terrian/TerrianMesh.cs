@@ -87,9 +87,9 @@ namespace SkyDram
             {
                 Mesh mesh = new Mesh();
                 _meshes.Add(mesh);
-                mesh.triangles = _terrianData.GetTriangles(i, lod);
                 mesh.vertices = _terrianData.GetVertices(i);
                 mesh.normals = _terrianData.GetNormal(i);
+                mesh.triangles = _terrianData.GetTriangles(i, lod);
                 if (_terrianData.useUV)
                 {
                     mesh.uv = _terrianData.GetUV(i, 0);
@@ -99,6 +99,7 @@ namespace SkyDram
                 }
                 GameObject go = new GameObject("mesh" + i);
                 go.AddComponent<MeshFilter>().mesh = mesh;
+                go.AddComponent<MeshRenderer>().material = Resources.Load<Material>("Terrian");
                 if (null != _gameObject)
                     go.transform.SetParent(_gameObject.transform, false);
             }

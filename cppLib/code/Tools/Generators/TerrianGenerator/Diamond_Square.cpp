@@ -306,8 +306,13 @@ namespace generator
 	void Diamond_Square::SetVerticesAndNormal(G3D::Vector3 * pV, G3D::Vector3 * pN, int mesh)
 	{
 		int vidx = 0;
-		int upBound = mesh = GetMeshCount() - 1 ? m_nMax : m_vVerticesSize[mesh + 1];
+		if (mesh<0 || mesh >= m_vVerticesSize.size())
+		{
+			LogErrorFormat("Mesh index error!%d",mesh);
+		}
+		int upBound = (mesh == GetMeshCount() - 1 )? m_nMax : m_vVerticesSize[mesh + 1];
 		int start = mesh == 0 ? 0 : m_vVerticesSize[mesh - 1];
+		LogFormat("SetVerticesAndNormal mesh %d,total mesh %d ,upBound %d ,start %d", mesh, m_vVerticesSize[mesh],upBound,start);
 		for (int y = start; y <= upBound; y++)
 		{
 			for (int x = 0; x <= m_nMax; x++)
