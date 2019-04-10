@@ -17,6 +17,30 @@ namespace generator
 		m_nMax = m_nSize - 1;
 		m_vHeightMap.resize(m_nSize*m_nSize);
 		m_vExtendPoints.resize((m_nSize + 2)*(m_nSize + 2));
+		m_vVertices.resize(m_vHeightMap.size());
+		m_vNormals.resize(m_vHeightMap.size());
+
+		size_t meshCount = GetMeshCount();
+		m_vVerticesSize.resize(meshCount);
+		int idx = 0;
+		int startY(0);
+		int nMax = m_nSize - 1;
+		int	 outBoundY(nMax);
+		int obY(nMax);
+		outBoundY = obY = nMax / meshCount;
+		//int32_t*** triangles;
+		while (idx < meshCount)
+		{
+			int32_t verticesCount = m_nSize * (outBoundY - startY + 1);
+			m_vVerticesSize[idx] = verticesCount;
+			startY = outBoundY;//因为最上面和最右边一排不计算三角形，所以在交界处需要多计算一次
+			outBoundY += obY;
+			if (outBoundY > m_nMax)
+			{
+				outBoundY = m_nMax;
+			}
+			idx++;
+		}
 	}
 
 	Diamond_Square::~Diamond_Square()
@@ -210,35 +234,13 @@ namespace generator
 	}
 
 
-	void Diamond_Square::GenerateTerrian(G3D::Vector3** v3, G3D::Vector3** normal, float maxCoord, ResizeIndicesCallBack cb)
+	void Diamond_Square::GenerateTerrian(float maxCoord)
 	{
 		if (maxCoord <= 0)
 		{
 			return;
 		}
-		if (!cb)
-		{
-			LogError("ResizeIndicesCallBack is null");
-			return;
-		}
-		if (nullptr == v3)
-		{
-			return;
-		}
-		size_t meshCount = GetMeshCount();
-		LogFormat("mesh Count %d", meshCount);
-		if (meshCount > MAX_MESH_COUNT)
-		{
-
-			return;
-		}
 		double d = maxCoord / (float)m_nSize;
-		int idx = 0;
-		int	 outBoundY(m_nMax);
-		int obY(m_nMax);
-		outBoundY = obY = m_nMax / meshCount;
-		LogFormat("outBoundY %d,d %f", outBoundY, d);
-		int startY(0);
 		for (int y = 0; y <= m_nMax; y++)
 		{
 			if (!m_bEdgeExtended)
@@ -275,65 +277,46 @@ namespace generator
 		}
 		Vector3 pNeibor[4];
 		Vector3 _normal[4];
-		//int32_t*** triangles;
-		while (idx < meshCount)
+		int vidx = 0;
+		for (int y = 0; y <= m_nMax; y++)
 		{
-			//cb(meshTopologyVertice, idx, 0, m_nSize*(outBoundY - startY + 1));
-			int vidx = 0;
-			for (int y = startY; y <= m_nMax; y++)
+			for (int x = 0; x <= m_nMax; x++)
 			{
-				for (int x = 0; x <= m_nMax; x++)
-				{
-					Vector3 p = GetExtendedPoint(x, y);
+				vidx = x + y * m_nSize;
+				Vector3 p = GetExtendedPoint(x, y);
 #if UNITY_CORE
-					v3[idx][vidx] = GetExtendedPoint(x, y);
+				m_vNormals[vidx] = p;
 #else
-					v3[idx][vidx] = GetExtendedPoint(x, y);
+				m_vNormals[vidx] = p;
 #endif
-					pNeibor[0] = GetExtendedPoint(x - 1, y);
-					pNeibor[1] = GetExtendedPoint(x, y - 1);
-					pNeibor[2] = GetExtendedPoint(x + 1, y);
-					pNeibor[3] = GetExtendedPoint(x, y + 1);
+				pNeibor[0] = GetExtendedPoint(x - 1, y);
+				pNeibor[1] = GetExtendedPoint(x, y - 1);
+				pNeibor[2] = GetExtendedPoint(x + 1, y);
+				pNeibor[3] = GetExtendedPoint(x, y + 1);
 
-					_normal[0] = -unityMesh::getNormal(p - pNeibor[0], p - pNeibor[1]);
-					_normal[1] = -unityMesh::getNormal(p - pNeibor[1], p - pNeibor[2]);
-					_normal[2] = -unityMesh::getNormal(p - pNeibor[2], p - pNeibor[3]);
-					_normal[3] = -unityMesh::getNormal(p - pNeibor[3], p - pNeibor[0]);
-					_normal[0] = _normal[0] + _normal[1] + _normal[2] + _normal[3];
-					normal[idx][vidx] = unityMesh::normalize(_normal[0]);
-					vidx++;
-				}
-				if (y >= outBoundY)
-				{
-					break;
-				}
+				_normal[0] = -unityMesh::getNormal(p - pNeibor[0], p - pNeibor[1]);
+				_normal[1] = -unityMesh::getNormal(p - pNeibor[1], p - pNeibor[2]);
+				_normal[2] = -unityMesh::getNormal(p - pNeibor[2], p - pNeibor[3]);
+				_normal[3] = -unityMesh::getNormal(p - pNeibor[3], p - pNeibor[0]);
+				_normal[0] = _normal[0] + _normal[1] + _normal[2] + _normal[3];
+				m_vNormals[vidx] = unityMesh::normalize(_normal[0]);
 			}
-			/*int triangleIdx = 0;
-			cb(meshTopologyTriangle, idx, 0, m_nMax*(outBoundY - startY) * 6);
-			for (int ti = 0, vi = 0, y = startY; y < outBoundY && y < m_nMax; y++, vi++)
-			{
-				for (int x = 0; x < m_nMax; x++, ti += 6, vi++)
-				{
-					int p0 = vi;
-					int p1 = vi + 1;
-					int p2 = vi + m_nMax + 1;
-					int p3 = vi + m_nMax + 2;
-					triangles[idx][0][triangleIdx++] = p0;
-					triangles[idx][0][triangleIdx++] = p2;
-					triangles[idx][0][triangleIdx++] = p1;
-					triangles[idx][0][triangleIdx++] = p1;
-					triangles[idx][0][triangleIdx++] = p2;
-					triangles[idx][0][triangleIdx++] = p3;
-				}
-			}*/
-			//LogFormat("mesh %d v size %d,triangle size %d", idx, v3[idx].size(), triangles[idx].size());
-			startY = outBoundY;//因为最上面和最右边一排不计算三角形，所以在交界处需要多计算一次
-			outBoundY += obY;
-			idx++;
 		}
 	}
-	void Diamond_Square::CaculateTriangles(std::vector<int32_t>& triangle, int lod)
+	void Diamond_Square::SetVerticesAndNormal(G3D::Vector3 * pV, G3D::Vector3 * pN, int mesh)
 	{
+		int vidx = 0;
+		int upBound = mesh = GetMeshCount() - 1 ? m_nMax : m_vVerticesSize[mesh + 1];
+		int start = mesh == 0 ? 0 : m_vVerticesSize[mesh - 1];
+		for (int y = start; y <= upBound; y++)
+		{
+			for (int x = 0; x <= m_nMax; x++)
+			{
+				pV[vidx] = GetRealVertice(x, y);
+				pN[vidx] = GetRealNormal(x, y);
+				vidx++;
+			}
+		}
 	}
 	void Diamond_Square::AddEdge(const Vector3 * edge, int32_t size, int32_t edgeType)
 	{

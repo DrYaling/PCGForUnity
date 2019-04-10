@@ -181,14 +181,14 @@ static inline TerrianMesh* Internal_GetTerrianMesh(int32_t instance)
 		return nullptr;
 	}
 }
-void Internal_InitTerrianMesh(int32_t instanceId, int32_t* args, int32_t argsize, ResizeIndicesCallBack cb)
+void Internal_InitTerrianMesh(int32_t instanceId, int32_t* args, int32_t argsize, MeshInitilizerCallBack cb, GeneratorNotifier notifier)
 {
 	LogFormat("Internal_InitTerrianMesh %d", instanceId);
 	TerrianMesh* mesh = Internal_GetTerrianMesh(instanceId);
 	if (mesh)
 	{
 		LogFormat("Init Terrian %d", instanceId);
-		mesh->Init(args, argsize, cb);
+		mesh->Init(args, argsize, cb, notifier);
 	}
 }
 
@@ -207,7 +207,6 @@ void Internal_ResetLod(int32_t instanceId, int32_t lod)
 	if (mesh)
 	{
 		mesh->SetLod(lod);
-		mesh->RecaculateTriangles(lod);
 	}
 }
 
@@ -236,31 +235,33 @@ void Internal_ReleaseGenerator(int32_t instance)
 		mTerrianBindings.erase(itr);
 	}
 }
-void Internal_InitMeshVerticeData(int32_t instance, G3D::Vector3 * vertices, int32_t size, int32_t mesh)
+void Internal_GetMeshVerticeData(int32_t instanceId, G3D::Vector3* pV, G3D::Vector3* pN, int32_t size, int32_t mesh)
+{
+	auto itr = mTerrianBindings.find(instanceId);
+	if (itr != mTerrianBindings.end())
+	{
+		mTerrianBindings[instanceId]->GetTerrianVerticesData(pV, pN, size, mesh);
+	}
+}
+/*
+void Internal_GetMeshNormalData(int32_t instance, G3D::Vector3 * normals, int32_t size, int32_t mesh)
 {
 	auto itr = mTerrianBindings.find(instance);
 	if (itr != mTerrianBindings.end())
 	{
-		mTerrianBindings[instance]->InitTerrianVerticesData(vertices, size, mesh);
+		mTerrianBindings[instance]->GetMeshNormalData(normals, size, mesh);
 	}
-}
-void Internal_InitMeshNormalData(int32_t instance, G3D::Vector3 * normals, int32_t size, int32_t mesh)
+}*/
+void Internal_GetMeshUVData(int32_t instance, G3D::Vector2 * uvs, int32_t size, int32_t mesh, int32_t uv)
 {
 	auto itr = mTerrianBindings.find(instance);
 	if (itr != mTerrianBindings.end())
 	{
-		mTerrianBindings[instance]->InitMeshNormalData(normals, size, mesh);
+		mTerrianBindings[instance]->GetMeshUVData(uvs, size, mesh, uv);
 	}
 }
-void Internal_InitMeshUVData(int32_t instance, G3D::Vector2 * uvs, int32_t size, int32_t mesh, int32_t uv)
-{
-	auto itr = mTerrianBindings.find(instance);
-	if (itr != mTerrianBindings.end())
-	{
-		mTerrianBindings[instance]->InitMeshUVData(uvs, size, mesh, uv);
-	}
-}
-void Internal_InitMeshTrianglesData(int32_t instance, int32_t * triangles, int32_t size, int32_t mesh, int32_t lod)
+
+void Internal_GetMeshTrianglesData(int32_t instance, int32_t * triangles, int32_t size, int32_t mesh, int32_t lod)
 {
 	auto itr = mTerrianBindings.find(instance);
 	if (itr != mTerrianBindings.end())
@@ -268,7 +269,7 @@ void Internal_InitMeshTrianglesData(int32_t instance, int32_t * triangles, int32
 		mTerrianBindings[instance]->InitMeshTriangleData(triangles, size, mesh, lod);
 	}
 }
-void Internal_InitMeshNeighbor(int32_t instanceId, int32_t neighborId, int32_t neighborDirection)
+void Internal_SetMeshNeighbor(int32_t instanceId, int32_t neighborId, int32_t neighborDirection)
 {
 	auto itr = mTerrianBindings.find(instanceId);
 	if (itr != mTerrianBindings.end())

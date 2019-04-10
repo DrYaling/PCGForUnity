@@ -4,13 +4,6 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 namespace SkyDram
 {
-    static class TerrianConst
-    {
-        public const int maxVerticesPerMesh = 65000;
-        public const int meshTopologyVertice = 0;
-        public const int meshTopologyTriangle = 1;
-        public const int meshTopologyUV = 2;
-    }
     [StructLayout(LayoutKind.Sequential)]
     class TerrianData
     {
@@ -20,8 +13,23 @@ namespace SkyDram
         private const string dllName = "cppLibs";
 #endif
         [DllImport(dllName)]
-        extern static void InitMeshTriangleData(int ins, [In,Out] int[] triangles, int size, int mesh, int lod);
-        private bool _isReadable;
+        extern static void GetMeshTriangleData(int ins, [In, Out] int[] triangles, int size, int mesh, int lod);
+        [DllImport(dllName)]
+        extern static void GetMeshVerticeData(int ins, [In, Out] Vector3[] vertices, [In, Out] Vector3[] normals, int mesh/*not used*/, int size/*not used*/);
+        [DllImport(dllName)]
+        extern static void GetMeshUVData(int ins, [In, Out] Vector2[] uvs, int size, int mesh, int uv);
+        /// <summary>
+        /// reset lod 
+        /// </summary>
+        /// <param name="instanceId"></param>
+        /// <param name="lod"></param>
+        [DllImport(dllName)]
+        extern static void ResetLod(int instanceId, int lod);
+
+
+        private bool _uvReadable;
+        private bool _verticesReadable;
+        private bool _trianglesReadable;
         private bool _useUV;
         private int _meshCount;
         private int _lodCount;
@@ -61,13 +69,19 @@ namespace SkyDram
         {
             get
             {
-                return _isReadable;
+                if (!useUV)
+                    return _verticesReadable && _trianglesReadable;
+                else
+                    return _verticesReadable && _uvReadable && _trianglesReadable;
             }
         }
         public int owner { get; private set; }
         private TerrianData() { }
         public TerrianData(int I, int mcount, int maxLod, bool uv, int owner)
         {
+            _verticesReadable = false;
+            _uvReadable = false;
+            _trianglesReadable = false;
             this.owner = owner;
             _useUV = uv;
             _meshCount = mcount;
@@ -84,33 +98,6 @@ namespace SkyDram
             for (int i = 0; i < mcount; i++)
             {
                 _triangles[i] = new int[maxLod][];
-            }
-            int maxSize = (int)(Mathf.Pow(I, 2) + 1);
-            int m_nMax = maxSize - 1;
-            int startY = 0;
-            int idx = 0;
-            int outBoundY;
-            int obY;
-            outBoundY = obY = m_nMax / meshCount;
-            //int32_t*** triangles;
-            while (idx < meshCount)
-            {
-                //cb(meshTopologyVertice, idx, 0, );
-                int nsize = maxSize * (outBoundY - startY + 1);
-                _vertices[idx] = new Vector3[nsize];
-                _normals[idx] = new Vector3[nsize];
-                if (useUV)
-                {
-                    for (int i = 0; i < 4; i++)
-                    {
-                        _uvs[idx][i] = new Vector2[nsize];
-                    }
-                }
-                startY = outBoundY;//因为最上面和最右边一排不计算三角形，所以在交界处需要多计算一次
-                outBoundY += obY;
-                if (outBoundY > m_nMax)
-                    outBoundY = m_nMax;
-                idx++;
             }
         }
         private void InitVertices(int meshIndex, int verticesCount)
@@ -165,17 +152,22 @@ namespace SkyDram
                 return null;
             }
         }
+        public void SetLod(int lod)
+        {
+            ResetLod(owner, lod);
 
-        public void InitLod(int mesh, int lod, int triangleSize)
+        }
+        private void InitLod(int mesh, int lod, int triangleSize)
         {
             if (lod < 0 || lod >= _lodCount)
             {
-                throw new Exception("invalid init lod");
+                Debug.LogFormat("Init Lod fail");
+                return;
             }
-            if (_triangles[mesh][lod].Length != triangleSize)
+            if (null == _triangles[mesh][lod] || _triangles[mesh][lod].Length != triangleSize)
             {
                 _triangles[mesh][lod] = new int[triangleSize];
-                InitMeshTriangleData(owner, _triangles[mesh][lod], _triangles[mesh][lod].Length, mesh, lod);
+                //GetMeshTriangleData(owner, _triangles, _triangles.Length, mesh, lod);
             }
 
         }
@@ -192,7 +184,7 @@ namespace SkyDram
             }
             return _triangles[mesh][lod];
         }
-        public void ResizeIndices(int type, int mesh, int lod, int size)
+        public void MeshInitilizer(int type, int mesh, int lod, int size)
         {
             if (mesh < 0 || mesh >= meshCount)
             {
@@ -201,13 +193,45 @@ namespace SkyDram
             }
             switch (type)
             {
-                case TerrianConst.meshTopologyTriangle:
-                    InitLod(mesh, lod, size);
-                    break;
                 case TerrianConst.meshTopologyVertice:
                     InitVertices(mesh, size);
                     break;
+                case TerrianConst.meshTopologyUV:
+                    break;
+                case TerrianConst.meshTopologyTriangle:
+                    InitLod(mesh, lod, size);
+                    break;
+                default:
+                    break;
             }
+        }
+        public void GeneratorNotifier(int type, int arg0, int arg1)
+        {
+            switch (type)
+            {
+                case TerrianConst.meshTopologyVertice:
+                    LoadVertices(arg0);
+                    _verticesReadable = true;
+                    break;
+                case TerrianConst.meshTopologyUV:
+                    _uvReadable = true;
+                    break;
+                case TerrianConst.meshTopologyTriangle:
+                    LoadTriangle(arg0, arg1);
+                    _trianglesReadable = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+        private void LoadVertices(int mesh)
+        {
+            GetMeshVerticeData(owner, _vertices[mesh], _normals[mesh], _vertices[0].Length, _vertices[0].Length);
+
+        }
+        private void LoadTriangle(int mesh, int lod)
+        {
+            GetMeshTriangleData(owner, _triangles[mesh][lod], _triangles[mesh][lod].Length, mesh, lod);
         }
     }
 }

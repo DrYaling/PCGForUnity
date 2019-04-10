@@ -11,42 +11,25 @@ namespace SkyDram
 #else
         private const string dllName = "cppLibs";
 #endif
-        public delegate void ResizeIndicesCallBack(int type, int mesh, int lod, int size);
+        public delegate void MeshInitilizer(int type, int mesh, int lod, int size);
+        public delegate void GeneratorNotifier(int type, int arg0, int arg1);
 
         [DllImport(dllName)]
         extern static void RegisterTerrianMeshBindings(int ins);
         [DllImport(dllName)]
-        extern static void InitTerrianMesh(int ins, [In]int[] args, int argsize, ResizeIndicesCallBack cb);
+        extern static void InitTerrianMesh(int ins, [In]int[] args, int argsize, MeshInitilizer cb, GeneratorNotifier notifier);
         [DllImport(dllName)]
-        extern static void InitMeshVerticeData(int ins, [In, Out] Vector3[] vertices, int size, int mesh);
-        [DllImport(dllName)]
-        extern static void InitMeshNormalData(int ins, [In, Out] Vector3[] normals, int size, int mesh);
-        [DllImport(dllName)]
-        extern static void InitMeshUVData(int ins, [In, Out] Vector2[] uvs, int size, int mesh, int uv);
-        [DllImport(dllName)]
-        extern static void InitMeshNeighbor(int ins, int neighbor, int dir);
+        extern static void SetMeshNeighbor(int ins, int neighbor, int dir);
         [DllImport(dllName)]
         extern static void StartGenerateOrLoad(int ins);
         [DllImport(dllName)]
         extern static void ReleaseMeshGenerator(int ins);
 
-        /// <summary>
-        /// reset lod and recaculate triangles related to neighbors's lod
-        /// </summary>
-        /// <param name="instanceId"></param>
-        /// <param name="lod"></param>
-        [DllImport(dllName)]
-        extern static void ResetLod(int instanceId, int lod);
+
         int meshInstanceId = EgineUtils.GetInstanceId();
-        bool _loadFinish = false;
         bool _initilized = false;
-        public bool isLoaded
-        {
-            get
-            {
-                return _loadFinish;
-            }
-        }
+        private Vector3 _meshMiddle = Vector3.zero;
+        public bool isLoaded { get; private set; }
         Camera _camera;
         Camera camera
         {
@@ -60,7 +43,7 @@ namespace SkyDram
             }
         }
         GameObject _gameObject;
-        List<Mesh> _meshes;
+        List<Mesh> _meshes = new List<Mesh>();
         TerrianData _terrianData;
         bool _terrianDataReadOnly = false;
         TerrianMesh() { }
@@ -72,14 +55,8 @@ namespace SkyDram
             UnityCppBindings.ReisterBinding(meshInstanceId, this);
             RegisterTerrianMeshBindings(meshInstanceId);
             int[] args = GetInitArgs(0, meshCount, maxLod, mapSize, 40, 1000, 400, 400, 400, 400);
-            InitTerrianMesh(meshInstanceId, args, args.Length, _terrianData.ResizeIndices);
-            for (int i = 0; i < meshCount; i++)
-            {
-                Vector3[] v = _terrianData.GetVertices(i);
-                InitMeshVerticeData(meshInstanceId, v, v.Length, i);
-                v = _terrianData.GetNormal(i);
-                InitMeshNormalData(meshInstanceId, v, v.Length, i);
-            }
+            InitTerrianMesh(meshInstanceId, args, args.Length, _terrianData.MeshInitilizer, _terrianData.GeneratorNotifier);
+            //StartGenerateOrLoad(meshInstanceId);
 
         }
         private int[] GetInitArgs(int seed, int meshCount, int maxLod, int I, int H, int mapWidth, int h0, int h1, int h2, int h3, bool useuv = false)
@@ -90,15 +67,16 @@ namespace SkyDram
         {
             _gameObject = root;
         }
-        public void LoadAsync()
+        public void Loadsync()
         {
             //TODO load terrian mesh triangles and so on
             //_terrianDataReadOnly = true;
             StartGenerateOrLoad(meshInstanceId);
+            ReleaseMeshGenerator(meshInstanceId);
         }
         private void Load()
         {
-            _loadFinish = true;
+            isLoaded = true;
             _terrianDataReadOnly = false;
         }
         void OnLoadFinish(int lod)
@@ -136,7 +114,7 @@ namespace SkyDram
             }
             else if (_terrianData.readable)
             {
-                _loadFinish = true;
+                isLoaded = true;
             }
         }
         internal void Release()

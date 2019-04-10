@@ -13,12 +13,19 @@ public:
 	Diamond_Square(int32_t seed, int32_t I, float H, std::vector<float>& heightMap);
 	virtual ~Diamond_Square();
 	void SetProcessHandler(std::function<void(int32_t)> handler) { m_cbProcessHandler = handler; }
-	void Start(const float* corner, const int32_t size = 4,std::function<void(void)> cb = nullptr);
+	void Start(const float* corner, const int32_t size = 4, std::function<void(void)> cb = nullptr);
 	//根据传入的最大坐标maxCoord计算地图
-	void GenerateTerrian(G3D::Vector3** v3, G3D::Vector3** normal, float maxCoord, ResizeIndicesCallBack cb);
+	void GenerateTerrian(float maxCoord);
 	bool IsFinished() { return m_bIsFinished; }
-	void CaculateTriangles(std::vector<int32_t>& triangle, int lod);
 	int32_t GetSquareSize() { return m_nSize; }
+	void SetVerticesAndNormal(G3D::Vector3* pV, G3D::Vector3* pN, int mesh);
+	int32_t GetVerticesSize(int mesh) {
+		if (mesh <0 || mesh > GetMeshCount())
+		{
+			return 0;
+		}
+		return m_vVerticesSize[mesh];
+	}
 private:
 	void WorkThread(std::function<void(void)> cb);
 	inline void Diamond(int x, int y, int size, float h);
@@ -31,7 +38,7 @@ private:
 	inline float GetAtXY(int x, int y) { return m_vHeightMap[x + y * m_nSize]; }
 	float GetExtendHeight(int x, int y)
 	{
-		if (x<0)
+		if (x < 0)
 		{
 			x = 0;
 		}
@@ -68,10 +75,21 @@ private:
 	{
 		return m_vExtendPoints[x + 1 + (y + 1) * (m_nSize + 2)];
 	}
+	inline const G3D::Vector3& GetRealVertice(int x, int y)
+	{
+		return m_vVertices[x + y * m_nSize];
+	}
+	inline const G3D::Vector3& GetRealNormal(int x, int y)
+	{
+		return m_vNormals[x + y * m_nSize];
+	}
 private:
 	std::function<void(int32_t)> m_cbProcessHandler;
 	std::vector<float>& m_vHeightMap;
 	std::vector<G3D::Vector3> m_vExtendPoints;/*x = -1,y = -1,x = m_nSize,y = m_nSize*/
+	std::vector<G3D::Vector3> m_vVertices;
+	std::vector<G3D::Vector3> m_vNormals;
+	std::vector<int32_t> m_vVerticesSize;
 	float m_aPointBuffer[5];
 	int32_t m_nSize;//总数 2^(2*i)+1
 	float m_nH;//粗糙度

@@ -91,84 +91,18 @@ public:
 	bool useUv;
 	int32_t meshCount;
 	int32_t lodCount;
-	G3D::Vector3** vertices;
-	G3D::Vector3** normals;
-	G3D::Vector2*** uvs;
-	int32_t*** triangles;
-	TerrianDataBinding(int32_t maxMesh, int32_t maxLodCount, bool Uv)
+	int32_t currentLod;
+	std::vector<int32_t> triangleSize;/*size == meshCount*/
+	TerrianDataBinding(int32_t totalMeshCount,int32_t maxLodSize,bool _useUv):
+		useUv(_useUv),
+		meshCount(totalMeshCount),
+		lodCount(maxLodSize),
+		currentLod(0),
+		triangleSize(totalMeshCount)
 	{
-		vertices = new G3D::Vector3*[maxMesh];
-		normals = new G3D::Vector3*[maxMesh];
-		meshCount = maxMesh;
-		lodCount = maxLodCount;
-		useUv = Uv;
-		if (Uv)
-		{
-			uvs = new G3D::Vector2**[maxMesh];
-			for (int i = 0; i < maxMesh; i++)
-			{
-				uvs[i] = new G3D::Vector2*[4];
-			}
-		}
-		triangles = new int32_t**[maxMesh];
-		for (int i = 0; i < maxMesh; i++)
-		{
-			triangles[i] = new int32_t*[maxLodCount];
-		}
+
 	}
 
-	void SetTerrianVerticesData(G3D::Vector3* p, int32_t size, int32_t mesh)
-	{
-		if (mesh >= 0 && mesh < meshCount)
-		{
-			vertices[mesh] = p;
-		}
-	}
-	void SetMeshNormalData(G3D::Vector3* p, int32_t size, int32_t mesh)
-	{
-		if (mesh >= 0 && mesh < meshCount)
-		{
-			normals[mesh] = p;
-		}
-	}
-	void SetMeshUVData(G3D::Vector2* p, int32_t size, int32_t mesh, int32_t uv)
-	{
-		if (mesh >= 0 && mesh < meshCount && uv >= 0 && uv < 4)
-		{
-			uvs[mesh][uv] = p;
-		}
-	}
-	void SetMeshTriangleData(int32_t* p, int32_t size, int32_t mesh, int32_t lod)
-	{
-		if (mesh >= 0 && mesh < meshCount && lod >= 0 && lod < lodCount)
-		{
-			triangles[mesh][lod] = p;
-		}
-	}
-	~TerrianDataBinding()
-	{
-		//remove managed memeroy
-		for (int i = 0; i < meshCount; i++)
-		{
-			vertices[i] = nullptr;
-			normals[i] = nullptr;
-			if (useUv)
-			{
-				for (int j = 0; j < 4; j++)
-				{
-					uvs[i][j] = nullptr;
-				}
-			}
-			for (int j = 0; j < lodCount; j++)
-			{
-				triangles[i][j] = nullptr;
-			}
-		}
-		safe_delete_array(vertices);
-		safe_delete_array(normals);
-		safe_delete_array(uvs);
-		safe_delete_array(triangles);
-	}
 };
 class TerrianGenerator
 {
@@ -181,7 +115,8 @@ private:
 };
 #define MAX_MESH_COUNT 36
 #define  MAX_MESH_VERTICES 65000
-typedef void(__stdcall * ResizeIndicesCallBack)(int32_t type, int32_t mesh, int32_t lod, int32_t size);
+typedef int32_t*(__stdcall * MeshInitilizerCallBack)(int32_t type, int32_t mesh, int32_t lod, int32_t size);
+typedef void(__stdcall * GeneratorNotifier)(int32_t type, int32_t arg0, int32_t arg1);
 #define  meshTopologyVertice 0
 #define  meshTopologyTriangle 1
 #define meshTopologyUV 2
