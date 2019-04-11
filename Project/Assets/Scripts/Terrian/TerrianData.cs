@@ -15,7 +15,9 @@ namespace SkyDram
         [DllImport(dllName)]
         extern static void GetMeshTriangleData(int ins, [In, Out] int[] triangles, int size, int mesh, int lod);
         [DllImport(dllName)]
-        extern static void GetMeshVerticeData(int ins, [In, Out] Vector3[] vertices, [In, Out] Vector3[] normals, int size/*not used*/, int mesh/*not used*/);
+        extern static void GetMeshVerticeData(int ins, [In, Out] Vector3[] vertices, [In, Out] Vector3[] normals, int size, int mesh);
+        [DllImport(dllName)]
+        extern static void ReloadMeshNormalData(int ins, [In, Out] Vector3[] normals, int size, int mesh, int meshEdgePosition);
         [DllImport(dllName)]
         extern static void GetMeshUVData(int ins, [In, Out] Vector2[] uvs, int size, int mesh, int uv);
         /// <summary>
@@ -77,32 +79,18 @@ namespace SkyDram
         }
         public int owner { get; private set; }
         private TerrianData() { }
-        public TerrianData(int I, int mcount, int maxLod, bool uv, int owner)
+        public TerrianData(int I, int maxLod, bool uv, int ownerId)
         {
             _verticesReadable = false;
             _uvReadable = false;
             _trianglesReadable = false;
-            this.owner = owner;
+            owner = ownerId;
             _useUV = uv;
-            _meshCount = mcount;
             _lodCount = maxLod;
-            _vertices = new Vector3[mcount][];
-            _normals = new Vector3[mcount][];
-            _triangles = new int[mcount][][];
-            if (uv)
-            {
-                _uvs = new Vector2[mcount][][];
-                for (int i = 0; i < mcount; i++)
-                    _uvs[i] = new Vector2[4][];
-            }
-            for (int i = 0; i < mcount; i++)
-            {
-                _triangles[i] = new int[maxLod][];
-            }
         }
         private void InitVertices(int meshIndex, int verticesCount)
         {
-            Debug.LogFormat("InitVertices mesh {0},size {1}", meshIndex, verticesCount);
+            //Debug.LogFormat("InitVertices mesh {0},size {1}", meshIndex, verticesCount);
             if (meshIndex >= 0 && meshIndex < meshCount)
             {
                 _vertices[meshIndex] = new Vector3[verticesCount];
@@ -160,7 +148,7 @@ namespace SkyDram
         }
         private void InitLod(int mesh, int lod, int triangleSize)
         {
-            Debug.LogFormat("InitLod mesh {0},lod {1},size {2}",mesh,lod,triangleSize);
+            //Debug.LogFormat("InitLod mesh {0},lod {1},size {2}", mesh, lod, triangleSize);
             if (lod < 0 || lod >= _lodCount)
             {
                 Debug.LogFormat("Init Lod fail");
@@ -188,11 +176,7 @@ namespace SkyDram
         }
         public void MeshInitilizer(int type, int mesh, int lod, int size)
         {
-            if (mesh < 0 || mesh >= meshCount)
-            {
-                Debug.LogErrorFormat("ResizeIndices fail,invalid mesh count {0},max {1}", mesh, meshCount);
-                return;
-            }
+            //Debug.LogFormat("MeshInitilizer type {0} mesh {1},lod {2},size {3}", type, mesh, lod, size);
             switch (type)
             {
                 case TerrianConst.meshTopologyVertice:
@@ -203,17 +187,43 @@ namespace SkyDram
                 case TerrianConst.meshTopologyTriangle:
                     InitLod(mesh, lod, size);
                     break;
+                case TerrianConst.meshTopologyMeshCount:
+                    InitMeshInfo(mesh);
+                    break;
                 default:
                     break;
             }
         }
+
+        private void InitMeshInfo(int mcount)
+        {
+            _meshCount = mcount;
+            _vertices = new Vector3[mcount][];
+            _normals = new Vector3[mcount][];
+            _triangles = new int[mcount][][];
+            if (useUV)
+            {
+                _uvs = new Vector2[mcount][][];
+                for (int i = 0; i < mcount; i++)
+                    _uvs[i] = new Vector2[4][];
+            }
+            for (int i = 0; i < mcount; i++)
+            {
+                _triangles[i] = new int[lodCount][];
+            }
+        }
+
         public void GeneratorNotifier(int type, int arg0, int arg1)
         {
+            //Debug.LogFormat("GeneratorNotifier type {0} arg0 {1},arg1 {2}", type, arg0, arg1);
             switch (type)
             {
                 case TerrianConst.meshTopologyVertice:
                     LoadVertices(arg0);
                     _verticesReadable = true;
+                    break;
+                case TerrianConst.meshTopologyNormal:
+                    LoadNormal(arg0, arg1);
                     break;
                 case TerrianConst.meshTopologyUV:
                     _uvReadable = true;
@@ -230,6 +240,10 @@ namespace SkyDram
         {
             GetMeshVerticeData(owner, _vertices[mesh], _normals[mesh], _vertices[mesh].Length, mesh);
 
+        }
+        private void LoadNormal(int mesh, int meshEdgePosition)
+        {
+            ReloadMeshNormalData(owner, _normals[mesh], _normals[mesh].Length, mesh, meshEdgePosition);
         }
         private void LoadTriangle(int mesh, int lod)
         {

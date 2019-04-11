@@ -20,8 +20,7 @@ namespace generator
 		m_vVertices.resize(m_vHeightMap.size());
 		m_vNormals.resize(m_vHeightMap.size());
 
-		size_t meshCount = GetMeshCount();
-		m_vVerticesSize.resize(meshCount);
+		size_t meshCount = GetMeshTheoreticalCount();
 		int idx = 0;
 		int startY(0);
 		int nMax = m_nSize - 1;
@@ -32,15 +31,21 @@ namespace generator
 		while (idx < meshCount)
 		{
 			int32_t verticesCount = m_nSize * (outBoundY - startY + 1);
-			m_vVerticesSize[idx] = verticesCount;
+			//LogFormat("mesh %d size %d,u %d,s %d", idx, verticesCount, outBoundY, startY);
+			m_vVerticesSize.push_back(verticesCount);
+			idx++;
+			if (idx >= meshCount && outBoundY < m_nMax)
+			{
+				meshCount++;
+			}
 			startY = outBoundY;//因为最上面和最右边一排不计算三角形，所以在交界处需要多计算一次
 			outBoundY += obY;
 			if (outBoundY > m_nMax)
 			{
 				outBoundY = m_nMax;
 			}
-			idx++;
 		}
+		LogFormat("mesh count %d,nSize %d", meshCount, m_nSize);
 	}
 
 	Diamond_Square::~Diamond_Square()
@@ -54,20 +59,46 @@ namespace generator
 			LogError("Diamond_Square Start Fail!");
 			return;
 		}
-		size_t meshCount = GetMeshCount();
+		size_t meshCount = GetMeshTheoreticalCount();
 		if (meshCount > MAX_MESH_COUNT)
 		{
 
 			return;
 		}
-		SetAtXY(0, 0, corner[0]);
-		SetAtXY(m_nMax, 0, corner[1]);
-		SetAtXY(0, m_nMax, corner[2]);
-		SetAtXY(m_nMax, m_nMax, corner[3]);
+		auto itr = m_mExtendedMap.find(0);
+		auto end = m_mExtendedMap.end();
+		if (itr == end)
+			SetAtXY(0, 0, corner[0]);
+		else
+			SetAtXY(0, 0, itr->second);
+		itr = m_mExtendedMap.find(m_nMax);
+		if (itr == end)
+			SetAtXY(m_nMax, 0, corner[1]);
+		else
+			SetAtXY(m_nMax, 0, itr->second);
+		itr = m_mExtendedMap.find(m_nSize*m_nMax);
+		if (itr == end)
+			SetAtXY(0, m_nMax, corner[2]);
+		else
+			SetAtXY(0, m_nMax, itr->second);
+		itr = m_mExtendedMap.find(m_nMax + m_nMax * m_nSize);
+		if (itr == end)
+			SetAtXY(m_nMax, m_nMax, corner[3]);
+		else
+			SetAtXY(m_nMax, m_nMax, itr->second);
 		//std::thread t(std::bind(&Diamond_Square::WorkThread, this,cb));
 		//t.detach();
 		LogFormat("Diamond_Square Start,H %f,I %d,maxSize %d,meshCount %d", m_nH, m_nI, m_nSize, meshCount);
 		WorkThread(cb);
+	}
+
+	void Diamond_Square::ReleaseUnusedBuffer()
+	{
+		//m_vHeightMap.clear();
+		m_vNormals.clear();
+		m_vVertices.clear();
+		m_mExtendedMap.clear();
+		m_vVerticesSize.clear();
 	}
 
 	void Diamond_Square::WorkThread(std::function<void(void)> cb)
@@ -134,6 +165,20 @@ namespace generator
 	//菱形如果遇到边界情况，简单的从非边界点取一个来做边界数据
 	inline void Diamond_Square::Diamond(int x, int y, int size, float h)
 	{
+		if (m_bEdgeExtended)
+		{
+			auto itr = m_mExtendedMap.find(x + y * m_nSize);
+			if (itr != m_mExtendedMap.end())
+			{
+				SetAtXY(x, y, itr->second);
+				//LogWarningFormat("Diamond at x %d,y %d key %d extend found %f", x, y, x + y * m_nSize, itr->second);
+				return;
+			}
+			else
+			{
+				//LogWarningFormat("Diamond at x %d,y %d  extend not found", x, y);
+			}
+		}
 		float *p = m_aPointBuffer;// p0/*left*/, p1/*bottom*/, p2/*right*/, p3/*top*/;
 		//four corner is excluded
 		//so nigher x = 0 or x = max or y = 0 or y = max,but wont apear same time
@@ -213,11 +258,26 @@ namespace generator
 		}
 		p[4] = (p[0] + p[1] + p[2] + p[3]) / 4.0f;
 		SetAtXY(x, y, p[4] + h * p[4]);
-		//LogFormat("diamond x %d,y %d,p %f,h %f,r %f", x, y, p, h, m_vHeightMap[x + m_nSize * y]);
+		//if (x == m_nMax)
+		//	LogFormat("diamond x %d,y %d,p %f,h %f,r %f,size %d", x, y, p[4], h, GetAtXY(x, y), size);
 	}
 	//正方形生成不用考虑边界条件
 	inline void Diamond_Square::Square(int x, int y, int size, float h)
 	{
+		if (m_bEdgeExtended)
+		{
+			auto itr = m_mExtendedMap.find(x + y * m_nSize);
+			if (itr != m_mExtendedMap.end())
+			{
+				SetAtXY(x, y, itr->second);
+				//LogWarningFormat("square at x %d,y %d  extend found %f", x, y, itr->second);
+				return;
+			}
+			else
+			{
+				//LogWarningFormat("square at x %d,y %d  extend not found", x, y);
+			}
+		}
 		m_aPointBuffer[4] = (
 			GetAtXY(x - size, y - size) +
 			GetAtXY(x + size, y - size) +
@@ -233,6 +293,32 @@ namespace generator
 		return _frandom_f(-h, h);
 	}
 
+	void Diamond_Square::TrySetExtendedPoint(int x, int y, int hx, int hy, int deltaSize)
+	{
+		//not attached yet
+		if (!m_bEdgeExtended)
+		{
+			SetExtendedPoint(x, y, x  * deltaSize, GetAtXY(hx, hy), y*deltaSize);
+		}
+		//if initilized already
+		else if (x >= 0 && x <= m_nMax && y >= 0 && y <= m_nMax)
+		{
+			auto itr = m_mExtendedMap.find(x + y * m_nSize);
+			if (itr == m_mExtendedMap.end())
+			{
+				SetExtendedPoint(x, y, x  * deltaSize, GetAtXY(hx, hy), y*deltaSize);
+			}
+		}
+		//if not the up conditions and not initilized
+		else
+		{
+			auto v = GetExtendedPoint(x, y);
+			if (fabsf(v.x) < 0.0001f && fabsf(v.y) < 0.0001f && fabsf(v.z) < 0.0001f)
+			{
+				SetExtendedPoint(x, y, x  * deltaSize, GetAtXY(hx, hy), y*deltaSize);
+			}
+		}
+	}
 
 	void Diamond_Square::GenerateTerrian(float maxCoord)
 	{
@@ -240,43 +326,53 @@ namespace generator
 		{
 			return;
 		}
-		double d = maxCoord / (float)m_nSize;
+		double d = maxCoord / (float)m_nMax;
 		for (int y = 0; y <= m_nMax; y++)
 		{
 			if (!m_bEdgeExtended)
 			{
 				if (y == 0)
 				{
-					SetExtendedPoint(-1, -1, -d, GetAtXY(0, 0), -d);//x = -1,
-					SetExtendedPoint(m_nSize, -1, m_nSize  * d, GetAtXY(m_nMax, 0), -d);//x = m_nSize
+					/*SetExtendedPoint(-1, -1, -d, GetAtXY(0, 0), -d);//x = -1,
+					SetExtendedPoint(m_nSize, -1, m_nSize  * d, GetAtXY(m_nMax, 0), -d);//x = m_nSize*/
+					TrySetExtendedPoint(-1, -1, 0, 0, d);
+					TrySetExtendedPoint(m_nSize, -1, m_nMax, 0, d);
 				}
 				else if (y == m_nMax)
 				{
-					SetExtendedPoint(-1, m_nSize, -d, GetAtXY(0, m_nMax), d*m_nSize);//x = -1,
-					SetExtendedPoint(m_nSize, m_nSize, m_nSize  * d, GetAtXY(m_nMax, m_nMax), d*m_nSize);//x = m_nSize
+					/*SetExtendedPoint(-1, m_nSize, -d, GetAtXY(0, m_nMax), d*m_nSize);//x = -1,
+					SetExtendedPoint(m_nSize, m_nSize, m_nSize  * d, GetAtXY(m_nMax, m_nMax), d*m_nSize);//x = m_nSize*/
+					TrySetExtendedPoint(-1, m_nSize, 0, m_nMax, d);
+					TrySetExtendedPoint(m_nSize, m_nSize, m_nMax, m_nMax, d);
 				}
-				SetExtendedPoint(-1, y, -d, GetAtXY(0, y), d*y);//x = -1,
-				SetExtendedPoint(m_nSize, y, m_nSize  * d, GetAtXY(m_nMax, y), d*y);//x = m_nSize
+				/*SetExtendedPoint(-1, y, -d, GetAtXY(0, y), d*y);//x = -1,
+				SetExtendedPoint(m_nSize, y, m_nSize  * d, GetAtXY(m_nMax, y), d*y);//x = m_nSize*/
+				TrySetExtendedPoint(-1, y, 0, y, d);
+				TrySetExtendedPoint(m_nSize, y, m_nMax, y, d);
 			}
 			for (int x = 0; x <= m_nMax; x++)
 			{
 				float height = GetAtXY(x, y);
-				SetExtendedPoint(x, y, x*d, height, y*d);
-				if (!m_bEdgeExtended)//添加上下边沿
+				TrySetExtendedPoint(x, y, x, y, d);
+
+				if (y == 0)
 				{
-					if (y == 0)
-					{
-						SetExtendedPoint(x, -1, x*d, height, -d);
-					}
-					else if (y == m_nMax)
-					{
-						SetExtendedPoint(x, m_nSize, x*d, height, m_nSize*d);
-					}
+					//SetExtendedPoint(x, -1, x*d, height, -d);
+					TrySetExtendedPoint(x, -1, x, y, d);
+				}
+				else if (y == m_nMax)
+				{
+					//SetExtendedPoint(x, m_nSize, x*d, height, m_nSize*d);
+					TrySetExtendedPoint(x, m_nSize, x, y, d);
 				}
 			}
 		}
+		for (int i = 0;i<m_vExtendPoints.size();i++)
+		{
+			LogFormat("ep at %d (x %f,y %f,z %f)",i,m_vExtendPoints[i].x,m_vExtendPoints[i].y,m_vExtendPoints[i].z);
+		}
 		Vector3 pNeibor[4];
-		Vector3 _normal[4];
+		Vector3 _normal[5];
 		int vidx = 0;
 		for (int y = 0; y <= m_nMax; y++)
 		{
@@ -285,9 +381,9 @@ namespace generator
 				vidx = x + y * m_nSize;
 				Vector3 p = GetExtendedPoint(x, y);
 #if UNITY_CORE
-				m_vNormals[vidx] = p;
+				m_vVertices[vidx] = p;
 #else
-				m_vNormals[vidx] = p;
+				m_vVertices[vidx] = p;
 #endif
 				pNeibor[0] = GetExtendedPoint(x - 1, y);
 				pNeibor[1] = GetExtendedPoint(x, y - 1);
@@ -298,76 +394,110 @@ namespace generator
 				_normal[1] = -unityMesh::getNormal(p - pNeibor[1], p - pNeibor[2]);
 				_normal[2] = -unityMesh::getNormal(p - pNeibor[2], p - pNeibor[3]);
 				_normal[3] = -unityMesh::getNormal(p - pNeibor[3], p - pNeibor[0]);
-				_normal[0] = _normal[0] + _normal[1] + _normal[2] + _normal[3];
-				m_vNormals[vidx] = unityMesh::normalize(_normal[0]);
+				_normal[4] = _normal[0] + _normal[1] + _normal[2] + _normal[3];
+				if (_normal[4].y <=0)
+				{
+					LogFormat("normal caculate error at point x %d,y %d,px %d,py %d,pz %d",x,y,p.x,p.y,p.z);
+					for (int i = 0; i < 4; i++)
+					{
+						LogFormat("GenerateTerrian pNeibor %d (x %f,y %f,z %f)", i, pNeibor[i].x, pNeibor[i].y, pNeibor[i].z);
+					}
+					for (int i = 0; i < 5; i++)
+					{
+						LogFormat("GenerateTerrian normal %d (x %f,y %f,z %f)", i, _normal[i].x, _normal[i].y, _normal[i].z);
+					}
+				}
+				m_vNormals[vidx] = unityMesh::normalize(_normal[4]);
 			}
 		}
 	}
-	void Diamond_Square::SetVerticesAndNormal(G3D::Vector3 * pV, G3D::Vector3 * pN, int mesh)
+	void Diamond_Square::RecaculateNormal(G3D::Vector3 * pN, int32_t size, int32_t mesh, int32_t position)
+	{
+		Vector3 pNeibor[4];
+		Vector3 _normal[5];
+		int vidx = 0;
+		int xmin, xmax, ymin, ymax;
+		switch (position)
+		{
+		case neighborPositionLeft:
+			xmin = xmax = 0;
+			ymin = 0;
+			ymax = m_nMax;
+			break;
+		case  neighborPositionRight:
+			xmin = xmax = m_nMax;
+			ymin = 0;
+			ymax = m_nMax;
+			break;
+		case neighborPositionBottom:
+			xmin = 0;
+			xmax = m_nMax;
+			ymin = ymax = 0;
+			break;
+		case  neighborPositionTop:
+			xmin = 0;
+			xmax = m_nMax;
+			ymin = ymax = m_nMax;
+			break;
+		default:
+			break;
+		}
+		LogFormat("RecaculateNormal mesh %d,size %d,position %d,xmin %d,xmax %d,ymin %d,ymax %d", mesh, size, position, xmin, xmax, ymin, ymax);
+		for (int y = ymin; y <= ymax; y++)
+		{
+			for (int x = xmin; x <= xmax; x++)
+			{
+				vidx = x + y * m_nSize;
+				Vector3 p = GetExtendedPoint(x, y);
+				pNeibor[0] = GetExtendedPoint(x - 1, y);
+				pNeibor[1] = GetExtendedPoint(x, y - 1);
+				pNeibor[2] = GetExtendedPoint(x + 1, y);
+				pNeibor[3] = GetExtendedPoint(x, y + 1);
+
+				_normal[0] = -unityMesh::getNormal(p - pNeibor[0], p - pNeibor[1]);
+				_normal[1] = -unityMesh::getNormal(p - pNeibor[1], p - pNeibor[2]);
+				_normal[2] = -unityMesh::getNormal(p - pNeibor[2], p - pNeibor[3]);
+				_normal[3] = -unityMesh::getNormal(p - pNeibor[3], p - pNeibor[0]);
+				_normal[4] = _normal[0] + _normal[1] + _normal[2] + _normal[3];
+				/*for (int i = 0; i < 5; i++)
+				{
+					LogFormat("RecaculateNormal normal %d (x %f,y %f,z %f)", i, _normal[i].x, _normal[i].y, _normal[i].z);
+				}*/
+				pN[vidx] = unityMesh::normalize(_normal[4]);
+
+			}
+		}
+	}
+	void Diamond_Square::SetVerticesAndNormal(G3D::Vector3 * pV, G3D::Vector3 * pN, int32_t size, int32_t mesh)
 	{
 		int vidx = 0;
-		if (mesh<0 || mesh >= m_vVerticesSize.size())
+		if (mesh < 0 || mesh >= m_vVerticesSize.size())
 		{
-			LogErrorFormat("Mesh index error!%d",mesh);
+			LogErrorFormat("Mesh index error!%d", mesh);
 		}
-		int upBound = (mesh == GetMeshCount() - 1 )? m_nMax : m_vVerticesSize[mesh + 1];
-		int start = mesh == 0 ? 0 : m_vVerticesSize[mesh - 1];
-		LogFormat("SetVerticesAndNormal mesh %d,total mesh %d ,upBound %d ,start %d", mesh, m_vVerticesSize[mesh],upBound,start);
+		int meshCount = GetMeshTheoreticalCount();
+		int vertexPerMesh = m_nMax / meshCount;
+		int upBound = (mesh + 1)*vertexPerMesh;
+		if (upBound > m_nMax)
+		{
+			upBound = m_nMax;
+		}
+		int start = mesh * vertexPerMesh;
+		//LogFormat("SetVerticesAndNormal mesh count %d,meshidx  %d,total mesh %d ,upBound %d ,start %d", meshCount, mesh, m_vVerticesSize[mesh], upBound, start);
 		for (int y = start; y <= upBound; y++)
 		{
 			for (int x = 0; x <= m_nMax; x++)
 			{
+				if (vidx >= size)
+				{
+					LogErrorFormat("vertice size is full!%d-max size %d", vidx, size);
+					return;
+				}
 				pV[vidx] = GetRealVertice(x, y);
 				pN[vidx] = GetRealNormal(x, y);
+				//LogFormat("vertice %d,%d -%d :(x %f,y %f,z %f)", x, y, vidx, pV[vidx].x, pV[vidx].y, pV[vidx].z);
 				vidx++;
 			}
 		}
 	}
-	void Diamond_Square::AddEdge(const Vector3 * edge, int32_t size, int32_t edgeType)
-	{
-		if (!edge)
-		{
-			LogErrorFormat("Add Edge With Empty data");
-			return;
-		}
-		if (size != m_nSize + 1)
-		{
-			LogErrorFormat("Add Edge With Wrong size!");
-			return;
-		}
-		if (edgeType == 0)//y = -1
-		{
-			for (int x = -1; x <= m_nMax; x++)
-			{
-				const G3D::Vector3& p = edge[x + 1];
-				SetExtendedPoint(x, -1, p.x, p.y, p.z);
-			}
-		}
-		else if (edgeType == 1) //x = m_nMax,
-		{
-			for (int y = -1; y <= m_nMax; y++)
-			{
-				const G3D::Vector3& p = edge[y + 1];
-				SetExtendedPoint(m_nMax, y, p.x, p.y, p.z);
-			}
-		}
-		else if (edgeType == 2)//y = m_nMax
-		{
-			for (int x = -1; x <= m_nMax; x++)
-			{
-				const G3D::Vector3& p = edge[x + 1];
-				SetExtendedPoint(x, m_nMax, p.x, p.y, p.z);
-			}
-		}
-		else//x = -1
-		{
-			for (int y = -1; y <= m_nMax; y++)
-			{
-				const G3D::Vector3& p = edge[y + 1];
-				SetExtendedPoint(-1, y, p.x, p.y, p.z);
-			}
-		}
-		m_bEdgeExtended = true;
-	}
-
 }

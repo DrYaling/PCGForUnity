@@ -216,7 +216,7 @@ void Internal_RegisterTerrianMeshBinding(int32_t instance)
 	if (itr == mTerrianBindings.end())
 	{
 		LogFormat("register %d", instance);
-		auto terrian = new TerrianMesh();
+		auto terrian = new TerrianMesh(instance);
 		mTerrianBindings.insert(std::make_pair(instance, terrian));
 	}
 	else
@@ -227,12 +227,21 @@ void Internal_RegisterTerrianMeshBinding(int32_t instance)
 
 void Internal_ReleaseGenerator(int32_t instance)
 {
+	LogFormat("Internal_ReleaseGenerator %d", instance);
 	auto itr = mTerrianBindings.find(instance);
 	if (itr != mTerrianBindings.end())
 	{
-		mTerrianBindings[instance]->Release();
 		delete mTerrianBindings[instance];
 		mTerrianBindings.erase(itr);
+	}
+}
+void Internal_FlushMeshGenerator(int32_t instance)
+{
+	LogFormat("Internal_FlushMeshGenerator %d", instance);
+	auto itr = mTerrianBindings.find(instance);
+	if (itr != mTerrianBindings.end())
+	{
+		itr->second->Release();
 	}
 }
 void Internal_GetMeshVerticeData(int32_t instanceId, G3D::Vector3* pV, G3D::Vector3* pN, int32_t size, int32_t mesh)
@@ -269,11 +278,28 @@ void Internal_GetMeshTrianglesData(int32_t instance, int32_t * triangles, int32_
 		mTerrianBindings[instance]->InitMeshTriangleData(triangles, size, mesh, lod);
 	}
 }
-void Internal_SetMeshNeighbor(int32_t instanceId, int32_t neighborId, int32_t neighborDirection)
+void Internal_ReloadMeshNormalData(int32_t instanceId, G3D::Vector3 * p, int32_t size, int32_t mesh, int32_t meshEdgePosition)
 {
 	auto itr = mTerrianBindings.find(instanceId);
 	if (itr != mTerrianBindings.end())
 	{
+		mTerrianBindings[instanceId]->RecaculateNormal(p, size, mesh, meshEdgePosition);
+	}
+}
+void Internal_SetMeshNeighbor(int32_t instanceId, int32_t neighborId, int32_t neighborDirection, bool reloadNormalIfLoaded)
+{
+	auto itr = mTerrianBindings.find(instanceId);
+	if (itr != mTerrianBindings.end())
+	{
+		auto neighbor = mTerrianBindings.find(neighborId);
+		if (neighbor != mTerrianBindings.end())
+		{
+			itr->second->InitNeighbor(neighborDirection, neighbor->second, reloadNormalIfLoaded);
+		}
+		else
+		{
+			LogErrorFormat("mesh %d neighbor %d does not exist", instanceId, neighborId);
+		}
 	}
 }
 NS_GNRT_END

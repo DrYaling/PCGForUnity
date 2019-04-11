@@ -4,26 +4,28 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 namespace SkyDram
 {
-    class TerrianMesh
+    public class TerrianMesh
     {
 #if UNITY_IOS
     private const string dllName = "__Internal";
 #else
         private const string dllName = "cppLibs";
 #endif
-        public delegate void MeshInitilizer(int type, int mesh, int lod, int size);
-        public delegate void GeneratorNotifier(int type, int arg0, int arg1);
+        public delegate void MeshInitilizer(int target, int type, int mesh, int lod, int size);
+        public delegate void GeneratorNotifier(int target, int type, int arg0, int arg1);
 
         [DllImport(dllName)]
         extern static void RegisterTerrianMeshBindings(int ins);
         [DllImport(dllName)]
         extern static void InitTerrianMesh(int ins, [In]int[] args, int argsize, MeshInitilizer cb, GeneratorNotifier notifier);
         [DllImport(dllName)]
-        extern static void SetMeshNeighbor(int ins, int neighbor, int dir);
+        extern static void SetMeshNeighbor(int ins, int neighbor, int dir,bool reloadNormalIfLoaded);
         [DllImport(dllName)]
         extern static void StartGenerateOrLoad(int ins);
         [DllImport(dllName)]
         extern static void ReleaseMeshGenerator(int ins);
+        [DllImport(dllName)]
+        extern static void FlushMeshGenerator(int ins);
 
 
         int meshInstanceId = EgineUtils.GetInstanceId();
@@ -49,19 +51,42 @@ namespace SkyDram
         TerrianMesh() { }
         public TerrianMesh(int mapSize, int maxLod = 3, bool useUV = false)
         {
-            int meshCount = Mathf.CeilToInt((Mathf.Pow(mapSize, 2) + 1) / TerrianConst.maxVerticesPerMesh);
-            Debug.LogFormat("mesh map size {0} ,mesh count {1}", mapSize, meshCount);
-            _terrianData = new TerrianData(mapSize, meshCount, maxLod, useUV, meshInstanceId);
-            UnityCppBindings.ReisterBinding(meshInstanceId, this);
+            Debug.LogFormat("mesh map size {0} ,maxLod {1}", mapSize, maxLod);
+            _terrianData = new TerrianData(mapSize, maxLod, useUV, meshInstanceId);
+            UnityCppBindings.RegistBinding(meshInstanceId, this);
             RegisterTerrianMeshBindings(meshInstanceId);
-            int[] args = GetInitArgs(0, meshCount, maxLod, mapSize, 40, 1000, 400, 400, 400, 400);
-            InitTerrianMesh(meshInstanceId, args, args.Length, _terrianData.MeshInitilizer, _terrianData.GeneratorNotifier);
+            int[] args = GetInitArgs(UnityEngine.Random.Range(0, 5), maxLod, mapSize, 40, 1000, 400, 400, 400, 400);
+            InitTerrianMesh(meshInstanceId, args, args.Length, MeshInitilize, MeshNotifier);
             //StartGenerateOrLoad(meshInstanceId);
 
         }
-        private int[] GetInitArgs(int seed, int meshCount, int maxLod, int I, int H, int mapWidth, int h0, int h1, int h2, int h3, bool useuv = false)
+        private static void MeshInitilize(int target, int type, int mesh, int lod, int size)
         {
-            return new int[] { seed, meshCount, maxLod, I, H, mapWidth, h0, h1, h2, h3, useuv ? 1 : 0 };
+            TerrianMesh tmesh = UnityCppBindings.GetMesh(target);
+            if (null != tmesh)
+            {
+                tmesh._terrianData.MeshInitilizer(type, mesh, lod, size);
+            }
+            else
+            {
+                Debug.LogErrorFormat("mesh target {0} does not exist", target);
+            }
+        }
+        private static void MeshNotifier(int target, int type, int arg0, int arg1)
+        {
+            TerrianMesh tmesh = UnityCppBindings.GetMesh(target);
+            if (null != tmesh)
+            {
+                tmesh._terrianData.GeneratorNotifier(type, arg0, arg1);
+            }
+            else
+            {
+                Debug.LogErrorFormat("mesh target {0} does not exist", target);
+            }
+        }
+        private int[] GetInitArgs(int seed, int maxLod, int I, int H, int mapWidth, int h0, int h1, int h2, int h3, bool useuv = false)
+        {
+            return new int[] { seed, maxLod, I, H, mapWidth, h0, h1, h2, h3, useuv ? 1 : 0 };
         }
         public void SetMeshRoot(GameObject root)
         {
@@ -72,7 +97,18 @@ namespace SkyDram
             //TODO load terrian mesh triangles and so on
             //_terrianDataReadOnly = true;
             StartGenerateOrLoad(meshInstanceId);
-            ReleaseMeshGenerator(meshInstanceId);
+            FlushMeshGenerator(meshInstanceId);
+        }
+        /// <summary>
+        /// if neighbor was not loaded,this method got no use ,
+        /// if this mesh was loaded,then reloadNormalIfLoaded = true
+        /// </summary>
+        /// <param name="neighbor"></param>
+        /// <param name="position"></param>
+        /// <param name="reloadNormalIfLoaded"></param>
+        public void SetNeighbor(TerrianMesh neighbor, int position, bool reloadNormalIfLoaded = false)
+        {
+            SetMeshNeighbor(meshInstanceId, neighbor.meshInstanceId, position,reloadNormalIfLoaded);
         }
         private void Load()
         {

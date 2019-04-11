@@ -7,14 +7,16 @@ NS_GNRT_START
 class TerrianMesh
 {
 public:
-	TerrianMesh();
+	TerrianMesh(int32_t ins);
 	~TerrianMesh();
 	void Init(int32_t* args, int32_t argsize, MeshInitilizerCallBack callback, GeneratorNotifier notifier);
 	void GetTerrianVerticesData(G3D::Vector3* pV, G3D::Vector3* pN, int32_t size, int32_t mesh);
 	void GetMeshUVData(G3D::Vector2* p, int32_t size, int32_t mesh, int32_t uv);
 	void InitMeshTriangleData(int32_t* p, int32_t size, int32_t mesh, int32_t lod);
-	void InitEdge(int32_t edge, TerrianMesh* mesh);
+	void InitNeighbor(int32_t edge, TerrianMesh* mesh,bool reloadNormalIfLoaded);
 	void RecaculateTriangles(int32_t* p, int32_t size, int32_t mesh, int32_t lod);
+	void RecaculateNormal(G3D::Vector3* pN, int32_t size, int32_t mesh, int32_t position);
+	void InitVerticesWithNeighbor(int32_t position = neighborPositionAll);
 	int32_t GetTriangleCount(int32_t mesh);
 	void Start();
 	void Release();
@@ -23,14 +25,14 @@ public:
 		if (lod != m_pTerrianData->currentLod)
 		{
 			m_pTerrianData->currentLod = lod;
-			for (int i = 0;i<m_pTerrianData->triangleSize.size();i++)
+			for (int i = 0; i < m_pTerrianData->triangleSize.size(); i++)
 			{
-				m_pTerrianData->triangleSize[i] = 0;
+				m_pTerrianData->triangleSize[i].size = 0;
 			}
 			GetTriangleCount(0);
 			for (int i = 0; i < m_pTerrianData->meshCount; i++)
 			{
-				m_cbMeshInitilizer(meshTopologyTriangle, i, m_pTerrianData->currentLod, m_pTerrianData->triangleSize[i]);
+				m_cbMeshInitilizer(m_nInstanceId, meshTopologyTriangle, i, m_pTerrianData->currentLod, m_pTerrianData->triangleSize[i].size);
 			}
 		}
 	}
@@ -50,6 +52,8 @@ private:
 	std::vector<float> m_vHeightMap;
 	int32_t m_nSize;
 	bool m_bInitilized;
+	bool m_bGenerated;
+	int32_t m_nInstanceId;
 };
 NS_GNRT_END
 #endif

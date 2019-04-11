@@ -13,6 +13,10 @@ EXPORT_API void	 STD_CALL ReleaseMeshGenerator(int32_t instanceId)
 {
 	generator::Internal_ReleaseGenerator(instanceId);
 }
+EXPORT_API void	 STD_CALL FlushMeshGenerator(int32_t instanceId)
+{
+	generator::Internal_FlushMeshGenerator(instanceId);
+}
 EXPORT_API void RegisterTerrianMeshBindings(int32_t instanceId)
 {
 	generator::Internal_RegisterTerrianMeshBinding(instanceId);
@@ -27,11 +31,6 @@ EXPORT_API void STD_CALL GetMeshVerticeData(int32_t instanceId, G3D::Vector3* pV
 {
 	generator::Internal_GetMeshVerticeData(instanceId, pV, pN, size, mesh);
 }
-//EXPORT_API void STD_CALL GetMeshNormalData(int32_t instanceId, G3D::Vector3* p, int32_t size, int32_t mesh)
-/*
-{
-	generator::Internal_GetMeshNormalData(instanceId, p, size, mesh);
-}*/
 EXPORT_API void STD_CALL GetMeshUVData(int32_t instanceId, G3D::Vector2* p, int32_t size, int32_t mesh, int32_t uv)
 {
 	generator::Internal_GetMeshUVData(instanceId, p, size, mesh, uv);
@@ -41,9 +40,13 @@ EXPORT_API void STD_CALL GetMeshTriangleData(int32_t instanceId, int32_t* p, int
 {
 	generator::Internal_GetMeshTrianglesData(instanceId, p, size, mesh, lod);
 }
-EXPORT_API void STD_CALL SetMeshNeighbor(int32_t instanceId, int32_t neighborId, int32_t neighborDirection)
+EXPORT_API void STD_CALL ReloadMeshNormalData(int32_t instanceId, G3D::Vector3 * p, int32_t size, int32_t mesh, int32_t meshEdgePosition)
 {
-	generator::Internal_SetMeshNeighbor(instanceId, neighborId, neighborDirection);
+	generator::Internal_ReloadMeshNormalData(instanceId, p, size, mesh, meshEdgePosition);
+}
+EXPORT_API void STD_CALL SetMeshNeighbor(int32_t instanceId, int32_t neighborId, int32_t neighborDirection, bool reloadNormalIfLoaded)
+{
+	generator::Internal_SetMeshNeighbor(instanceId, neighborId, neighborDirection, reloadNormalIfLoaded);
 }
 
 EXPORT_API void STD_CALL StartGenerateOrLoad(int32_t instanceId)

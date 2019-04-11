@@ -384,7 +384,11 @@ void Vector3::orthonormalize (Vector3 akVector[3]) {
 //----------------------------------------------------------------------------
 
 std::string Vector3::toString() const {
-    return G3D::format("(%g, %g, %g)", x, y, z);
+	std::string str;
+	char buff[25];
+	sprintf_s(buff, "(%g, %g, %g)", x, y, z);
+	str.append(buff);
+    return str;
 }
 
 

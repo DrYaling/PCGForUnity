@@ -84,25 +84,35 @@ class TerrianData
 	int[][][] _triangles;
 }
 #endif
+struct triangleSize_t
+{
+	int32_t size;
+	int32_t lowBound;
+	int32_t highBound;
+};
 class TerrianDataBinding
 {
 public:
 	bool isReadable;
 	bool useUv;
 	int32_t meshCount;
+	int32_t theoreticalMeshCount;
 	int32_t lodCount;
 	int32_t currentLod;
-	std::vector<int32_t> triangleSize;/*size == meshCount*/
-	TerrianDataBinding(int32_t totalMeshCount,int32_t maxLodSize,bool _useUv):
+	std::vector<triangleSize_t> triangleSize;/*size == meshCount*/
+	TerrianDataBinding(int32_t maxLodSize, bool _useUv) :
 		useUv(_useUv),
-		meshCount(totalMeshCount),
 		lodCount(maxLodSize),
-		currentLod(0),
-		triangleSize(totalMeshCount)
+		currentLod(0)
 	{
 
 	}
-
+	void SetMeshCount(int32_t realCount, int32_t theoreticalCount)
+	{
+		meshCount = realCount;
+		theoreticalMeshCount = theoreticalCount;
+		triangleSize.resize(realCount);
+	}
 };
 class TerrianGenerator
 {
@@ -115,10 +125,30 @@ private:
 };
 #define MAX_MESH_COUNT 36
 #define  MAX_MESH_VERTICES 65000
-typedef int32_t*(__stdcall * MeshInitilizerCallBack)(int32_t type, int32_t mesh, int32_t lod, int32_t size);
-typedef void(__stdcall * GeneratorNotifier)(int32_t type, int32_t arg0, int32_t arg1);
-#define  meshTopologyVertice 0
-#define  meshTopologyTriangle 1
+typedef int32_t*(__stdcall * MeshInitilizerCallBack)(int32_t target, int32_t type, int32_t mesh, int32_t lod, int32_t size);
+typedef void(__stdcall * GeneratorNotifier)(int32_t target, int32_t type, int32_t arg0, int32_t arg1);
+#define meshTopologyVertice 0
+#define meshTopologyTriangle 1
 #define meshTopologyUV 2
+#define meshTopologyMeshCount 3
+#define meshTopologyNormal 4
+
+#define mesh_arg_seed 0
+#define mesh_arg_lod 1
+#define mesh_arg_I 2
+#define mesh_arg_H 3
+#define mesh_arg_mapWidth 4
+#define mesh_arg_h0 5
+#define mesh_arg_h1 6
+#define mesh_arg_h2 7
+#define mesh_arg_h3 8
+#define mesh_arg_h4 9
+#define mesh_arg_useuv 10
+
+#define neighborPositionLeft 0
+#define neighborPositionBottom 1
+#define neighborPositionRight 2
+#define neighborPositionTop 3
+#define neighborPositionAll 4
 // typedef geography* pGeography;
 #endif
