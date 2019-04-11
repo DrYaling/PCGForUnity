@@ -180,6 +180,7 @@ namespace generator
 			}
 		}
 		float *p = m_aPointBuffer;// p0/*left*/, p1/*bottom*/, p2/*right*/, p3/*top*/;
+		
 		//four corner is excluded
 		//so nigher x = 0 or x = max or y = 0 or y = max,but wont apear same time
 		if (x == 0)
@@ -189,7 +190,15 @@ namespace generator
 			p[3] = GetAtXY(0, y + size);// m_vHeightMap[m_nSize*(y + size)];
 			if (m_bEdgeExtended)
 			{
-				p[0] = GetExtendedPoint(-1, y).y;
+				const G3D::Vector3& extP = GetExtendedPoint(-1,y);
+				if (IsValidPoint(extP))
+				{
+					p[0] = extP.y;
+				}
+				else
+				{
+					p[0] = p[_irandom(1, 3)];
+				}
 			}
 			else
 			{
@@ -203,7 +212,20 @@ namespace generator
 			p[2] = p[3] = GetAtXY(x, y + size);// m_vHeightMap[x + m_nSize * (y + size)];
 			if (m_bEdgeExtended)
 			{
-				p[2] = GetExtendedPoint(m_nMax + 1, y).y;
+				const G3D::Vector3& extP = GetExtendedPoint(m_nMax + 1, y);
+				if (IsValidPoint(extP))
+				{
+					p[2] = extP.y;
+				}
+				else
+				{
+					int i = _irandom(0, 2);
+					if (i == 2)
+					{
+						i++;
+					}
+					p[2] = p[i];
+				}
 			}
 			else
 			{
@@ -222,7 +244,20 @@ namespace generator
 			p[3] = GetAtXY(x, size);// m_vHeightMap[x + m_nSize * size];
 			if (m_bEdgeExtended)
 			{
-				p[1] = GetExtendedPoint(x, -1).y;
+				const G3D::Vector3& extP = GetExtendedPoint(x, -1);
+				if (IsValidPoint(extP))
+				{
+					p[1] = extP.y;
+				}
+				else
+				{
+					int i = _irandom(1, 3);
+					if (i == 1)
+					{
+						i--;
+					}
+					p[1] = p[i];
+				}
 			}
 			else
 			{
@@ -241,12 +276,19 @@ namespace generator
 			p[2] = GetAtXY(x + size, y);//m_vHeightMap[x + size + m_nSize * y];
 			if (m_bEdgeExtended)
 			{
-				p[3] = GetExtendedPoint(x, m_nMax + 1).y;
+				const G3D::Vector3& extP = GetExtendedPoint(x, m_nMax + 1);
+				if (IsValidPoint(extP))
+				{
+					p[3] = extP.y;
+				}
+				else
+				{
+					p[3] = p[_irandom(0, 2)];
+				}
 			}
 			else
 			{
-				int i = _irandom(0, 2);
-				p[3] = p[i];
+				p[3] = p[_irandom(0, 2)];
 			}
 		}
 		else
@@ -293,12 +335,12 @@ namespace generator
 		return _frandom_f(-h, h);
 	}
 
-	void Diamond_Square::TrySetExtendedPoint(int x, int y, int hx, int hy, int deltaSize)
+	void Diamond_Square::TrySetExtendedPoint(int x, int y, int hx, int hy, float mapWidth)
 	{
 		//not attached yet
 		if (!m_bEdgeExtended)
 		{
-			SetExtendedPoint(x, y, x  * deltaSize, GetAtXY(hx, hy), y*deltaSize);
+			SetExtendedPoint(x, y, GetDistance(x, mapWidth), GetAtXY(hx, hy), GetDistance(y, mapWidth));
 		}
 		//if initilized already
 		else if (x >= 0 && x <= m_nMax && y >= 0 && y <= m_nMax)
@@ -306,17 +348,25 @@ namespace generator
 			auto itr = m_mExtendedMap.find(x + y * m_nSize);
 			if (itr == m_mExtendedMap.end())
 			{
-				SetExtendedPoint(x, y, x  * deltaSize, GetAtXY(hx, hy), y*deltaSize);
+				SetExtendedPoint(x, y, GetDistance(x, mapWidth), GetAtXY(hx, hy), GetDistance(y, mapWidth));
 			}
+			/*else
+			{
+				LogFormat("extend point exist x %d,y %d,rx %d,ry %d,h %f", x, y, hx, hy, itr->second);
+			}*/
 		}
 		//if not the up conditions and not initilized
 		else
 		{
 			auto v = GetExtendedPoint(x, y);
-			if (fabsf(v.x) < 0.0001f && fabsf(v.y) < 0.0001f && fabsf(v.z) < 0.0001f)
+			if (!IsValidPoint(v))
 			{
-				SetExtendedPoint(x, y, x  * deltaSize, GetAtXY(hx, hy), y*deltaSize);
+				SetExtendedPoint(x, y, GetDistance(x, mapWidth), GetAtXY(hx, hy), GetDistance(y, mapWidth));
 			}
+			/*else
+			{
+				LogWarningFormat("extend point x %d,y %d,rx %d,ry %d,(x %f,y %f,z %f)", x, y, hx, hy, v.x, v.y, v.z);
+			}*/
 		}
 	}
 
@@ -326,51 +376,48 @@ namespace generator
 		{
 			return;
 		}
-		double d = maxCoord / (float)m_nMax;
+		//double d = maxCoord / (float)m_nMax;
 		for (int y = 0; y <= m_nMax; y++)
 		{
-			if (!m_bEdgeExtended)
+			if (y == 0)
 			{
-				if (y == 0)
-				{
-					/*SetExtendedPoint(-1, -1, -d, GetAtXY(0, 0), -d);//x = -1,
-					SetExtendedPoint(m_nSize, -1, m_nSize  * d, GetAtXY(m_nMax, 0), -d);//x = m_nSize*/
-					TrySetExtendedPoint(-1, -1, 0, 0, d);
-					TrySetExtendedPoint(m_nSize, -1, m_nMax, 0, d);
-				}
-				else if (y == m_nMax)
-				{
-					/*SetExtendedPoint(-1, m_nSize, -d, GetAtXY(0, m_nMax), d*m_nSize);//x = -1,
-					SetExtendedPoint(m_nSize, m_nSize, m_nSize  * d, GetAtXY(m_nMax, m_nMax), d*m_nSize);//x = m_nSize*/
-					TrySetExtendedPoint(-1, m_nSize, 0, m_nMax, d);
-					TrySetExtendedPoint(m_nSize, m_nSize, m_nMax, m_nMax, d);
-				}
-				/*SetExtendedPoint(-1, y, -d, GetAtXY(0, y), d*y);//x = -1,
-				SetExtendedPoint(m_nSize, y, m_nSize  * d, GetAtXY(m_nMax, y), d*y);//x = m_nSize*/
-				TrySetExtendedPoint(-1, y, 0, y, d);
-				TrySetExtendedPoint(m_nSize, y, m_nMax, y, d);
+				/*SetExtendedPoint(-1, -1, -d, GetAtXY(0, 0), -d);//x = -1,
+				SetExtendedPoint(m_nSize, -1, m_nSize  * d, GetAtXY(m_nMax, 0), -d);//x = m_nSize*/
+				TrySetExtendedPoint(-1, -1, 0, 0, maxCoord);
+				TrySetExtendedPoint(m_nSize, -1, m_nMax, 0, maxCoord);
 			}
+			else if (y == m_nMax)
+			{
+				/*SetExtendedPoint(-1, m_nSize, -d, GetAtXY(0, m_nMax), d*m_nSize);//x = -1,
+				SetExtendedPoint(m_nSize, m_nSize, m_nSize  * d, GetAtXY(m_nMax, m_nMax), d*m_nSize);//x = m_nSize*/
+				TrySetExtendedPoint(-1, m_nSize, 0, m_nMax, maxCoord);
+				TrySetExtendedPoint(m_nSize, m_nSize, m_nMax, m_nMax, maxCoord);
+			}
+			/*SetExtendedPoint(-1, y, -d, GetAtXY(0, y), d*y);//x = -1,
+			SetExtendedPoint(m_nSize, y, m_nSize  * d, GetAtXY(m_nMax, y), d*y);//x = m_nSize*/
+			TrySetExtendedPoint(-1, y, 0, y, maxCoord);
+			TrySetExtendedPoint(m_nSize, y, m_nMax, y, maxCoord);
 			for (int x = 0; x <= m_nMax; x++)
 			{
 				float height = GetAtXY(x, y);
-				TrySetExtendedPoint(x, y, x, y, d);
+				TrySetExtendedPoint(x, y, x, y, maxCoord);
 
 				if (y == 0)
 				{
 					//SetExtendedPoint(x, -1, x*d, height, -d);
-					TrySetExtendedPoint(x, -1, x, y, d);
+					TrySetExtendedPoint(x, -1, x, y, maxCoord);
 				}
 				else if (y == m_nMax)
 				{
 					//SetExtendedPoint(x, m_nSize, x*d, height, m_nSize*d);
-					TrySetExtendedPoint(x, m_nSize, x, y, d);
+					TrySetExtendedPoint(x, m_nSize, x, y, maxCoord);
 				}
 			}
 		}
-		for (int i = 0;i<m_vExtendPoints.size();i++)
+		/*for (int i = 0;i<m_vExtendPoints.size();i++)
 		{
 			LogFormat("ep at %d (x %f,y %f,z %f)",i,m_vExtendPoints[i].x,m_vExtendPoints[i].y,m_vExtendPoints[i].z);
-		}
+		}*/
 		Vector3 pNeibor[4];
 		Vector3 _normal[5];
 		int vidx = 0;
@@ -395,7 +442,7 @@ namespace generator
 				_normal[2] = -unityMesh::getNormal(p - pNeibor[2], p - pNeibor[3]);
 				_normal[3] = -unityMesh::getNormal(p - pNeibor[3], p - pNeibor[0]);
 				_normal[4] = _normal[0] + _normal[1] + _normal[2] + _normal[3];
-				if (_normal[4].y <=0)
+				/*if (_normal[4].y <=0)
 				{
 					LogFormat("normal caculate error at point x %d,y %d,px %d,py %d,pz %d",x,y,p.x,p.y,p.z);
 					for (int i = 0; i < 4; i++)
@@ -406,7 +453,7 @@ namespace generator
 					{
 						LogFormat("GenerateTerrian normal %d (x %f,y %f,z %f)", i, _normal[i].x, _normal[i].y, _normal[i].z);
 					}
-				}
+				}*/
 				m_vNormals[vidx] = unityMesh::normalize(_normal[4]);
 			}
 		}

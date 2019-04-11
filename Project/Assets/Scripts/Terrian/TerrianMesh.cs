@@ -44,6 +44,13 @@ namespace SkyDram
                 _camera = value;
             }
         }
+        public int instaneId
+        {
+            get
+            {
+                return meshInstanceId;
+            }
+        }
         GameObject _gameObject;
         List<Mesh> _meshes = new List<Mesh>();
         TerrianData _terrianData;

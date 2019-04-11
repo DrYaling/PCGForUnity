@@ -25,7 +25,7 @@ namespace generator
 				m_mExtendedMap.insert(std::make_pair(key, point.y));
 			}
 		}
-		inline void SetPulse(int32_t x, int32_t y, float fx, float fy, float fz,bool insertMap)
+		inline void SetPulse(int32_t x, int32_t y, float fx, float fy, float fz, bool insertMap)
 		{
 			m_bEdgeExtended = true;
 			SetExtendedPoint(x, y, fx, fy, fz);
@@ -73,6 +73,11 @@ namespace generator
 		inline void Square(int x, int y, int size, float h);
 		inline float Randomize(float h);
 		inline bool IsEdge(int x, int y) { return x == 0 || y == 0 || x == m_nI || y == m_nI; }
+		//防止浮点数的累计误差
+		inline float GetDistance(int xy, float maxDistance)
+		{
+			return xy * maxDistance / (float)m_nMax;
+		}
 		inline void SetAtXY(int32_t x, int32_t y, float val) { m_vHeightMap[x + y * m_nSize] = val; }
 		inline float GetAtXY(int x, int y) { return m_vHeightMap[x + y * m_nSize]; }
 		float GetExtendHeight(int x, int y)
@@ -100,7 +105,7 @@ namespace generator
 		{
 			m_vExtendPoints[x + 1 + (y + 1) * (m_nSize + 2)] = G3D::Vector3(fx, fy, fz);
 		}
-		void TrySetExtendedPoint(int x, int y,int hx,int hy, int deltaSize);
+		void TrySetExtendedPoint(int x, int y, int hx, int hy, float deltaSize);
 		inline void	 SetExtendedPoint(int x, int y, const G3D::Vector3& v)/*x y from -1~m_nSize+1*/
 		{
 			m_vExtendPoints[x + 1 + (y + 1) * (m_nSize + 2)] = v;
@@ -116,6 +121,10 @@ namespace generator
 		inline const G3D::Vector3& GetRealNormal(int x, int y)
 		{
 			return m_vNormals[x + y * m_nSize];
+		}
+		bool IsValidPoint(const G3D::Vector3& v)
+		{
+			return fabsf(v.x) > 0.0001f && fabsf(v.y) > 0.0001f && fabsf(v.z) > 0.0001f;
 		}
 	private:
 		std::function<void(int32_t)> m_cbProcessHandler;

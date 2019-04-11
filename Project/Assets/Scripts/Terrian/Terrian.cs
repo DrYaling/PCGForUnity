@@ -35,19 +35,46 @@ namespace SkyDram
         Dictionary<int, SkyDram.TerrianMesh> m_mapMeshes = new Dictionary<int, TerrianMesh>();
         public void Init()
         {
-            var mesh0 = new TerrianMesh(1, 1);
-            var mesh1 = new TerrianMesh(1, 1);
-            m_mapMeshes.Add(0, mesh0);
+            var mesh0 = new TerrianMesh(3, 1);
+            var mesh1 = new TerrianMesh(3, 1);
+            var mesh2 = new TerrianMesh(3, 1);
+            var mesh3 = new TerrianMesh(3, 1);
+            /**/
+            /*
+             *      mesh0   mesh1
+             *      mesh2   mesh3
+             */
+            /**/
+            m_mapMeshes.Add(mesh0.instaneId, mesh0);
+            m_mapMeshes.Add(mesh1.instaneId, mesh1);
+            m_mapMeshes.Add(mesh2.instaneId, mesh2);
+            m_mapMeshes.Add(mesh3.instaneId, mesh3);
             GameObject go1 = new GameObject("first mesh");
             mesh0.SetMeshRoot(go1);
             mesh0.Loadsync();
-            m_mapMeshes.Add(1, mesh1);
             GameObject go2 = new GameObject("second mesh");
+            go2.transform.position = go1.transform.position + new Vector3(1000, 0, 0);
             mesh1.SetNeighbor(mesh0, TerrianConst.neighborPositionLeft);
             mesh1.SetMeshRoot(go2);
             mesh1.Loadsync();
+            GameObject go3 = new GameObject("third mesh");
+            go3.transform.position = go1.transform.position + new Vector3(0, 0, -1000);
+            mesh2.SetNeighbor(mesh0, TerrianConst.neighborPositionTop);
+            mesh2.SetMeshRoot(go3);
+            mesh2.Loadsync();
+
+            GameObject go4 = new GameObject("fourth mesh");
+            go4.transform.position = go1.transform.position + new Vector3(1000, 0, -1000);
+            mesh3.SetNeighbor(mesh1, TerrianConst.neighborPositionTop);
+            mesh3.SetNeighbor(mesh2, TerrianConst.neighborPositionLeft);
+            mesh3.SetMeshRoot(go4);
+            mesh3.Loadsync();
+
+
             mesh0.SetNeighbor(mesh1, TerrianConst.neighborPositionRight, true);
-            go2.transform.position = go1.transform.position + new Vector3(1000, 0, 0);
+            mesh0.SetNeighbor(mesh2, TerrianConst.neighborPositionBottom, true);
+            mesh1.SetNeighbor(mesh3, TerrianConst.neighborPositionBottom, true);
+            mesh2.SetNeighbor(mesh3, TerrianConst.neighborPositionRight, true);
         }
         public void Update(int time_diff)
         {
