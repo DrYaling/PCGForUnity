@@ -240,19 +240,14 @@ namespace SkyDram
         }
         private void LoadVertices(int mesh)
         {
+            //Debug.LogErrorFormat("mesh {0} LoadVertices mesh{1}", owner, mesh);
             GetMeshVerticeData(owner, _vertices[mesh], _normals[mesh], _vertices[mesh].Length, mesh);
 
         }
         private void LoadNormal(int mesh, int meshEdgePosition)
         {
-            try
-            {
-                ReloadMeshNormalData(owner, _normals[mesh], _normals[mesh].Length, mesh, meshEdgePosition);
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogException(ex);
-            }
+            //Debug.LogErrorFormat("mesh {0} load normal meshEdgePosition{1}", owner, meshEdgePosition);
+            ReloadMeshNormalData(owner, _normals[mesh], _normals[mesh].Length, mesh, meshEdgePosition);
         }
         private void LoadTriangle(int mesh, int lod)
         {

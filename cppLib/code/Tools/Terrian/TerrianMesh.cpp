@@ -134,7 +134,7 @@ namespace generator {
 			case  neighborPositionRight:
 				for (int i = 0; i < m_pTerrianData->meshCount; i++)
 				{
-					LogFormat("InitNeighbor %d", i);
+					LogFormat("mesh %dInitNeighbor %d", m_nInstanceId, i);
 					m_cbNotifier(m_nInstanceId, meshTopologyNormal, i, edge);
 				}
 			case neighborPositionBottom:
@@ -407,8 +407,14 @@ namespace generator {
 				if (x >= 0 && x < m_nSize)
 				{
 					p = m_pRightNeighbor->m_pGenerator->GetRealVertice(x, y);
+					//LogFormat("GetNeighborVertice at x %d,y %d,h %f", x, y, p.y);
 					return true;
 				}
+				/*else
+				{
+					LogFormat("GetNeighborVertice at x %d,y %d,fail", x, y);
+
+				}*/
 			}
 			break;
 		case neighborPositionBottom:
@@ -442,7 +448,7 @@ namespace generator {
 	void TerrianMesh::WorkThread()
 	{
 		m_pGenerator = new Diamond_Square(m_vInitilizeArgs[mesh_arg_seed], m_vInitilizeArgs[mesh_arg_I], m_vInitilizeArgs[mesh_arg_H], m_vHeightMap);
-		auto callback = std::bind(&TerrianMesh::GetNeighborVertice, this, std::placeholders::_1, std::placeholders::_2,std::placeholders::_3,std::placeholders::_4);
+		auto callback = std::bind(&TerrianMesh::GetNeighborVertice, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 		m_pGenerator->SetGetVerticeCallBack(callback);
 		m_pTerrianData->SetMeshCount(m_pGenerator->GetMeshRealCount(), m_pGenerator->GetMeshTheoreticalCount());
 		m_cbMeshInitilizer(m_nInstanceId, meshTopologyMeshCount, m_pTerrianData->meshCount, 0, 0);

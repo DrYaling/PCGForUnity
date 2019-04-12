@@ -35,10 +35,10 @@ namespace SkyDram
         Dictionary<int, SkyDram.TerrianMesh> m_mapMeshes = new Dictionary<int, TerrianMesh>();
         public void Init()
         {
-            var mesh0 = new TerrianMesh(3, 1);
-            var mesh1 = new TerrianMesh(3, 1);
-            var mesh2 = new TerrianMesh(3, 1);
-            var mesh3 = new TerrianMesh(3, 1);
+            var mesh0 = new TerrianMesh(4, 1);
+            var mesh1 = new TerrianMesh(4, 1);
+            var mesh2 = new TerrianMesh(4, 1);
+            var mesh3 = new TerrianMesh(4, 1);
             /**/
             /*
              *      mesh0   mesh1

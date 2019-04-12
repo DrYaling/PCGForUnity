@@ -106,9 +106,9 @@ namespace generator
 		m_mExtendedMap.clear();
 		//m_vVerticesSize.clear();
 	}
-	void PrintVector3(int x, int y, const Vector3& v, const char* str)
-	{
-		LogFormat("%s at x %d,y %d,v (x %f,y %f,z %f)", str, x, y, v.x, v.y, v.z);
+#define PrintVector3(x, y, v, str)\
+	{\
+		LogFormat("%s at x %d,y %d,v (x %f,y %f,z %f)", str, x, y, v.x, v.y, v.z);\
 	}
 	inline const G3D::Vector3 & Diamond_Square::GetRealVertice(int x, int y)
 	{
@@ -120,7 +120,7 @@ namespace generator
 		{
 			if (x < 0)
 			{
-				if (!m_cbGetNeighborVertice(x + m_nSize, y, neighborPositionLeft, pNeibor[5]))
+				if (!m_cbGetNeighborVertice(x + m_nSize - 1, y, neighborPositionLeft, pNeibor[5]))
 				{
 					pNeibor[5] = G3D::Vector3(x*m_fDeltaSize, GetAtXY(0, y), y*m_fDeltaSize);
 					//PrintVector3(x, y, pNeibor[5], "neighborPositionLeft");
@@ -132,7 +132,7 @@ namespace generator
 			}
 			else if (x > m_nMax)
 			{
-				if (!m_cbGetNeighborVertice(x - m_nSize, y, neighborPositionRight, pNeibor[5]))
+				if (!m_cbGetNeighborVertice(x - m_nSize + 1, y, neighborPositionRight, pNeibor[5]))
 				{
 					pNeibor[5] = G3D::Vector3(x*m_fDeltaSize, GetAtXY(m_nMax, y), y*m_fDeltaSize);
 					//LogFormat(" height %f", GetAtXY(m_nMax, y));
@@ -145,7 +145,7 @@ namespace generator
 			}
 			else if (y < 0)
 			{
-				if (!m_cbGetNeighborVertice(x, y + m_nSize, neighborPositionBottom, pNeibor[5]))
+				if (!m_cbGetNeighborVertice(x, y + m_nSize - 1, neighborPositionBottom, pNeibor[5]))
 				{
 					pNeibor[5] = G3D::Vector3(x*m_fDeltaSize, GetAtXY(x, 0), y*m_fDeltaSize);
 					//PrintVector3(x, y, pNeibor[5], "neighborPositionBottom");
@@ -157,7 +157,7 @@ namespace generator
 			}
 			else if (y > m_nMax)
 			{
-				if (!m_cbGetNeighborVertice(x, y - m_nSize, neighborPositionTop, pNeibor[5]))
+				if (!m_cbGetNeighborVertice(x, y - m_nSize + 1, neighborPositionTop, pNeibor[5]))
 				{
 					pNeibor[5] = G3D::Vector3(x*m_fDeltaSize, GetAtXY(x, m_nMax), y*m_fDeltaSize);
 					//PrintVector3(x, y, pNeibor[5], "neighborPositionTop");
@@ -436,7 +436,7 @@ namespace generator
 				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[1], p - pNeibor[2]);
 				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[2], p - pNeibor[3]);
 				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[3], p - pNeibor[0]);
-				m_vNormals[vidx++] = unityMesh::normalize(m_stNormalBuffer);
+				m_vNormals[vidx++] = unityMesh::normalize(m_stNormalBuffer);				
 			}
 		}
 	}
@@ -508,35 +508,9 @@ namespace generator
 
 				m_stNormalBuffer = vector3_zero;
 				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[0], p - pNeibor[1]);
-				if (x == m_nMax)
-				{
-					PrintVector3(x, y, m_stNormalBuffer, "neighbor normal 0 ");
-				}
 				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[1], p - pNeibor[2]);
-				if (x == m_nMax)
-				{
-					PrintVector3(x, y, -unityMesh::getNormal(p - pNeibor[1], p - pNeibor[2]), "neighbor normal 1");
-				}
 				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[2], p - pNeibor[3]);
-				if (x == m_nMax)
-				{
-					PrintVector3(x, y, -unityMesh::getNormal(p - pNeibor[2], p - pNeibor[3]), "neighbor normal 2");
-				}
 				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[3], p - pNeibor[0]);
-				if (x == m_nMax)
-				{
-					PrintVector3(x, y, -unityMesh::getNormal(p - pNeibor[3], p - pNeibor[0]), "neighbor normal 3");
-				}
-				if (x == m_nMax)
-				{
-					LogWarningFormat("x y height %f", GetAtXY(x, y));
-					PrintVector3(x, y, p, "p verticel error?");
-					for (int i = 0; i < 4; i++)
-					{
-						PrintVector3(x, y, pNeibor[i], "neighbor verticel error?");
-					}
-					PrintVector3(x, y, m_stNormalBuffer, "neighbor normal");
-				}
 				pN[indexSize] = unityMesh::normalize(m_stNormalBuffer);
 			}
 		}
