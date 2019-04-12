@@ -4,6 +4,7 @@
 #include <vector>
 namespace generator
 {
+	typedef std::function<bool(int32_t /*x*/, int32_t /*y*/, int32_t /*neighbor*/, G3D::Vector3& /*p*/)> GetNeighborVertice;
 	/************************************************************************/
 	/*							菱形-正方形生成地形                         */
 	/*				点的序号为 x=0-x = max 为0-max,y轴向上递增				*/
@@ -18,7 +19,7 @@ namespace generator
 		inline void SetPulse(int32_t x, int32_t y, const G3D::Vector3& point, bool insertMap)
 		{
 			m_bEdgeExtended = true;
-			SetExtendedPoint(x, y, point);
+			//SetExtendedPoint(x, y, point);
 			if (insertMap && x >= 0 && x < m_nSize && y >= 0 && y < m_nSize)
 			{
 				int key = x + y * m_nSize;
@@ -28,7 +29,7 @@ namespace generator
 		inline void SetPulse(int32_t x, int32_t y, float fx, float fy, float fz, bool insertMap)
 		{
 			m_bEdgeExtended = true;
-			SetExtendedPoint(x, y, fx, fy, fz);
+			//SetExtendedPoint(x, y, fx, fy, fz);
 			if (insertMap && x >= 0 && x < m_nSize && y >= 0 && y < m_nSize)
 			{
 				int key = x + y * m_nSize;
@@ -72,11 +73,15 @@ namespace generator
 			t += sizeof(Diamond_Square);
 			t += sizeof(G3D::Vector3)*m_vVertices.size();
 			t += sizeof(G3D::Vector3)*m_vNormals.size();
-			t += sizeof(G3D::Vector3)*m_vExtendPoints.size();
 			t += sizeof(int32_t)*m_vVerticesSize.size();
-			t += sizeof(m_mExtendedMap)*m_mExtendedMap.size();
-			t += sizeof(G3D::Vector3) * 9 + sizeof(float) * 5;
+			t += sizeof(G3D::Vector3) * 4 + sizeof(float) * 5;
 			return t;
+		}
+		void SetGetVerticeCallBack(GetNeighborVertice cb) { m_cbGetNeighborVertice = cb; }
+		inline const G3D::Vector3& GetRealVertice(int x, int y);
+		inline const G3D::Vector3& GetRealNormal(int x, int y)
+		{
+			return m_vNormals[x + y * m_nSize];
 		}
 	private:
 		void WorkThread(std::function<void(void)> cb);
@@ -112,46 +117,40 @@ namespace generator
 			return GetAtXY(x, y);
 		}
 		inline size_t GetSize() { return m_vHeightMap.size(); }
-		inline void	 SetExtendedPoint(int x, int y, float fx, float fy, float fz)/*x y from -1~m_nSize+1*/
+		/*inline void	 SetExtendedPoint(int x, int y, float fx, float fy, float fz)/ *x y from -1~m_nSize+1* /
 		{
 			m_vExtendPoints[x + 1 + (y + 1) * (m_nSize + 2)] = G3D::Vector3(fx, fy, fz);
 		}
 		void TrySetExtendedPoint(int x, int y, int hx, int hy, float deltaSize);
-		inline void	 SetExtendedPoint(int x, int y, const G3D::Vector3& v)/*x y from -1~m_nSize+1*/
+		inline void	 SetExtendedPoint(int x, int y, const G3D::Vector3& v)/ *x y from -1~m_nSize+1* /
 		{
 			m_vExtendPoints[x + 1 + (y + 1) * (m_nSize + 2)] = v;
 		}
-		inline const G3D::Vector3& GetExtendedPoint(int x, int y) const/*x y from -1~m_nSize+1*/
+		inline const G3D::Vector3& GetExtendedPoint(int x, int y) const/ *x y from -1~m_nSize+1* /
 		{
 			return m_vExtendPoints[x + 1 + (y + 1) * (m_nSize + 2)];
-		}
-		inline const G3D::Vector3& GetRealVertice(int x, int y)
-		{
-			return m_vVertices[x + y * m_nSize];
-		}
-		inline const G3D::Vector3& GetRealNormal(int x, int y)
-		{
-			return m_vNormals[x + y * m_nSize];
-		}
+		}*/
 		bool IsValidPoint(const G3D::Vector3& v)
 		{
 			return fabsf(v.x) > 0.0001f && fabsf(v.y) > 0.0001f && fabsf(v.z) > 0.0001f;
 		}
 	private:
+		GetNeighborVertice m_cbGetNeighborVertice;
 		std::function<void(int32_t)> m_cbProcessHandler;
 		std::vector<float>& m_vHeightMap;
 		std::vector<G3D::Vector3> m_vVertices;
 		std::vector<G3D::Vector3> m_vNormals;
 		std::map<int32_t, float> m_mExtendedMap;
 		std::vector<int32_t> m_vVerticesSize;
-		std::vector<G3D::Vector3> m_vExtendPoints;/*x = -1,y = -1,x = m_nSize,y = m_nSize*/
+		//std::vector<G3D::Vector3> m_vExtendPoints;/*x = -1,y = -1,x = m_nSize,y = m_nSize*/
 		G3D::Vector3 pNeibor[4];
-		G3D::Vector3 _normal[5];
+		G3D::Vector3 m_stNormalBuffer;
 		float m_aPointBuffer[5];
 		int32_t m_nSize;//总数 2^(2*i)+1
 		float m_nH;//粗糙度
 		int32_t	m_nI;//级数
 		int32_t m_nMax;
+		float m_fDeltaSize;//格子大小
 		bool m_bIsFinished;
 		bool m_bEdgeExtended;
 	};

@@ -38,6 +38,7 @@ public:
 		}
 	}
 private:
+	bool GetNeighborVertice(int32_t x, int32_t y, int32_t neighbor, G3D::Vector3 & p);
 	void OnVerticesGenerateOver();
 	void WorkThread();
 private:

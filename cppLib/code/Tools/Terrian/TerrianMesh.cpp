@@ -87,15 +87,39 @@ namespace generator {
 		{
 		case neighborPositionLeft:
 			m_pLeftNeighbor = neighbor;
+			if (neighbor && neighbor->m_pRightNeighbor != nullptr && neighbor->m_pRightNeighbor != this)
+			{
+				LogErrorFormat("fail to set neighbor ,left neighbor's right neighbor is not self");
+				m_pLeftNeighbor = nullptr;
+				return;
+			}
 			break;
 		case  neighborPositionRight:
 			m_pRightNeighbor = neighbor;
+			if (neighbor && neighbor->m_pLeftNeighbor != nullptr && neighbor->m_pLeftNeighbor != this)
+			{
+				LogErrorFormat("fail to set neighbor ,right neighbor's left neighbor is not self");
+				m_pRightNeighbor = nullptr;
+				return;
+			}
 			break;
 		case neighborPositionBottom:
 			m_pBottomNeighbor = neighbor;
+			if (neighbor && neighbor->m_pTopNeighbor != nullptr && neighbor->m_pTopNeighbor != this)
+			{
+				LogErrorFormat("fail to set neighbor ,bottom neighbor's top neighbor is not self");
+				m_pBottomNeighbor = nullptr;
+				return;
+			}
 			break;
 		case  neighborPositionTop:
 			m_pTopNeighbor = neighbor;
+			if (neighbor && neighbor->m_pBottomNeighbor != nullptr && neighbor->m_pBottomNeighbor != this)
+			{
+				LogErrorFormat("fail to set neighbor ,top neighbor's bottom neighbor is not self");
+				m_pTopNeighbor = nullptr;
+				return;
+			}
 			break;
 		default:
 			break;
@@ -301,7 +325,7 @@ namespace generator {
 		}
 	}
 	//caculate triangle count with the effection of neighbors on given lod
-	int32_t TerrianMesh::GetTriangleCount(int32_t mesh,int32_t lod)
+	int32_t TerrianMesh::GetTriangleCount(int32_t mesh, int32_t lod)
 	{
 		if (m_pTerrianData->currentLod == 0 || true)
 		{
@@ -362,21 +386,70 @@ namespace generator {
 		m_vInitilizeArgs.clear();
 		LogFormat("TerrianMesh %d Released", m_nInstanceId);
 	}
+	bool TerrianMesh::GetNeighborVertice(int32_t x, int32_t y, int32_t neighbor, G3D::Vector3 & p)
+	{
+		switch (neighbor)
+		{
+		case neighborPositionLeft:
+			//prevent unlimited circle
+			if (m_pLeftNeighbor && m_pLeftNeighbor->m_bGenerated && (m_pLeftNeighbor->m_pRightNeighbor == nullptr || m_pLeftNeighbor->m_pRightNeighbor == this))
+			{
+				if (x < m_nSize && x >= 0)
+				{
+					p = m_pLeftNeighbor->m_pGenerator->GetRealVertice(x, y);
+					return true;
+				}
+			}
+			break;
+		case  neighborPositionRight:
+			if (m_pRightNeighbor && m_pRightNeighbor->m_bGenerated && (m_pRightNeighbor->m_pLeftNeighbor == nullptr || m_pRightNeighbor->m_pLeftNeighbor == this))
+			{
+				if (x >= 0 && x < m_nSize)
+				{
+					p = m_pRightNeighbor->m_pGenerator->GetRealVertice(x, y);
+					return true;
+				}
+			}
+			break;
+		case neighborPositionBottom:
+			if (m_pBottomNeighbor && m_pBottomNeighbor->m_bGenerated && (m_pBottomNeighbor->m_pTopNeighbor == nullptr || m_pBottomNeighbor->m_pTopNeighbor == this))
+			{
+				if (y >= 0 && y < m_nSize)
+				{
+					p = m_pBottomNeighbor->m_pGenerator->GetRealVertice(x, y);
+					return true;
+				}
+			}
+			break;
+		case  neighborPositionTop:
+			if (m_pTopNeighbor && m_pTopNeighbor->m_bGenerated && (m_pTopNeighbor->m_pBottomNeighbor == nullptr || m_pTopNeighbor->m_pBottomNeighbor == this))
+			{
+				if (y >= 0 && y < m_nSize)
+				{
+					p = m_pTopNeighbor->m_pGenerator->GetRealVertice(x, y);
+					return true;
+				}
+			}
+			break;
+		default:
+			break;
+		}
+		return false;
+	}
 	void TerrianMesh::OnVerticesGenerateOver()
 	{
 	}
 	void TerrianMesh::WorkThread()
 	{
 		m_pGenerator = new Diamond_Square(m_vInitilizeArgs[mesh_arg_seed], m_vInitilizeArgs[mesh_arg_I], m_vInitilizeArgs[mesh_arg_H], m_vHeightMap);
-		LogFormat("Generator size %d", m_pGenerator->GetAlloc());
+		auto callback = std::bind(&TerrianMesh::GetNeighborVertice, this, std::placeholders::_1, std::placeholders::_2,std::placeholders::_3,std::placeholders::_4);
+		m_pGenerator->SetGetVerticeCallBack(callback);
 		m_pTerrianData->SetMeshCount(m_pGenerator->GetMeshRealCount(), m_pGenerator->GetMeshTheoreticalCount());
 		m_cbMeshInitilizer(m_nInstanceId, meshTopologyMeshCount, m_pTerrianData->meshCount, 0, 0);
 		m_nSize = m_pGenerator->GetSquareSize();
 		float cornor[] = { m_vInitilizeArgs[mesh_arg_h0],m_vInitilizeArgs[mesh_arg_h1],m_vInitilizeArgs[mesh_arg_h2],m_vInitilizeArgs[mesh_arg_h3] };
 		InitVerticesWithNeighbor();
-		LogFormat("Generator size %d", m_pGenerator->GetAlloc());
 		m_pGenerator->Start(cornor, 4);
-		LogFormat("Generator size %d", m_pGenerator->GetAlloc());
 		for (int i = 0; i < m_pTerrianData->meshCount; i++)
 		{
 			m_cbMeshInitilizer(m_nInstanceId, meshTopologyVertice, i, m_pTerrianData->currentLod, m_pGenerator->GetVerticesSize(i));
@@ -388,7 +461,7 @@ namespace generator {
 		{
 			m_cbNotifier(m_nInstanceId, meshTopologyVertice, i, m_pTerrianData->currentLod);
 		}
-		GetTriangleCount(0,0);
+		GetTriangleCount(0, 0);
 		for (int i = 0; i < m_pTerrianData->meshCount; i++)
 		{
 			m_cbMeshInitilizer(m_nInstanceId, meshTopologyTriangle, i, m_pTerrianData->currentLod, m_pTerrianData->triangleSize[i].size);

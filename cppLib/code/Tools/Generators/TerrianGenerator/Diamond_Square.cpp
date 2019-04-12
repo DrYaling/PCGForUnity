@@ -3,20 +3,21 @@
 #include "Logger/Logger.h"
 namespace generator
 {
-
+	static G3D::Vector3 vector3_zero(0, 0, 0);
 	using namespace G3D;
 	Diamond_Square::Diamond_Square(int32_t seed, int32_t I, float H, std::vector<float>& heightMap) :
 		m_nI(I),
 		m_nH(H / 100.0f),
 		m_bIsFinished(false),
 		m_bEdgeExtended(false),
+		m_fDeltaSize(1.0f),
 		m_vHeightMap(heightMap)
 	{
 		setRandomSeed(seed);
 		m_nSize = std::pow(2, 2 * I) + 1;
 		m_nMax = m_nSize - 1;
 		m_vHeightMap.resize(m_nSize*m_nSize);
-		m_vExtendPoints.resize((m_nSize + 2)*(m_nSize + 2));
+		//m_vExtendPoints.resize((m_nSize + 2)*(m_nSize + 2));
 		m_vVertices.resize(m_vHeightMap.size());
 		m_vNormals.resize(m_vHeightMap.size());
 
@@ -50,6 +51,8 @@ namespace generator
 
 	Diamond_Square::~Diamond_Square()
 	{
+		m_cbProcessHandler = nullptr;
+		m_cbGetNeighborVertice = nullptr;
 	}
 	void Diamond_Square::Start(const float * corner, const int32_t size, std::function<void(void)> cb)
 	{
@@ -58,6 +61,10 @@ namespace generator
 		{
 			LogError("Diamond_Square Start Fail!");
 			return;
+		}
+		if (!m_cbGetNeighborVertice)
+		{
+			LogError("m_cbGetNeighborVertice is null!");
 		}
 		size_t meshCount = GetMeshTheoreticalCount();
 		if (meshCount > MAX_MESH_COUNT)
@@ -98,6 +105,56 @@ namespace generator
 		m_vVertices.clear();
 		m_mExtendedMap.clear();
 		//m_vVerticesSize.clear();
+	}
+
+	inline const G3D::Vector3 & Diamond_Square::GetRealVertice(int x, int y)
+	{
+		if (x >= 0 && x <= m_nMax && y >= 0 && y <= m_nMax)
+		{
+			return m_vVertices[x + y * m_nSize];
+		}
+		else//the below conditions only exist one
+		{
+			LogFormat("GetRealVertice ext x %d,y %d", x, y);
+			if (x < 0)
+			{
+				if (!m_cbGetNeighborVertice(x + m_nSize, y, neighborPositionLeft, pNeibor[0]))
+				{
+					pNeibor[0] = G3D::Vector3(x*m_fDeltaSize, GetAtXY(0, y), y*m_fDeltaSize);
+				}
+				return pNeibor[0];
+			}
+			else if (x > m_nMax)
+			{
+				if (!m_cbGetNeighborVertice(x - m_nSize, y, neighborPositionRight, pNeibor[0]))
+				{
+					pNeibor[0] = G3D::Vector3(x*m_fDeltaSize, GetAtXY(m_nMax, y), y*m_fDeltaSize);
+				}
+				return pNeibor[0];
+			}
+			else if (y < 0)
+			{
+				if (!m_cbGetNeighborVertice(x, y + m_nSize, neighborPositionBottom, pNeibor[0]))
+				{
+					pNeibor[0] = G3D::Vector3(x*m_fDeltaSize, GetAtXY(x, 0), y*m_fDeltaSize);
+				}
+				return pNeibor[0];
+			}
+			else if (y > m_nMax)
+			{
+				if (!m_cbGetNeighborVertice(x, y - m_nSize, neighborPositionTop, pNeibor[0]))
+				{
+					pNeibor[0] = G3D::Vector3(x*m_fDeltaSize, GetAtXY(x, m_nMax), y*m_fDeltaSize);
+				}
+				return pNeibor[0];
+			}
+			else
+			{
+				//just in case
+				LogError("aha???should not run to this line");
+				return pNeibor[0];
+			}
+		}
 	}
 
 	void Diamond_Square::WorkThread(std::function<void(void)> cb)
@@ -182,49 +239,28 @@ namespace generator
 
 		//four corner is excluded
 		//so nigher x = 0 or x = max or y = 0 or y = max,but wont apear same time
-		if (x == 0)
+		if (x - size < 0)
 		{
-			p[1] = GetAtXY(0, y - size);// m_vHeightMap[m_nSize * (y - size)];
+			p[1] = GetAtXY(x, y - size);// m_vHeightMap[m_nSize * (y - size)];
 			p[2] = GetAtXY(size, y);// m_vHeightMap[m_nSize*y + size];
-			p[3] = GetAtXY(0, y + size);// m_vHeightMap[m_nSize*(y + size)];
-			if (m_bEdgeExtended)
+			p[3] = GetAtXY(x, y + size);// m_vHeightMap[m_nSize*(y + size)];
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x - size, y, neighborPositionLeft, pNeibor[0]))
 			{
-				const G3D::Vector3& extP = GetExtendedPoint(-1, y);
-				if (IsValidPoint(extP))
-				{
-					p[0] = extP.y;
-				}
-				else
-				{
-					p[0] = p[_irandom(1, 3)];
-				}
+				p[0] = pNeibor[0].y;
 			}
 			else
 			{
 				p[0] = p[_irandom(1, 3)];
 			}
 		}
-		else if (x == m_nMax)
+		else if (x + size > m_nMax)
 		{
 			p[0] = GetAtXY(x - size, y);// m_vHeightMap[x - size + m_nSize * y];
 			p[1] = GetAtXY(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
 			p[2] = p[3] = GetAtXY(x, y + size);// m_vHeightMap[x + m_nSize * (y + size)];
-			if (m_bEdgeExtended)
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x + size, y, neighborPositionRight, pNeibor[0]))
 			{
-				const G3D::Vector3& extP = GetExtendedPoint(m_nMax + 1, y);
-				if (IsValidPoint(extP))
-				{
-					p[2] = extP.y;
-				}
-				else
-				{
-					int i = _irandom(0, 2);
-					if (i == 2)
-					{
-						i++;
-					}
-					p[2] = p[i];
-				}
+				p[2] = pNeibor[0].y;
 			}
 			else
 			{
@@ -236,27 +272,14 @@ namespace generator
 				p[2] = p[i];
 			}
 		}
-		else if (y == 0)
+		else if (y - size < 0)
 		{
 			p[0] = GetAtXY(x - size, 0);// m_vHeightMap[x - size];
 			p[2] = GetAtXY(x + size, 0);// m_vHeightMap[x + size];
 			p[3] = GetAtXY(x, size);// m_vHeightMap[x + m_nSize * size];
-			if (m_bEdgeExtended)
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, neighborPositionBottom, pNeibor[0]))
 			{
-				const G3D::Vector3& extP = GetExtendedPoint(x, -1);
-				if (IsValidPoint(extP))
-				{
-					p[1] = extP.y;
-				}
-				else
-				{
-					int i = _irandom(1, 3);
-					if (i == 1)
-					{
-						i--;
-					}
-					p[1] = p[i];
-				}
+				p[1] = pNeibor[0].y;
 			}
 			else
 			{
@@ -268,22 +291,14 @@ namespace generator
 				p[1] = p[i];
 			}
 		}
-		else if (y == m_nMax)
+		else if (y + size > m_nMax)
 		{
 			p[0] = GetAtXY(x - size, y);// m_vHeightMap[x - size + m_nSize * y];
 			p[1] = GetAtXY(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
 			p[2] = GetAtXY(x + size, y);//m_vHeightMap[x + size + m_nSize * y];
-			if (m_bEdgeExtended)
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, neighborPositionRight, pNeibor[0]))
 			{
-				const G3D::Vector3& extP = GetExtendedPoint(x, m_nMax + 1);
-				if (IsValidPoint(extP))
-				{
-					p[3] = extP.y;
-				}
-				else
-				{
-					p[3] = p[_irandom(0, 2)];
-				}
+				p[3] = pNeibor[0].y;
 			}
 			else
 			{
@@ -334,7 +349,7 @@ namespace generator
 		return _frandom_f(-h, h);
 	}
 
-	void Diamond_Square::TrySetExtendedPoint(int x, int y, int hx, int hy, float mapWidth)
+	/*void Diamond_Square::TrySetExtendedPoint(int x, int y, int hx, int hy, float mapWidth)
 	{
 		//not attached yet
 		if (!m_bEdgeExtended)
@@ -349,10 +364,10 @@ namespace generator
 			{
 				SetExtendedPoint(x, y, GetDistance(x, mapWidth), GetAtXY(hx, hy), GetDistance(y, mapWidth));
 			}
-			/*else
+			/ *else
 			{
 				LogFormat("extend point exist x %d,y %d,rx %d,ry %d,h %f", x, y, hx, hy, itr->second);
-			}*/
+			}* /
 		}
 		//if not the up conditions and not initilized
 		else
@@ -362,12 +377,12 @@ namespace generator
 			{
 				SetExtendedPoint(x, y, GetDistance(x, mapWidth), GetAtXY(hx, hy), GetDistance(y, mapWidth));
 			}
-			/*else
+			/ *else
 			{
 				LogWarningFormat("extend point x %d,y %d,rx %d,ry %d,(x %f,y %f,z %f)", x, y, hx, hy, v.x, v.y, v.z);
-			}*/
+			}* /
 		}
-	}
+	}*/
 
 	void Diamond_Square::GenerateTerrian(float maxCoord)
 	{
@@ -375,83 +390,32 @@ namespace generator
 		{
 			return;
 		}
-		//double d = maxCoord / (float)m_nMax;
-		for (int y = 0; y <= m_nMax; y++)
-		{
-			if (y == 0)
-			{
-				/*SetExtendedPoint(-1, -1, -d, GetAtXY(0, 0), -d);//x = -1,
-				SetExtendedPoint(m_nSize, -1, m_nSize  * d, GetAtXY(m_nMax, 0), -d);//x = m_nSize*/
-				TrySetExtendedPoint(-1, -1, 0, 0, maxCoord);
-				TrySetExtendedPoint(m_nSize, -1, m_nMax, 0, maxCoord);
-			}
-			else if (y == m_nMax)
-			{
-				/*SetExtendedPoint(-1, m_nSize, -d, GetAtXY(0, m_nMax), d*m_nSize);//x = -1,
-				SetExtendedPoint(m_nSize, m_nSize, m_nSize  * d, GetAtXY(m_nMax, m_nMax), d*m_nSize);//x = m_nSize*/
-				TrySetExtendedPoint(-1, m_nSize, 0, m_nMax, maxCoord);
-				TrySetExtendedPoint(m_nSize, m_nSize, m_nMax, m_nMax, maxCoord);
-			}
-			/*SetExtendedPoint(-1, y, -d, GetAtXY(0, y), d*y);//x = -1,
-			SetExtendedPoint(m_nSize, y, m_nSize  * d, GetAtXY(m_nMax, y), d*y);//x = m_nSize*/
-			TrySetExtendedPoint(-1, y, 0, y, maxCoord);
-			TrySetExtendedPoint(m_nSize, y, m_nMax, y, maxCoord);
-			for (int x = 0; x <= m_nMax; x++)
-			{
-				float height = GetAtXY(x, y);
-				TrySetExtendedPoint(x, y, x, y, maxCoord);
-
-				if (y == 0)
-				{
-					//SetExtendedPoint(x, -1, x*d, height, -d);
-					TrySetExtendedPoint(x, -1, x, y, maxCoord);
-				}
-				else if (y == m_nMax)
-				{
-					//SetExtendedPoint(x, m_nSize, x*d, height, m_nSize*d);
-					TrySetExtendedPoint(x, m_nSize, x, y, maxCoord);
-				}
-			}
-		}
-		/*for (int i = 0;i<m_vExtendPoints.size();i++)
-		{
-			LogFormat("ep at %d (x %f,y %f,z %f)",i,m_vExtendPoints[i].x,m_vExtendPoints[i].y,m_vExtendPoints[i].z);
-		}*/
+		m_fDeltaSize = maxCoord / (float)m_nMax;
 		int vidx = 0;
 		for (int y = 0; y <= m_nMax; y++)
 		{
 			for (int x = 0; x <= m_nMax; x++)
 			{
-				vidx = x + y * m_nSize;
-				Vector3 p = GetExtendedPoint(x, y);
-#if UNITY_CORE
-				m_vVertices[vidx] = p;
-#else
-				m_vVertices[vidx] = p;
-#endif
-				pNeibor[0] = GetExtendedPoint(x - 1, y);
-				pNeibor[1] = GetExtendedPoint(x, y - 1);
-				pNeibor[2] = GetExtendedPoint(x + 1, y);
-				pNeibor[3] = GetExtendedPoint(x, y + 1);
-
-				_normal[0] = -unityMesh::getNormal(p - pNeibor[0], p - pNeibor[1]);
-				_normal[1] = -unityMesh::getNormal(p - pNeibor[1], p - pNeibor[2]);
-				_normal[2] = -unityMesh::getNormal(p - pNeibor[2], p - pNeibor[3]);
-				_normal[3] = -unityMesh::getNormal(p - pNeibor[3], p - pNeibor[0]);
-				_normal[4] = _normal[0] + _normal[1] + _normal[2] + _normal[3];
-				/*if (_normal[4].y <=0)
-				{
-					LogFormat("normal caculate error at point x %d,y %d,px %d,py %d,pz %d",x,y,p.x,p.y,p.z);
-					for (int i = 0; i < 4; i++)
-					{
-						LogFormat("GenerateTerrian pNeibor %d (x %f,y %f,z %f)", i, pNeibor[i].x, pNeibor[i].y, pNeibor[i].z);
-					}
-					for (int i = 0; i < 5; i++)
-					{
-						LogFormat("GenerateTerrian normal %d (x %f,y %f,z %f)", i, _normal[i].x, _normal[i].y, _normal[i].z);
-					}
-				}*/
-				m_vNormals[vidx] = unityMesh::normalize(_normal[4]);
+				Vector3 p(GetDistance(x, maxCoord), GetAtXY(x, y), GetDistance(y, maxCoord));
+				m_vVertices[vidx++] = p;
+			}
+		}
+		vidx = 0;
+		for (int y = 0; y <= m_nMax; y++)
+		{
+			for (int x = 0; x <= m_nMax; x++)
+			{
+				auto p = m_vVertices[vidx];
+				pNeibor[0] = GetRealVertice(x - 1, y);
+				pNeibor[1] = GetRealVertice(x, y - 1);
+				pNeibor[2] = GetRealVertice(x + 1, y);
+				pNeibor[3] = GetRealVertice(x, y + 1);
+				m_stNormalBuffer = vector3_zero;
+				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[0], p - pNeibor[1]);
+				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[1], p - pNeibor[2]);
+				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[2], p - pNeibor[3]);
+				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[3], p - pNeibor[0]);
+				m_vNormals[vidx++] = unityMesh::normalize(m_stNormalBuffer);
 			}
 		}
 	}
@@ -515,22 +479,18 @@ namespace generator
 					LogErrorFormat("at mesh %d, x %d,y %d recaculate normal fail,normal size %d,indexSize %d", mesh, x, y, size, indexSize);
 					return;
 				}
-				Vector3 p = GetExtendedPoint(x, y);
-				pNeibor[0] = GetExtendedPoint(x - 1, y);
-				pNeibor[1] = GetExtendedPoint(x, y - 1);
-				pNeibor[2] = GetExtendedPoint(x + 1, y);
-				pNeibor[3] = GetExtendedPoint(x, y + 1);
+				Vector3 p = GetRealVertice(x, y);
+				pNeibor[0] = GetRealVertice(x - 1, y);
+				pNeibor[1] = GetRealVertice(x, y - 1);
+				pNeibor[2] = GetRealVertice(x + 1, y);
+				pNeibor[3] = GetRealVertice(x, y + 1);
 
-				_normal[0] = -unityMesh::getNormal(p - pNeibor[0], p - pNeibor[1]);
-				_normal[1] = -unityMesh::getNormal(p - pNeibor[1], p - pNeibor[2]);
-				_normal[2] = -unityMesh::getNormal(p - pNeibor[2], p - pNeibor[3]);
-				_normal[3] = -unityMesh::getNormal(p - pNeibor[3], p - pNeibor[0]);
-				_normal[4] = _normal[0] + _normal[1] + _normal[2] + _normal[3];
-				/*for (int i = 0; i < 5; i++)
-				{
-					LogFormat("RecaculateNormal normal %d (x %f,y %f,z %f)", i, _normal[i].x, _normal[i].y, _normal[i].z);
-				}*/
-				pN[indexSize] = unityMesh::normalize(_normal[4]);
+				m_stNormalBuffer = vector3_zero;
+				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[0], p - pNeibor[1]);
+				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[1], p - pNeibor[2]);
+				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[2], p - pNeibor[3]);
+				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[3], p - pNeibor[0]);
+				pN[indexSize] = unityMesh::normalize(m_stNormalBuffer);
 			}
 		}
 		//LogWarningFormat("at mesh %d,recaculate normal size %d,indexSize %d", mesh, size, indexSize);
