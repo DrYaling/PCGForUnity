@@ -4,7 +4,8 @@
 #include "Logger/Logger.h"
 #include "G3D/Vector3.h"
 #include "Map/TransformMap.h"
-#include "Generators/MeshGenerator.h"
+//#include "Generators/MeshGenerator.h"
+#include "MeshBindings.h"
 #include <stdint.h>
 typedef void(__stdcall *CPPUpdateCallback)(int tick);
 EXTERN_C_BEGIN
@@ -67,6 +68,7 @@ EXPORT_API vector3& GetObjTest()
 EXPORT_API void STD_CALL DestroyCPP()
 {
 	LogFormat("DestroyCPP");
+	generator::Internal_ReleaseAllMeshed();
 	transformMap::ClearTransformMapTrees();
 	ClearLogger();
 }

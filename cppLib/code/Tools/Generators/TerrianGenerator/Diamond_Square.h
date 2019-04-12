@@ -67,6 +67,17 @@ namespace generator
 			return m_vVerticesSize.size();
 		}
 		void ReleaseUnusedBuffer();
+		size_t GetAlloc() {
+			size_t t = 0;
+			t += sizeof(Diamond_Square);
+			t += sizeof(G3D::Vector3)*m_vVertices.size();
+			t += sizeof(G3D::Vector3)*m_vNormals.size();
+			t += sizeof(G3D::Vector3)*m_vExtendPoints.size();
+			t += sizeof(int32_t)*m_vVerticesSize.size();
+			t += sizeof(m_mExtendedMap)*m_mExtendedMap.size();
+			t += sizeof(G3D::Vector3) * 9 + sizeof(float) * 5;
+			return t;
+		}
 	private:
 		void WorkThread(std::function<void(void)> cb);
 		inline void Diamond(int x, int y, int size, float h);
@@ -129,11 +140,13 @@ namespace generator
 	private:
 		std::function<void(int32_t)> m_cbProcessHandler;
 		std::vector<float>& m_vHeightMap;
-		std::vector<G3D::Vector3> m_vExtendPoints;/*x = -1,y = -1,x = m_nSize,y = m_nSize*/
 		std::vector<G3D::Vector3> m_vVertices;
 		std::vector<G3D::Vector3> m_vNormals;
-		std::vector<int32_t> m_vVerticesSize;
 		std::map<int32_t, float> m_mExtendedMap;
+		std::vector<int32_t> m_vVerticesSize;
+		std::vector<G3D::Vector3> m_vExtendPoints;/*x = -1,y = -1,x = m_nSize,y = m_nSize*/
+		G3D::Vector3 pNeibor[4];
+		G3D::Vector3 _normal[5];
 		float m_aPointBuffer[5];
 		int32_t m_nSize;//×ÜÊý 2^(2*i)+1
 		float m_nH;//´Ö²Ú¶È

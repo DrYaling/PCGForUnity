@@ -48,6 +48,11 @@ EXPORT_API void STD_CALL SetMeshNeighbor(int32_t instanceId, int32_t neighborId,
 {
 	generator::Internal_SetMeshNeighbor(instanceId, neighborId, neighborDirection, reloadNormalIfLoaded);
 }
+EXPORT_API void STD_CALL NeighborLodHasChanged(int32_t instanceId, int32_t neighborId)
+{
+	generator::Internal_OnNeighborLodChanged(instanceId, neighborId);
+}
+
 
 EXPORT_API void STD_CALL StartGenerateOrLoad(int32_t instanceId)
 {

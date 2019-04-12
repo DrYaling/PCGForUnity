@@ -13,11 +13,12 @@ public:
 	void GetTerrianVerticesData(G3D::Vector3* pV, G3D::Vector3* pN, int32_t size, int32_t mesh);
 	void GetMeshUVData(G3D::Vector2* p, int32_t size, int32_t mesh, int32_t uv);
 	void InitMeshTriangleData(int32_t* p, int32_t size, int32_t mesh, int32_t lod);
-	void InitNeighbor(int32_t edge, TerrianMesh* mesh,bool reloadNormalIfLoaded);
+	void InitNeighbor(int32_t edge, TerrianMesh* mesh, bool reloadNormalIfLoaded);
+	void OnNeighborLodChanged(TerrianMesh* neighbor);
 	void RecaculateTriangles(int32_t* p, int32_t size, int32_t mesh, int32_t lod);
 	void RecaculateNormal(G3D::Vector3* pN, int32_t size, int32_t mesh, int32_t position);
 	void InitVerticesWithNeighbor(int32_t position = neighborPositionAll);
-	int32_t GetTriangleCount(int32_t mesh);
+	int32_t GetTriangleCount(int32_t mesh, int32_t lod);
 	void Start();
 	void Release();
 	int32_t GetLod() { return m_pTerrianData->currentLod; }
@@ -29,7 +30,7 @@ public:
 			{
 				m_pTerrianData->triangleSize[i].size = 0;
 			}
-			GetTriangleCount(0);
+			GetTriangleCount(0, lod);
 			for (int i = 0; i < m_pTerrianData->meshCount; i++)
 			{
 				m_cbMeshInitilizer(m_nInstanceId, meshTopologyTriangle, i, m_pTerrianData->currentLod, m_pTerrianData->triangleSize[i].size);

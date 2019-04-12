@@ -74,7 +74,9 @@ void KcpClient::Send(char * buff, int length, bool immediately)
 	m_nLastSendTime = m_pKcp->current;
 	if (immediately)
 	{
+		m_updateMtx.lock();
 		ikcp_update(m_pKcp, m_pKcp->current + 10);
+		m_updateMtx.unlock();
 	}
 	else
 	{
@@ -134,7 +136,9 @@ void KcpClient::Update(int32_t time)
 			SendHeartBeat();
 		}
 		if (m_bNeedUpdate || m_pKcp->current + 15 >= m_nNeedUpdateTime) {
+			m_updateMtx.lock();
 			ikcp_update(m_pKcp, m_pKcp->current + 15);
+			m_updateMtx.unlock();
 			m_nNeedUpdateTime = ikcp_check(m_pKcp, time);
 			m_bNeedUpdate = false;
 		}

@@ -3,6 +3,7 @@
 #include "kcp_config.h"
 #include "SocketConfig.h"
 #include "CSocket.h"
+#include <mutex>
 enum ClientResponse
 {
 	CR_CONNECT_SUCCESS = 0,
@@ -62,6 +63,7 @@ private:
 	int16 m_nConnectTimeOut;
 	int16 m_nReconnectTime;
 	const static int16 reconnectInterval = 1000;
+	std::mutex m_updateMtx;
 
 };
 #endif

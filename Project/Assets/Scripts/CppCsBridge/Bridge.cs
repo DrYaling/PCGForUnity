@@ -2,9 +2,15 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
-
 public class Bridge
 {
+    class BridgeRunner
+    {
+        ~BridgeRunner()
+        {
+            DestroyCPP();
+        }
+    }
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     struct csObject
     {
@@ -37,7 +43,7 @@ public class Bridge
     extern static void RegisterLogError(LogError callback);
     [DllImport(dllName)]
     extern static void DestroyCPP();
-
+    static BridgeRunner runner = new BridgeRunner();
     private static int mainThreadId;
     public static void Init()
     {
@@ -59,8 +65,8 @@ public class Bridge
 #if UNITY_EDITOR
         if (mainThreadId != System.Threading.Thread.CurrentThread.ManagedThreadId)
         {
-            Debug.LogError("Destroy Is Running not in main thread");
-            return;
+            Debug.LogWarning("Destroy Is Running not in main thread");
+            //return;
         }
 #endif
         DestroyCPP();

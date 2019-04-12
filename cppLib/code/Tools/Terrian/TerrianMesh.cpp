@@ -124,10 +124,37 @@ namespace generator {
 			}
 		}
 	}
+	void TerrianMesh::OnNeighborLodChanged(TerrianMesh* neighbor)
+	{
+		if (!neighbor)
+			return;
+
+		//first step ,exclude unnecessary vertice close to neighbor
+		//second step ,recaculate triangles
+		if (neighbor == m_pLeftNeighbor)
+		{
+
+		}
+		else if (neighbor == m_pRightNeighbor)
+		{
+
+		}
+		else if (neighbor == m_pBottomNeighbor)
+		{
+		}
+		else if (neighbor == m_pTopNeighbor)
+		{
+
+		}
+	}
 	void TerrianMesh::RecaculateTriangles(int32_t* p, int32_t size, int32_t mesh, int32_t lod)
 	{
 		//simply caculate lod of zero and has no neighbors
-
+		/*
+		for those lod > 0
+		//first step ,exclude unnecessary vertice
+		//second step ,recaculate triangles
+		*/
 		int nMax = m_nSize - 1;
 		int triangleIdx = 0;
 		int32_t* triangle = p;
@@ -170,12 +197,12 @@ namespace generator {
 		float deltaSize = m_vInitilizeArgs[mesh_arg_mapWidth] / (float)(m_nSize - 1);
 		int nMax = m_nSize - 1;
 		bool insert = position == neighborPositionAll;
-		LogFormat("InitVerticesWithNeighbor pos %d,insert %d", position, insert);
+		//LogFormat("InitVerticesWithNeighbor pos %d,insert %d", position, insert);
 		if (insert || position == neighborPositionLeft)
 		{
 			if (m_pLeftNeighbor)
 			{
-				LogFormat("init left pulse ");
+				//LogFormat("init left pulse ");
 				if (m_pLeftNeighbor->m_nSize != m_nSize)
 				{
 					LogErrorFormat("neighbor size %d is not equal to neighbor %d", m_nSize, m_pLeftNeighbor->m_nSize);
@@ -273,7 +300,8 @@ namespace generator {
 			}
 		}
 	}
-	int32_t TerrianMesh::GetTriangleCount(int32_t mesh)
+	//caculate triangle count with the effection of neighbors on given lod
+	int32_t TerrianMesh::GetTriangleCount(int32_t mesh,int32_t lod)
 	{
 		if (m_pTerrianData->currentLod == 0 || true)
 		{
@@ -329,9 +357,10 @@ namespace generator {
 		if (m_pGenerator)
 		{
 			m_pGenerator->ReleaseUnusedBuffer();
+			LogFormat("Generator size %d", m_pGenerator->GetAlloc());
 		}
 		m_vInitilizeArgs.clear();
-		LogFormat("TerrianMesh Released");
+		LogFormat("TerrianMesh %d Released", m_nInstanceId);
 	}
 	void TerrianMesh::OnVerticesGenerateOver()
 	{
@@ -339,23 +368,27 @@ namespace generator {
 	void TerrianMesh::WorkThread()
 	{
 		m_pGenerator = new Diamond_Square(m_vInitilizeArgs[mesh_arg_seed], m_vInitilizeArgs[mesh_arg_I], m_vInitilizeArgs[mesh_arg_H], m_vHeightMap);
+		LogFormat("Generator size %d", m_pGenerator->GetAlloc());
 		m_pTerrianData->SetMeshCount(m_pGenerator->GetMeshRealCount(), m_pGenerator->GetMeshTheoreticalCount());
 		m_cbMeshInitilizer(m_nInstanceId, meshTopologyMeshCount, m_pTerrianData->meshCount, 0, 0);
 		m_nSize = m_pGenerator->GetSquareSize();
 		float cornor[] = { m_vInitilizeArgs[mesh_arg_h0],m_vInitilizeArgs[mesh_arg_h1],m_vInitilizeArgs[mesh_arg_h2],m_vInitilizeArgs[mesh_arg_h3] };
 		InitVerticesWithNeighbor();
+		LogFormat("Generator size %d", m_pGenerator->GetAlloc());
 		m_pGenerator->Start(cornor, 4);
+		LogFormat("Generator size %d", m_pGenerator->GetAlloc());
 		for (int i = 0; i < m_pTerrianData->meshCount; i++)
 		{
 			m_cbMeshInitilizer(m_nInstanceId, meshTopologyVertice, i, m_pTerrianData->currentLod, m_pGenerator->GetVerticesSize(i));
 		}
 		m_pGenerator->GenerateTerrian(m_vInitilizeArgs[mesh_arg_mapWidth]);
+		LogFormat("Generator size %d", m_pGenerator->GetAlloc());
 
 		for (int i = 0; i < m_pTerrianData->meshCount; i++)
 		{
 			m_cbNotifier(m_nInstanceId, meshTopologyVertice, i, m_pTerrianData->currentLod);
 		}
-		GetTriangleCount(0);
+		GetTriangleCount(0,0);
 		for (int i = 0; i < m_pTerrianData->meshCount; i++)
 		{
 			m_cbMeshInitilizer(m_nInstanceId, meshTopologyTriangle, i, m_pTerrianData->currentLod, m_pTerrianData->triangleSize[i].size);

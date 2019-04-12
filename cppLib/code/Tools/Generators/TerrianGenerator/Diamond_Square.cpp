@@ -45,7 +45,7 @@ namespace generator
 				outBoundY = m_nMax;
 			}
 		}
-		LogFormat("mesh count %d,nSize %d", meshCount, m_nSize);
+		//LogFormat("mesh count %d,nSize %d", meshCount, m_nSize);
 	}
 
 	Diamond_Square::~Diamond_Square()
@@ -88,17 +88,16 @@ namespace generator
 			SetAtXY(m_nMax, m_nMax, itr->second);
 		//std::thread t(std::bind(&Diamond_Square::WorkThread, this,cb));
 		//t.detach();
-		LogFormat("Diamond_Square Start,H %f,I %d,maxSize %d,meshCount %d", m_nH, m_nI, m_nSize, meshCount);
+		//LogFormat("Diamond_Square Start,H %f,I %d,maxSize %d,meshCount %d", m_nH, m_nI, m_nSize, meshCount);
 		WorkThread(cb);
 	}
 
 	void Diamond_Square::ReleaseUnusedBuffer()
 	{
-		//m_vHeightMap.clear();
 		m_vNormals.clear();
 		m_vVertices.clear();
 		m_mExtendedMap.clear();
-		m_vVerticesSize.clear();
+		//m_vVerticesSize.clear();
 	}
 
 	void Diamond_Square::WorkThread(std::function<void(void)> cb)
@@ -107,7 +106,7 @@ namespace generator
 		float process = 0;//max 100
 		int Iprocess = 0;
 		float processSpeedPerWhile = 1 / std::log2f(m_nMax) * 100.0f;
-		LogFormat("processSpeedPerWhile %f", processSpeedPerWhile);
+		//LogFormat("processSpeedPerWhile %f", processSpeedPerWhile);
 		int generateSize = m_nMax / 2;
 		int prevSize = m_nMax;
 		int genLen = 0;
@@ -149,7 +148,7 @@ namespace generator
 			}
 			Iprocess = pro;
 		}
-		LogFormat("ds over,total size %d,should be %d", genLen, m_nSize*m_nSize - 4);
+		//LogFormat("ds over,total size %d,should be %d", genLen, m_nSize*m_nSize - 4);
 		/*for (auto f : m_vHeightMap)
 		{
 			if (f > -1 && f < 1)
@@ -180,7 +179,7 @@ namespace generator
 			}
 		}
 		float *p = m_aPointBuffer;// p0/*left*/, p1/*bottom*/, p2/*right*/, p3/*top*/;
-		
+
 		//four corner is excluded
 		//so nigher x = 0 or x = max or y = 0 or y = max,but wont apear same time
 		if (x == 0)
@@ -190,7 +189,7 @@ namespace generator
 			p[3] = GetAtXY(0, y + size);// m_vHeightMap[m_nSize*(y + size)];
 			if (m_bEdgeExtended)
 			{
-				const G3D::Vector3& extP = GetExtendedPoint(-1,y);
+				const G3D::Vector3& extP = GetExtendedPoint(-1, y);
 				if (IsValidPoint(extP))
 				{
 					p[0] = extP.y;
@@ -418,8 +417,6 @@ namespace generator
 		{
 			LogFormat("ep at %d (x %f,y %f,z %f)",i,m_vExtendPoints[i].x,m_vExtendPoints[i].y,m_vExtendPoints[i].z);
 		}*/
-		Vector3 pNeibor[4];
-		Vector3 _normal[5];
 		int vidx = 0;
 		for (int y = 0; y <= m_nMax; y++)
 		{
@@ -460,22 +457,32 @@ namespace generator
 	}
 	void Diamond_Square::RecaculateNormal(G3D::Vector3 * pN, int32_t size, int32_t mesh, int32_t position)
 	{
-		Vector3 pNeibor[4];
-		Vector3 _normal[5];
-		int vidx = 0;
 		int xmin, xmax, ymin, ymax;
 		switch (position)
 		{
 		case neighborPositionLeft:
-			xmin = xmax = 0;
-			ymin = 0;
-			ymax = m_nMax;
-			break;
 		case  neighborPositionRight:
-			xmin = xmax = m_nMax;
-			ymin = 0;
-			ymax = m_nMax;
-			break;
+		{
+			int meshCount = GetMeshTheoreticalCount();
+			int vertexPerMesh = m_nMax / meshCount;
+			int upBound = (mesh + 1)*vertexPerMesh;
+			if (upBound > m_nMax)
+			{
+				upBound = m_nMax;
+			}
+			int start = mesh * vertexPerMesh;
+			ymin = start;
+			ymax = upBound;
+			if (position == neighborPositionRight)
+			{
+				xmin = xmax = m_nMax;
+			}
+			else
+			{
+				xmin = xmax = 0;
+			}
+		}
+		break;
 		case neighborPositionBottom:
 			xmin = 0;
 			xmax = m_nMax;
@@ -489,12 +496,25 @@ namespace generator
 		default:
 			break;
 		}
-		LogFormat("RecaculateNormal mesh %d,size %d,position %d,xmin %d,xmax %d,ymin %d,ymax %d", mesh, size, position, xmin, xmax, ymin, ymax);
+		int offset = 0;
+		//因为每一个mesh的起始y坐标是上一个mesh的终点y坐标，所以后面个mesh在减掉offset的时候需要多加一个m_nSize，否则会有一个m_nSize的差值
+		for (size_t i = 0; i < mesh; i++)
+		{
+			//LogFormat("vertices size of mesh %d is %d", i, m_vVerticesSize[i]);
+			offset += m_vVerticesSize[i] - m_nSize;
+		}
+		//LogFormat("RecaculateNormal mesh %d,size %d,position %d,xmin %d,xmax %d,ymin %d,ymax %d,offset %d", mesh, size, position, xmin, xmax, ymin, ymax, offset);
+		int indexSize = 0;
 		for (int y = ymin; y <= ymax; y++)
 		{
 			for (int x = xmin; x <= xmax; x++)
 			{
-				vidx = x + y * m_nSize;
+				indexSize = x + y * m_nSize - offset;
+				if (indexSize >= size)
+				{
+					LogErrorFormat("at mesh %d, x %d,y %d recaculate normal fail,normal size %d,indexSize %d", mesh, x, y, size, indexSize);
+					return;
+				}
 				Vector3 p = GetExtendedPoint(x, y);
 				pNeibor[0] = GetExtendedPoint(x - 1, y);
 				pNeibor[1] = GetExtendedPoint(x, y - 1);
@@ -510,10 +530,10 @@ namespace generator
 				{
 					LogFormat("RecaculateNormal normal %d (x %f,y %f,z %f)", i, _normal[i].x, _normal[i].y, _normal[i].z);
 				}*/
-				pN[vidx] = unityMesh::normalize(_normal[4]);
-
+				pN[indexSize] = unityMesh::normalize(_normal[4]);
 			}
 		}
+		//LogWarningFormat("at mesh %d,recaculate normal size %d,indexSize %d", mesh, size, indexSize);
 	}
 	void Diamond_Square::SetVerticesAndNormal(G3D::Vector3 * pV, G3D::Vector3 * pN, int32_t size, int32_t mesh)
 	{

@@ -20,6 +20,8 @@ namespace SkyDram
         extern static void ReloadMeshNormalData(int ins, [In, Out] Vector3[] normals, int size, int mesh, int meshEdgePosition);
         [DllImport(dllName)]
         extern static void GetMeshUVData(int ins, [In, Out] Vector2[] uvs, int size, int mesh, int uv);
+        [DllImport(dllName)]
+        extern static void NeighborLodHasChanged(int ins, int neighbor);
         /// <summary>
         /// reset lod 
         /// </summary>
@@ -90,7 +92,7 @@ namespace SkyDram
         }
         private void InitVertices(int meshIndex, int verticesCount)
         {
-            //Debug.LogFormat("InitVertices mesh {0},size {1}", meshIndex, verticesCount);
+            Debug.LogFormat("InitVertices mesh {0},size {1}", meshIndex, verticesCount);
             if (meshIndex >= 0 && meshIndex < meshCount)
             {
                 _vertices[meshIndex] = new Vector3[verticesCount];
@@ -243,11 +245,22 @@ namespace SkyDram
         }
         private void LoadNormal(int mesh, int meshEdgePosition)
         {
-            ReloadMeshNormalData(owner, _normals[mesh], _normals[mesh].Length, mesh, meshEdgePosition);
+            try
+            {
+                ReloadMeshNormalData(owner, _normals[mesh], _normals[mesh].Length, mesh, meshEdgePosition);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogException(ex);
+            }
         }
         private void LoadTriangle(int mesh, int lod)
         {
             GetMeshTriangleData(owner, _triangles[mesh][lod], _triangles[mesh][lod].Length, mesh, lod);
+        }
+        public void OnNeighborLODChanged(int neighbor)
+        {
+            NeighborLodHasChanged(owner, neighbor);
         }
     }
 }

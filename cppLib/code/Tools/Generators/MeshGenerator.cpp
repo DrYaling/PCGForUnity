@@ -302,4 +302,29 @@ void Internal_SetMeshNeighbor(int32_t instanceId, int32_t neighborId, int32_t ne
 		}
 	}
 }
+void Internal_OnNeighborLodChanged(int32_t instanceId, int32_t neighborId)
+{
+	auto itr = mTerrianBindings.find(instanceId);
+	if (itr != mTerrianBindings.end())
+	{
+		auto neighbor = mTerrianBindings.find(neighborId);
+		if (neighbor != mTerrianBindings.end())
+		{
+			itr->second->OnNeighborLodChanged(neighbor->second);
+		}
+		else
+		{
+			LogErrorFormat("mesh %d neighbor %d does not exist", instanceId, neighborId);
+		}
+	}
+}
+void Internal_ReleaseAllMeshed()
+{
+	LogFormat("Internal_ReleaseAllMeshed %d",mTerrianBindings.size());
+	for (auto itr = mTerrianBindings.begin(); itr != mTerrianBindings.end();)
+	{
+		safe_delete(itr->second);
+		itr = mTerrianBindings.erase(itr);
+	}
+}
 NS_GNRT_END

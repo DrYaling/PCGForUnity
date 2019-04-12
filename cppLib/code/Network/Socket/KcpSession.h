@@ -3,6 +3,7 @@
 #include "kcp_config.h"
 #include "SocketConfig.h"
 #include <functional>
+#include <mutex>
 #define SESSION_KEEP_ALIVE_TIME 120000	//2mins
 class KcpSession
 {
@@ -51,7 +52,7 @@ private:
 	uint64 m_nNeedUpdateTime;
 	bool m_bNeedUpdate;
 	bool m_bAlive;
-
+	std::mutex m_updateMtx;
 };
 
 #endif

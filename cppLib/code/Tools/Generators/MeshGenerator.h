@@ -25,7 +25,8 @@ void Internal_GetMeshUVData(int32_t instance, G3D::Vector2* uvs, int32_t size, i
 void Internal_GetMeshTrianglesData(int32_t instance, int32_t* triangles, int32_t size, int32_t mesh,int32_t lod);
 void Internal_ReloadMeshNormalData(int32_t instanceId, G3D::Vector3 * p, int32_t size, int32_t mesh, int32_t meshEdgePosition);
 void Internal_SetMeshNeighbor(int32_t instanceId, int32_t neighborId, int32_t neighborDirection, bool reloadNormalIfLoaded);
-
+void Internal_OnNeighborLodChanged(int32_t instanceId, int32_t neighborId);
+void Internal_ReleaseAllMeshed();
 NS_GNRT_END
 
 #endif
