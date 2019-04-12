@@ -74,7 +74,7 @@ namespace generator
 			t += sizeof(G3D::Vector3)*m_vVertices.size();
 			t += sizeof(G3D::Vector3)*m_vNormals.size();
 			t += sizeof(int32_t)*m_vVerticesSize.size();
-			t += sizeof(G3D::Vector3) * 4 + sizeof(float) * 5;
+			t += sizeof(G3D::Vector3) * 5 + sizeof(float) * 5;
 			return t;
 		}
 		void SetGetVerticeCallBack(GetNeighborVertice cb) { m_cbGetNeighborVertice = cb; }
@@ -117,19 +117,6 @@ namespace generator
 			return GetAtXY(x, y);
 		}
 		inline size_t GetSize() { return m_vHeightMap.size(); }
-		/*inline void	 SetExtendedPoint(int x, int y, float fx, float fy, float fz)/ *x y from -1~m_nSize+1* /
-		{
-			m_vExtendPoints[x + 1 + (y + 1) * (m_nSize + 2)] = G3D::Vector3(fx, fy, fz);
-		}
-		void TrySetExtendedPoint(int x, int y, int hx, int hy, float deltaSize);
-		inline void	 SetExtendedPoint(int x, int y, const G3D::Vector3& v)/ *x y from -1~m_nSize+1* /
-		{
-			m_vExtendPoints[x + 1 + (y + 1) * (m_nSize + 2)] = v;
-		}
-		inline const G3D::Vector3& GetExtendedPoint(int x, int y) const/ *x y from -1~m_nSize+1* /
-		{
-			return m_vExtendPoints[x + 1 + (y + 1) * (m_nSize + 2)];
-		}*/
 		bool IsValidPoint(const G3D::Vector3& v)
 		{
 			return fabsf(v.x) > 0.0001f && fabsf(v.y) > 0.0001f && fabsf(v.z) > 0.0001f;
@@ -143,7 +130,7 @@ namespace generator
 		std::map<int32_t, float> m_mExtendedMap;
 		std::vector<int32_t> m_vVerticesSize;
 		//std::vector<G3D::Vector3> m_vExtendPoints;/*x = -1,y = -1,x = m_nSize,y = m_nSize*/
-		G3D::Vector3 pNeibor[4];
+		G3D::Vector3 pNeibor[5];
 		G3D::Vector3 m_stNormalBuffer;
 		float m_aPointBuffer[5];
 		int32_t m_nSize;//×ÜÊý 2^(2*i)+1
