@@ -27,6 +27,10 @@ EXPORT_API void	 STD_CALL InitTerrianMesh(int32_t instanceId, int32_t* args, int
 	LogFormat("InitTerrianMesh %d", instanceId);
 	generator::Internal_InitTerrianMesh(instanceId, args, argsize, cb, notifier);
 }
+EXPORT_API void STD_CALL GetTerraniHeightMap(int32_t instanceId, float* heightMap, int32_t size1, int32_t size2)
+{
+	generator::Internal_GetTerraniHeightMap(instanceId, heightMap, size1, size2);
+}
 EXPORT_API void STD_CALL GetMeshVerticeData(int32_t instanceId, G3D::Vector3* pV, G3D::Vector3* pN, int32_t size, int32_t mesh)
 {
 	generator::Internal_GetMeshVerticeData(instanceId, pV, pN, size, mesh);
@@ -44,9 +48,9 @@ EXPORT_API void STD_CALL ReloadMeshNormalData(int32_t instanceId, G3D::Vector3 *
 {
 	generator::Internal_ReloadMeshNormalData(instanceId, p, size, mesh, meshEdgePosition);
 }
-EXPORT_API void STD_CALL SetMeshNeighbor(int32_t instanceId, int32_t neighborId, int32_t neighborDirection, bool reloadNormalIfLoaded)
+EXPORT_API void STD_CALL SetMeshNeighbor(int32_t instanceId, int32_t neighborId, int32_t neighborDirection)
 {
-	generator::Internal_SetMeshNeighbor(instanceId, neighborId, neighborDirection, reloadNormalIfLoaded);
+	generator::Internal_SetMeshNeighbor(instanceId, neighborId, neighborDirection);
 }
 EXPORT_API void STD_CALL NeighborLodHasChanged(int32_t instanceId, int32_t neighborId)
 {

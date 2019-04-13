@@ -43,17 +43,17 @@ int main()
 	p.z = 7562;
 	MountainGen gen = MountainGen(std::move(p), 4);
 	gen.Start();*/
-	Diamond_Square ds(2, 1, 40.0f);
+	/*Diamond_Square ds(2, 1, 40.0f);
 	ds.SetProcessHandler([](int32_t process)->void {
 		LogFormat("progress %d", process);
 	});
 	float h[4] = { 10,100,50,41 };
 	ds.Start(h);
-	/*while (!ds.IsFinished())
+	/ *while (!ds.IsFinished())
 	{
 		sleep(100);
 	}
-	LogFormat("Diamond_Square finished");*/
+	LogFormat("Diamond_Square finished");* /
 	stop = GetTickCount();
 	LogFormat("Diamond_Square caculate time %d ms", stop - start);
 	std::vector<Vector3> v3[3];
@@ -61,7 +61,7 @@ int main()
 	std::vector<int32_t> idx[3];
 	ds.GenerateTerrian(idx, v3, normals, 10);
 	stop = GetTickCount();
-	LogFormat("Diamond_Square total gen time %d ms", stop - start);
+	LogFormat("Diamond_Square total gen time %d ms", stop - start);*/
 	//while (1) sleep(1000);
 /*
 	sleep(3000);
@@ -70,7 +70,19 @@ int main()
 	thr.detach();
 	sleep(4000);
 */
-
+	std::vector<int> list;
+	list.resize(100);
+	list.clear();
+	LogFormat("list size %d,%d",list.size(),list.capacity());
+	{
+		std::vector<int> tmp = list;
+		tmp.swap(list);
+	}
+	LogFormat("list size %d,%d", list.size(), list.capacity());
+	while (true)
+	{
+		sleep(1000);
+	}
 	char c;
 	std::cin >> c;
 	return 0;

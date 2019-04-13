@@ -14,6 +14,7 @@ EXPORT_API void STD_CALL InitCppEngine(const char* engineDir)
 {
 	transformMap::InitTransformMap(engineDir);
 }
+/*
 
 EXPORT_API void STD_CALL HandleSetInt(int key, int value)
 {
@@ -23,6 +24,7 @@ EXPORT_API void STD_CALL HandleSetObject(int key, testObj value)
 {
 	transformMap::TransformMapHandleSetter(key, value);
 }
+*/
 
 EXPORT_API void STD_CALL RegisterLog(CPPLogCallback callback)
 {
@@ -46,6 +48,7 @@ EXPORT_API void STD_CALL Update(int time_diff)
 	}
 	LogFormat("ret is %d", ret);*/
 }
+/*
 EXPORT_API void STD_CALL SetIntTest(int32_t input)
 {
 
@@ -64,7 +67,7 @@ EXPORT_API int32_t GetIntTest()
 EXPORT_API vector3& GetObjTest()
 {
 	return v;
-}
+}*/
 EXPORT_API void STD_CALL DestroyCPP()
 {
 	LogFormat("DestroyCPP");

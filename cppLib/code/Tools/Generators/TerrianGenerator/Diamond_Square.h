@@ -4,7 +4,12 @@
 #include <vector>
 namespace generator
 {
+
+#if TERRAIN_GENERATE_VERTICES
 	typedef std::function<bool(int32_t /*x*/, int32_t /*y*/, int32_t /*neighbor*/, G3D::Vector3& /*p*/)> GetNeighborVertice;
+#else
+	typedef std::function<bool(int32_t /*x*/, int32_t /*y*/, NeighborType /*neighbor*/, float& /*h*/)> GetNeighborVertice;
+#endif
 	/************************************************************************/
 	/*							菱形-正方形生成地形                         */
 	/*				点的序号为 x=0-x = max 为0-max,y轴向上递增				*/
@@ -37,13 +42,18 @@ namespace generator
 			}
 		}
 		void Start(const float* corner, const int32_t size = 4, std::function<void(void)> cb = nullptr);
+		void SetGetVerticeCallBack(GetNeighborVertice cb) { m_cbGetNeighborVertice = cb; }
+#if TERRAIN_GENERATE_VERTICES
 		//根据传入的最大坐标maxCoord计算地图
 		void GenerateTerrian(float maxCoord);
 		//只计算需要重新计算的边沿，以和旁边的地图契合
 		void RecaculateNormal(G3D::Vector3* pN, int32_t size, int32_t mesh, int32_t position);
-		bool IsFinished() { return m_bIsFinished; }
-		int32_t GetSquareSize() { return m_nSize; }
 		void SetVerticesAndNormal(G3D::Vector3* pV, G3D::Vector3* pN, int32_t size, int32_t mesh);
+		inline const G3D::Vector3& GetRealVertice(int x, int y);
+		inline const G3D::Vector3& GetRealNormal(int x, int y)
+		{
+			return m_vNormals[x + y * m_nSize];
+		}
 		int32_t GetVerticesSize(int mesh) {
 			if (mesh <0 || mesh > GetMeshTheoreticalCount())
 			{
@@ -51,6 +61,15 @@ namespace generator
 			}
 			return m_vVerticesSize[mesh];
 		}
+		//因为重叠边界导致的实际mesh数量可能会比理论值大
+		size_t GetMeshRealCount()
+		{
+			return m_vVerticesSize.size();
+		}
+#endif
+		inline float GetAtXY(int x, int y) { return m_vHeightMap[x + y * m_nSize]; }
+		bool IsFinished() { return m_bIsFinished; }
+		int32_t GetSquareSize() { return m_nSize; }
 		//mesh 理论值
 		size_t GetMeshTheoreticalCount() {
 			if (GetSize() % MAX_MESH_VERTICES == 0)
@@ -62,26 +81,18 @@ namespace generator
 				return GetSize() / MAX_MESH_VERTICES + 1;
 			}
 		}
-		//因为重叠边界导致的实际mesh数量可能会比理论值大
-		size_t GetMeshRealCount()
-		{
-			return m_vVerticesSize.size();
-		}
 		void ReleaseUnusedBuffer();
 		size_t GetAlloc() {
 			size_t t = 0;
 			t += sizeof(Diamond_Square);
-			t += sizeof(G3D::Vector3)*m_vVertices.size();
-			t += sizeof(G3D::Vector3)*m_vNormals.size();
-			t += sizeof(int32_t)*m_vVerticesSize.size();
+			t += sizeof(float)*m_vHeightMap.capacity();
+#if TERRAIN_GENERATE_VERTICES
+			t += sizeof(G3D::Vector3)*m_vVertices.capacity();
+			t += sizeof(G3D::Vector3)*m_vNormals.capacity();
+			t += sizeof(int32_t)*m_vVerticesSize.capacity();
 			t += sizeof(G3D::Vector3) * 5 + sizeof(float) * 5;
+#endif
 			return t;
-		}
-		void SetGetVerticeCallBack(GetNeighborVertice cb) { m_cbGetNeighborVertice = cb; }
-		inline const G3D::Vector3& GetRealVertice(int x, int y);
-		inline const G3D::Vector3& GetRealNormal(int x, int y)
-		{
-			return m_vNormals[x + y * m_nSize];
 		}
 	private:
 		void WorkThread(std::function<void(void)> cb);
@@ -95,43 +106,24 @@ namespace generator
 			return xy * maxDistance / (float)m_nMax;
 		}
 		inline void SetAtXY(int32_t x, int32_t y, float val) { m_vHeightMap[x + y * m_nSize] = val; }
-		inline float GetAtXY(int x, int y) { return m_vHeightMap[x + y * m_nSize]; }
-		float GetExtendHeight(int x, int y)
-		{
-			if (x < 0)
-			{
-				x = 0;
-			}
-			else if (x > m_nMax)
-			{
-				x = m_nMax;
-			}
-			if (y < 0)
-			{
-				y = 0;
-			}
-			else if (y > m_nMax)
-			{
-				y = m_nMax;
-			}
-			return GetAtXY(x, y);
-		}
 		inline size_t GetSize() { return m_vHeightMap.size(); }
 		bool IsValidPoint(const G3D::Vector3& v)
 		{
 			return fabsf(v.x) > 0.0001f && fabsf(v.y) > 0.0001f && fabsf(v.z) > 0.0001f;
 		}
 	private:
+		std::vector<float>& m_vHeightMap;
 		GetNeighborVertice m_cbGetNeighborVertice;
 		std::function<void(int32_t)> m_cbProcessHandler;
-		std::vector<float>& m_vHeightMap;
+		std::map<int32_t, float> m_mExtendedMap;
+#if TERRAIN_GENERATE_VERTICES
 		std::vector<G3D::Vector3> m_vVertices;
 		std::vector<G3D::Vector3> m_vNormals;
-		std::map<int32_t, float> m_mExtendedMap;
 		std::vector<int32_t> m_vVerticesSize;
 		//std::vector<G3D::Vector3> m_vExtendPoints;/*x = -1,y = -1,x = m_nSize,y = m_nSize*/
 		G3D::Vector3 pNeibor[5];
 		G3D::Vector3 m_stNormalBuffer;
+#endif
 		float m_aPointBuffer[5];
 		int32_t m_nSize;//总数 2^(2*i)+1
 		float m_nH;//粗糙度

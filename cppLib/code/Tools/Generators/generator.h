@@ -89,6 +89,9 @@ struct triangleSize_t
 	int32_t size;
 	int32_t lowBound;
 	int32_t highBound;
+	int32_t unit;
+	int32_t extUnitX;//多余的，比如 xsize = 17 unit =3，5个unit之后余2，这个extUnit =2
+	int32_t extUnitY;
 };
 class TerrianDataBinding
 {
@@ -145,10 +148,26 @@ typedef void(__stdcall * GeneratorNotifier)(int32_t target, int32_t type, int32_
 #define mesh_arg_h4 9
 #define mesh_arg_useuv 10
 
+/*
 #define neighborPositionLeft 0
 #define neighborPositionBottom 1
 #define neighborPositionRight 2
 #define neighborPositionTop 3
-#define neighborPositionAll 4
+#define neighborPositionAll 4*/
+
+enum class NeighborType
+{
+	neighborPositionLeft = 0,
+	neighborPositionBottom,
+	neighborPositionRight,
+	neighborPositionTop,
+	neighborPositionAll
+};
+enum class TerrainInitType
+{
+	HeightMap = 0,
+};
+#define TERRAIN_GENERATE_VERTICES 0
+#define  MAX_MAP_HEIGHT 1000.0f
 // typedef geography* pGeography;
 #endif

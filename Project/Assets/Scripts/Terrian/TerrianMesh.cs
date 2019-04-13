@@ -1,10 +1,11 @@
-﻿using System;
+﻿#if false
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 namespace SkyDram
 {
-    public class TerrianMesh
+    public class TerrainMesh
     {
 #if UNITY_IOS
     private const string dllName = "__Internal";
@@ -26,6 +27,8 @@ namespace SkyDram
         extern static void ReleaseMeshGenerator(int ins);
         [DllImport(dllName)]
         extern static void FlushMeshGenerator(int ins);
+        [DllImport(dllName)]
+        extern static void GetTerraniHeightMap(int instanceId, [In, Out]float[,] heightMap, int size1, int size2);
 
 
         int meshInstanceId = EgineUtils.GetInstanceId();
@@ -53,21 +56,24 @@ namespace SkyDram
         }
         GameObject _gameObject;
         List<Mesh> _meshes = new List<Mesh>();
-        TerrianData _terrianData;
-        TerrianMesh _neighborLeft;
-        TerrianMesh _neighborRight;
-        TerrianMesh _neighborBottom;
-        TerrianMesh _neighborTop;
+        TerrainData _terrainData;
+        TerrainMesh _neighborLeft;
+        TerrainMesh _neighborRight;
+        TerrainMesh _neighborBottom;
+        TerrainMesh _neighborTop;
+        UnityTerrian ut = new UnityTerrian();
         bool _terrianDataReadOnly = false;
-        TerrianMesh() { }
-        public TerrianMesh(int mapSize, int maxLod = 3, bool useUV = false)
+        TerrainMesh() { }
+        public TerrainMesh(int mapSize, int maxLod = 3, bool useUV = false)
         {
+            float[,] heightMap = new float[2, 2];
+            GetTerraniHeightMap(meshInstanceId,heightMap,2,2);
             Debug.LogFormat("mesh map size {0} ,maxLod {1}", mapSize, maxLod);
             if (mapSize > 4)
             {
-                Debug.LogWarningFormat("with a size of {0},map take huge cost(with {1} vertices),pay attantion that if it is needed to continue do this.", mapSize,(int)Mathf.Pow((Mathf.Pow(2,2*mapSize)+1),2));
+                Debug.LogWarningFormat("with a size of {0},map take huge cost(with {1} vertices),pay attantion that if it is needed to continue do this.", mapSize, (int)Mathf.Pow((Mathf.Pow(2, 2 * mapSize) + 1), 2));
             }
-            _terrianData = new TerrianData(mapSize, maxLod, useUV, meshInstanceId);
+            _terrainData = new TerrainData(mapSize, maxLod, useUV, meshInstanceId);
             UnityCppBindings.RegistBinding(meshInstanceId, this);
             RegisterTerrianMeshBindings(meshInstanceId);
             int[] args = GetInitArgs(UnityEngine.Random.Range(0, 5), maxLod, mapSize, 33, 100, 80, 100, 40, 200);
@@ -75,16 +81,16 @@ namespace SkyDram
             //StartGenerateOrLoad(meshInstanceId);
 
         }
-        ~TerrianMesh()
+        ~TerrainMesh()
         {
             Release();
         }
         private static void MeshInitilize(int target, int type, int mesh, int lod, int size)
         {
-            TerrianMesh tmesh = UnityCppBindings.GetMesh(target);
+            TerrainMesh tmesh = UnityCppBindings.GetMesh(target);
             if (null != tmesh)
             {
-                tmesh._terrianData.MeshInitilizer(type, mesh, lod, size);
+                tmesh._terrainData.MeshInitilizer(type, mesh, lod, size);
             }
             else
             {
@@ -93,10 +99,17 @@ namespace SkyDram
         }
         private static void MeshNotifier(int target, int type, int arg0, int arg1)
         {
-            TerrianMesh tmesh = UnityCppBindings.GetMesh(target);
+            TerrainMesh tmesh = UnityCppBindings.GetMesh(target);
             if (null != tmesh)
             {
-                tmesh._terrianData.GeneratorNotifier(type, arg0, arg1);
+                tmesh._terrainData.GeneratorNotifier(type, arg0, arg1);
+                if (type == TerrainConst.meshTopologyVertice)
+                {
+                    tmesh.ut.Init((int)Mathf.Pow((tmesh._terrainData.GetVertices(0).Length - 1), 0.5f), 1000, tmesh._terrainData.GetVertices(0));
+                    tmesh.ut.terrain.transform.SetParent(tmesh._gameObject.transform,false);
+                }
+
+
             }
             else
             {
@@ -125,30 +138,31 @@ namespace SkyDram
         /// <param name="neighbor"></param>
         /// <param name="position"></param>
         /// <param name="reloadNormalIfLoaded"></param>
-        public void SetNeighbor(TerrianMesh neighbor, int position, bool reloadNormalIfLoaded = false)
+        public void SetNeighbor(TerrainMesh neighbor, int position, bool reloadNormalIfLoaded = false)
         {
             switch (position)
             {
-                case TerrianConst.neighborPositionLeft:
+                case TerrainConst.neighborPositionLeft:
                     _neighborLeft = neighbor;
                     break;
-                case TerrianConst.neighborPositionRight:
+                case TerrainConst.neighborPositionRight:
                     _neighborRight = neighbor;
                     break;
-                case TerrianConst.neighborPositionBottom:
+                case TerrainConst.neighborPositionBottom:
                     _neighborBottom = neighbor;
                     break;
-                case TerrianConst.neighborPositionTop:
+                case TerrainConst.neighborPositionTop:
                     _neighborTop = neighbor;
                     break;
             }
+            ut.terrain.SetNeighbors(_neighborLeft == null?null:_neighborLeft.ut.terrain, _neighborTop == null ? null : _neighborTop.ut.terrain, _neighborRight == null ? null : _neighborRight.ut.terrain, _neighborBottom == null ? null : _neighborBottom.ut.terrain);
             SetMeshNeighbor(meshInstanceId, neighbor.meshInstanceId, position, reloadNormalIfLoaded);
         }
         private void SetLOD(int lod)
         {
-            if (lod >= 0 && lod < _terrianData.lodCount)
+            if (lod >= 0 && lod < _terrainData.lodCount)
             {
-                _terrianData.SetLod(lod);
+                _terrainData.SetLod(lod);
                 if (null != _neighborLeft)
                     _neighborLeft.OnNeighborLODChanged(this);
                 if (null != _neighborRight)
@@ -159,9 +173,9 @@ namespace SkyDram
                     _neighborTop.OnNeighborLODChanged(this);
             }
         }
-        protected void OnNeighborLODChanged(TerrianMesh neighbor)
+        protected void OnNeighborLODChanged(TerrainMesh neighbor)
         {
-            _terrianData.OnNeighborLODChanged(neighbor.instaneId);
+            _terrainData.OnNeighborLODChanged(neighbor.instaneId);
         }
         private void Load()
         {
@@ -170,26 +184,29 @@ namespace SkyDram
         }
         void OnLoadFinish(int lod)
         {
-            if (_terrianDataReadOnly)
+            //if (_terrianDataReadOnly)
                 return;
             Debug.LogFormat("Load TerrianMesh {0}", meshInstanceId);
-            for (int i = 0; i < _terrianData.meshCount; i++)
+            for (int i = 0; i < _terrainData.meshCount; i++)
             {
                 Mesh mesh = new Mesh();
                 _meshes.Add(mesh);
-                mesh.vertices = _terrianData.GetVertices(i);
-                mesh.normals = _terrianData.GetNormal(i);
-                mesh.triangles = _terrianData.GetTriangles(i, lod);
-                if (_terrianData.useUV)
+                mesh.vertices = _terrainData.GetVertices(i);
+                mesh.normals = _terrainData.GetNormal(i);
+                mesh.triangles = _terrainData.GetTriangles(i, lod);
+                if (_terrainData.useUV)
                 {
-                    mesh.uv = _terrianData.GetUV(i, 0);
-                    mesh.uv2 = _terrianData.GetUV(i, 1);
-                    mesh.uv3 = _terrianData.GetUV(i, 2);
-                    mesh.uv4 = _terrianData.GetUV(i, 3);
+                    mesh.uv = _terrainData.GetUV(i, 0);
+                    mesh.uv2 = _terrainData.GetUV(i, 1);
+                    mesh.uv3 = _terrainData.GetUV(i, 2);
+                    mesh.uv4 = _terrainData.GetUV(i, 3);
                 }
                 GameObject go = new GameObject("mesh" + i);
                 go.AddComponent<MeshFilter>().mesh = mesh;
-                go.AddComponent<MeshRenderer>().material = Resources.Load<Material>("Terrian");
+                var render = go.AddComponent<MeshRenderer>();
+                render.material = Resources.Load<Material>("Terrian");
+                render.receiveShadows = true;
+                render.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                 if (null != _gameObject)
                     go.transform.SetParent(_gameObject.transform, false);
             }
@@ -201,20 +218,24 @@ namespace SkyDram
                 if (_terrianDataReadOnly)
                     return;
                 _initilized = true;
-                OnLoadFinish(_terrianData.lodCount - 1);
+                OnLoadFinish(_terrainData.lodCount - 1);
             }
-            else if (_terrianData.readable)
+            else if (_terrainData.readable)
             {
                 isLoaded = true;
             }
         }
         internal void Release()
         {
-            Debug.LogFormat("Release mesh {0}",instaneId);
+            Debug.LogFormat("Release mesh {0}", instaneId);
             ReleaseMeshGenerator(meshInstanceId);
             UnityCppBindings.UnResistBinding(meshInstanceId);
             meshInstanceId = 0;
         }
-
+        public float GetDistance(Vector3 camera)
+        {
+            return 0;
+        }
     }
 }
+#endif

@@ -17,6 +17,8 @@ namespace generator
 		m_nSize = std::pow(2, 2 * I) + 1;
 		m_nMax = m_nSize - 1;
 		m_vHeightMap.resize(m_nSize*m_nSize);
+
+#if TERRAIN_GENERATE_VERTICES
 		//m_vExtendPoints.resize((m_nSize + 2)*(m_nSize + 2));
 		m_vVertices.resize(m_vHeightMap.size());
 		m_vNormals.resize(m_vHeightMap.size());
@@ -46,13 +48,16 @@ namespace generator
 				outBoundY = m_nMax;
 			}
 		}
+#endif
 		//LogFormat("mesh count %d,nSize %d", meshCount, m_nSize);
 	}
 
 	Diamond_Square::~Diamond_Square()
 	{
 		m_cbProcessHandler = nullptr;
+#if TERRAIN_GENERATE_VERTICES
 		m_cbGetNeighborVertice = nullptr;
+#endif
 	}
 	void Diamond_Square::Start(const float * corner, const int32_t size, std::function<void(void)> cb)
 	{
@@ -62,10 +67,13 @@ namespace generator
 			LogError("Diamond_Square Start Fail!");
 			return;
 		}
+#if TERRAIN_GENERATE_VERTICES
 		if (!m_cbGetNeighborVertice)
 		{
 			LogError("m_cbGetNeighborVertice is null!");
+			return;
 		}
+#endif
 		size_t meshCount = GetMeshTheoreticalCount();
 		if (meshCount > MAX_MESH_COUNT)
 		{
@@ -101,11 +109,17 @@ namespace generator
 
 	void Diamond_Square::ReleaseUnusedBuffer()
 	{
-		m_vNormals.clear();
-		m_vVertices.clear();
-		m_mExtendedMap.clear();
-		//m_vVerticesSize.clear();
+		for (auto itr = m_mExtendedMap.begin();itr!=m_mExtendedMap.end();)
+		{
+			itr = m_mExtendedMap.erase(itr);
+		}
+		release_map(m_mExtendedMap);
+#if TERRAIN_GENERATE_VERTICES
+		release_vector(m_vNormals, G3D::Vector3);
+#endif
+		//release_vector(m_vVertices, G3D::Vector3);
 	}
+#if TERRAIN_GENERATE_VERTICES
 #define PrintVector3(x, y, v, str)\
 	{\
 		LogFormat("%s at x %d,y %d,v (x %f,y %f,z %f)", str, x, y, v.x, v.y, v.z);\
@@ -175,7 +189,7 @@ namespace generator
 			return pNeibor[5];
 		}
 	}
-
+#endif
 	void Diamond_Square::WorkThread(std::function<void(void)> cb)
 	{
 		float _H = m_nH;
@@ -263,9 +277,20 @@ namespace generator
 			p[1] = GetAtXY(x, y - size);// m_vHeightMap[m_nSize * (y - size)];
 			p[2] = GetAtXY(size, y);// m_vHeightMap[m_nSize*y + size];
 			p[3] = GetAtXY(x, y + size);// m_vHeightMap[m_nSize*(y + size)];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x - size, y, neighborPositionLeft, pNeibor[5]))
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x - size, y, NeighborType::neighborPositionLeft,
+#if TERRAIN_GENERATE_VERTICES
+				pNeibor[5]
+#else
+				p[4]
+#endif
+
+			))
 			{
+#if TERRAIN_GENERATE_VERTICES
 				p[0] = pNeibor[5].y;
+#else
+				p[0] = p[4];
+#endif 
 			}
 			else
 			{
@@ -277,10 +302,20 @@ namespace generator
 			p[0] = GetAtXY(x - size, y);// m_vHeightMap[x - size + m_nSize * y];
 			p[1] = GetAtXY(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
 			p[2] = p[3] = GetAtXY(x, y + size);// m_vHeightMap[x + m_nSize * (y + size)];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x + size, y, neighborPositionRight, pNeibor[5]))
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x + size, y, NeighborType::neighborPositionRight,
+
+#if TERRAIN_GENERATE_VERTICES
+				pNeibor[5]
+#else
+				p[4]
+#endif
+			))
 			{
+#if TERRAIN_GENERATE_VERTICES
 				p[2] = pNeibor[5].y;
-				//LogFormat("neighbor or edge extended %f", p[2]);
+#else
+				p[2] = p[4];
+#endif 
 			}
 			else
 			{
@@ -298,9 +333,19 @@ namespace generator
 			p[0] = GetAtXY(x - size, 0);// m_vHeightMap[x - size];
 			p[2] = GetAtXY(x + size, 0);// m_vHeightMap[x + size];
 			p[3] = GetAtXY(x, size);// m_vHeightMap[x + m_nSize * size];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, neighborPositionBottom, pNeibor[5]))
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, NeighborType::neighborPositionBottom,
+#if TERRAIN_GENERATE_VERTICES
+				pNeibor[5]
+#else
+				p[4]
+#endif
+			))
 			{
+#if TERRAIN_GENERATE_VERTICES
 				p[1] = pNeibor[5].y;
+#else
+				p[1] = p[4];
+#endif 
 			}
 			else
 			{
@@ -317,9 +362,19 @@ namespace generator
 			p[0] = GetAtXY(x - size, y);// m_vHeightMap[x - size + m_nSize * y];
 			p[1] = GetAtXY(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
 			p[2] = GetAtXY(x + size, y);//m_vHeightMap[x + size + m_nSize * y];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, neighborPositionRight, pNeibor[5]))
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, NeighborType::neighborPositionRight,
+#if TERRAIN_GENERATE_VERTICES
+				pNeibor[5]
+#else
+				p[4]
+#endif
+			))
 			{
+#if TERRAIN_GENERATE_VERTICES
 				p[3] = pNeibor[5].y;
+#else
+				p[3] = p[4];
+#endif 
 			}
 			else
 			{
@@ -405,6 +460,7 @@ namespace generator
 		}
 	}*/
 
+#if TERRAIN_GENERATE_VERTICES
 	void Diamond_Square::GenerateTerrian(float maxCoord)
 	{
 		if (maxCoord <= 0)
@@ -548,4 +604,5 @@ namespace generator
 			}
 		}
 	}
+#endif
 }

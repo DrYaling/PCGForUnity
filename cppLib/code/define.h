@@ -69,4 +69,16 @@ ptr=nullptr;\
 delete[] arr;\
 arr = nullptr;\
 }
+#define release_vector(__vector,__type) if(__vector.capacity()>0)\
+{\
+	__vector.clear();\
+	std::vector<##__type>(__vector).swap(__vector);\
+}
+#define release_map(__map)	{\
+	 for (auto itr = __map.begin(); itr != __map.end();)\
+	{\
+		itr = __map.erase(itr);\
+	}\
+	__map.clear();\
+}
 #endif

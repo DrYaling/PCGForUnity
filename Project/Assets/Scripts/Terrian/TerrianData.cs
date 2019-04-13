@@ -1,11 +1,12 @@
-﻿using System;
+﻿#if false
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 namespace SkyDram
 {
     [StructLayout(LayoutKind.Sequential)]
-    class TerrianData
+    class TerrainData
     {
 #if UNITY_IOS
     private const string dllName = "__Internal";
@@ -80,8 +81,8 @@ namespace SkyDram
             }
         }
         public int owner { get; private set; }
-        private TerrianData() { }
-        public TerrianData(int I, int maxLod, bool uv, int ownerId)
+        private TerrainData() { }
+        public TerrainData(int I, int maxLod, bool uv, int ownerId)
         {
             _verticesReadable = false;
             _uvReadable = false;
@@ -92,7 +93,7 @@ namespace SkyDram
         }
         private void InitVertices(int meshIndex, int verticesCount)
         {
-            Debug.LogFormat("InitVertices mesh {0},size {1}", meshIndex, verticesCount);
+            //Debug.LogFormat("InitVertices mesh {0},size {1}", meshIndex, verticesCount);
             if (meshIndex >= 0 && meshIndex < meshCount)
             {
                 _vertices[meshIndex] = new Vector3[verticesCount];
@@ -181,15 +182,15 @@ namespace SkyDram
             //Debug.LogFormat("MeshInitilizer type {0} mesh {1},lod {2},size {3}", type, mesh, lod, size);
             switch (type)
             {
-                case TerrianConst.meshTopologyVertice:
+                case TerrainConst.meshTopologyVertice:
                     InitVertices(mesh, size);
                     break;
-                case TerrianConst.meshTopologyUV:
+                case TerrainConst.meshTopologyUV:
                     break;
-                case TerrianConst.meshTopologyTriangle:
+                case TerrainConst.meshTopologyTriangle:
                     InitLod(mesh, lod, size);
                     break;
-                case TerrianConst.meshTopologyMeshCount:
+                case TerrainConst.meshTopologyMeshCount:
                     InitMeshInfo(mesh);
                     break;
                 default:
@@ -220,17 +221,17 @@ namespace SkyDram
             //Debug.LogFormat("GeneratorNotifier type {0} arg0 {1},arg1 {2}", type, arg0, arg1);
             switch (type)
             {
-                case TerrianConst.meshTopologyVertice:
+                case TerrainConst.meshTopologyVertice:
                     LoadVertices(arg0);
                     _verticesReadable = true;
                     break;
-                case TerrianConst.meshTopologyNormal:
+                case TerrainConst.meshTopologyNormal:
                     LoadNormal(arg0, arg1);
                     break;
-                case TerrianConst.meshTopologyUV:
+                case TerrainConst.meshTopologyUV:
                     _uvReadable = true;
                     break;
-                case TerrianConst.meshTopologyTriangle:
+                case TerrainConst.meshTopologyTriangle:
                     LoadTriangle(arg0, arg1);
                     _trianglesReadable = true;
                     break;
@@ -259,3 +260,4 @@ namespace SkyDram
         }
     }
 }
+#endif

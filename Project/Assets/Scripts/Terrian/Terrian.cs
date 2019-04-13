@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using System.Threading;
 namespace SkyDram
 {
-    static class TerrianConst
+    static class TerrainConst
     {
         public const int maxVerticesPerMesh = 65000;
         public const int meshTopologyVertice = 0;
@@ -32,53 +33,50 @@ namespace SkyDram
     }
     class Terrian
     {
-        Dictionary<int, SkyDram.TerrianMesh> m_mapMeshes = new Dictionary<int, TerrianMesh>();
+        Dictionary<int, SkyDram.TerrainPiece> m_mapTerrains = new Dictionary<int, TerrainPiece>();
         public void Init()
         {
-            var mesh0 = new TerrianMesh(4, 1);
-            var mesh1 = new TerrianMesh(4, 1);
-            var mesh2 = new TerrianMesh(4, 1);
-            var mesh3 = new TerrianMesh(4, 1);
+            Thread t = new Thread(new ThreadStart(() => {
+            }));
+            int size = 5;
+            int lod = 3;
+            var terrain0 = new TerrainPiece(size, lod);
+            var terrain1 = new TerrainPiece(size, lod);
+            var terrain2 = new TerrainPiece(size, lod);
+            var terrain3 = new TerrainPiece(size, lod);
             /**/
             /*
              *      mesh0   mesh1
              *      mesh2   mesh3
              */
             /**/
-            m_mapMeshes.Add(mesh0.instaneId, mesh0);
-            m_mapMeshes.Add(mesh1.instaneId, mesh1);
-            m_mapMeshes.Add(mesh2.instaneId, mesh2);
-            m_mapMeshes.Add(mesh3.instaneId, mesh3);
-            GameObject go1 = new GameObject("first mesh");
-            mesh0.SetMeshRoot(go1);
-            mesh0.Loadsync();
-            GameObject go2 = new GameObject("second mesh");
-            go2.transform.position = go1.transform.position + new Vector3(100, 0, 0);
-            mesh1.SetNeighbor(mesh0, TerrianConst.neighborPositionLeft);
-            mesh1.SetMeshRoot(go2);
-            mesh1.Loadsync();
-            GameObject go3 = new GameObject("third mesh");
-            go3.transform.position = go1.transform.position + new Vector3(0, 0, -100);
-            mesh2.SetNeighbor(mesh0, TerrianConst.neighborPositionTop);
-            mesh2.SetMeshRoot(go3);
-            mesh2.Loadsync();
+            m_mapTerrains.Add(terrain0.instaneId, terrain0);
+            m_mapTerrains.Add(terrain1.instaneId, terrain1);
+            m_mapTerrains.Add(terrain2.instaneId, terrain2);
+            m_mapTerrains.Add(terrain3.instaneId, terrain3);
+            terrain0.Load();
 
-            GameObject go4 = new GameObject("fourth mesh");
-            go4.transform.position = go1.transform.position + new Vector3(100, 0, -100);
-            mesh3.SetNeighbor(mesh1, TerrianConst.neighborPositionTop);
-            mesh3.SetNeighbor(mesh2, TerrianConst.neighborPositionLeft);
-            mesh3.SetMeshRoot(go4);
-            mesh3.Loadsync();
+            terrain1.SetNeighbor(terrain0, TerrainConst.neighborPositionLeft);
+            terrain1.Load();
+            terrain1.SetPosition(new Vector3(100, 0, 0));
 
+            terrain2.SetNeighbor(terrain0, TerrainConst.neighborPositionTop);
+            terrain2.Load();
+            terrain2.SetPosition(new Vector3(0, 0, -100));
 
-            mesh0.SetNeighbor(mesh1, TerrianConst.neighborPositionRight, true);
-            mesh0.SetNeighbor(mesh2, TerrianConst.neighborPositionBottom, true);
-            mesh1.SetNeighbor(mesh3, TerrianConst.neighborPositionBottom, true);
-            mesh2.SetNeighbor(mesh3, TerrianConst.neighborPositionRight, true);
+            terrain3.SetNeighbor(terrain1, TerrainConst.neighborPositionTop);
+            terrain3.SetNeighbor(terrain2, TerrainConst.neighborPositionLeft);
+            terrain3.Load();
+            terrain3.SetPosition(new Vector3(100, 0, -100));
+
+            terrain0.SetNeighbor(terrain1, TerrainConst.neighborPositionRight);
+            terrain0.SetNeighbor(terrain2, TerrainConst.neighborPositionBottom);
+            terrain1.SetNeighbor(terrain3, TerrainConst.neighborPositionBottom);
+            terrain2.SetNeighbor(terrain3, TerrainConst.neighborPositionRight);
         }
         public void Update(int time_diff)
         {
-            foreach (var mesh in m_mapMeshes)
+            foreach (var mesh in m_mapTerrains)
             {
                 mesh.Value.Update(time_diff);
             }
@@ -89,7 +87,7 @@ namespace SkyDram
             {
                 mesh.Value.Release();
             }*/
-            m_mapMeshes.Clear();
+            m_mapTerrains.Clear();
         }
     }
 }
