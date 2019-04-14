@@ -1,5 +1,5 @@
-# ProcedureContentGenerationForUnity
-ProcedureContentGenerationForUnity
+# PCGForUnity
+Procedure Content Generation For Unity
 
 included module:
 
