@@ -1,12 +1,12 @@
-#include "MeshGenerator.h"
+#include "TerrainGenerator.h"
 #include "Logger/Logger.h"
-#include "Terrian/TerrianMesh.h"
+#include "Terrain/Terrain.h"
 using namespace generator;
-static std::map<int32_t, TerrainMesh*> mTerrianBindings;
+static std::map<int32_t, Terrain*> mTerrianBindings;
 
 NS_GNRT_START
 
-static inline TerrainMesh* Internal_GetTerrianMesh(int32_t instance)
+static inline Terrain* Internal_GetTerrianMesh(int32_t instance)
 {
 
 	auto itr = mTerrianBindings.find(instance);
@@ -22,7 +22,7 @@ static inline TerrainMesh* Internal_GetTerrianMesh(int32_t instance)
 void Internal_InitTerrianMesh(int32_t instanceId, int32_t* args, int32_t argsize, float* heightMap, int32_t heightMapSize, MeshInitilizerCallBack cb)
 {
 	//LogFormat("Internal_InitTerrianMesh %d", instanceId);
-	TerrainMesh* mesh = Internal_GetTerrianMesh(instanceId);
+	Terrain* mesh = Internal_GetTerrianMesh(instanceId);
 	if (mesh)
 	{
 		mesh->Init(args, argsize, heightMap, heightMapSize, cb);
@@ -31,7 +31,7 @@ void Internal_InitTerrianMesh(int32_t instanceId, int32_t* args, int32_t argsize
 
 void Internal_StartGenerateOrLoad(int32_t instanceId)
 {
-	TerrainMesh* mesh = Internal_GetTerrianMesh(instanceId);
+	Terrain* mesh = Internal_GetTerrianMesh(instanceId);
 	if (mesh)
 	{
 		mesh->Start();
@@ -44,7 +44,7 @@ void Internal_RegisterTerrianMeshBinding(int32_t instance)
 	if (itr == mTerrianBindings.end())
 	{
 		//LogFormat("register %d", instance);
-		auto terrian = new TerrainMesh(instance);
+		auto terrian = new Terrain(instance);
 		mTerrianBindings.insert(std::make_pair(instance, terrian));
 	}
 	else

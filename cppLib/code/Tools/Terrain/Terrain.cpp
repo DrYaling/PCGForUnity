@@ -1,9 +1,9 @@
-#include "TerrianMesh.h"
+#include "Terrain.h"
 #include "Logger/Logger.h"
 using namespace G3D;
 namespace generator {
 
-	TerrainMesh::TerrainMesh(int32_t ins) :
+	Terrain::Terrain(int32_t ins) :
 		m_bInitilized(false),
 		m_bGenerated(false),
 		m_pTerrianData(nullptr),
@@ -18,17 +18,17 @@ namespace generator {
 	{
 	}
 
-	TerrainMesh::~TerrainMesh()
+	Terrain::~Terrain()
 	{
 		Release();
 		safe_delete(m_pGenerator);
 		m_cbMeshInitilizer = nullptr;
-		//LogFormat("TerrainMesh deleted");
+		//LogFormat("Terrain deleted");
 	}
 
-	bool TerrainMesh::StaticGetNeighborVertice(int32_t x, int32_t y, NeighborType neighbor, float & p,void* owner)
+	bool Terrain::StaticGetNeighborVertice(int32_t x, int32_t y, NeighborType neighbor, float & p,void* owner)
 	{
-		TerrainMesh* mesh = static_cast<TerrainMesh*>(owner);
+		Terrain* mesh = static_cast<Terrain*>(owner);
 		if (mesh)
 		{
 			return mesh->GetNeighborVertice(x, y, neighbor, p);
@@ -39,7 +39,7 @@ namespace generator {
 		}
 	}
 
-	void TerrainMesh::Init(int32_t * args, int32_t argsize, float* heightMap, int32_t heightMapSize, MeshInitilizerCallBack callback)
+	void Terrain::Init(int32_t * args, int32_t argsize, float* heightMap, int32_t heightMapSize, MeshInitilizerCallBack callback)
 	{
 		if (!callback)
 		{
@@ -65,7 +65,7 @@ namespace generator {
 		m_bInitilized = true;
 	}
 
-	void TerrainMesh::InitNeighbor(NeighborType edge, TerrainMesh * neighbor)
+	void Terrain::InitNeighbor(NeighborType edge, Terrain * neighbor)
 	{
 		//LogFormat("InitNeighbor %d,neighbor %d", edge, neighbor->m_nInstanceId);
 		switch (edge)
@@ -111,7 +111,7 @@ namespace generator {
 		}
 	}
 
-	void TerrainMesh::InitVerticesWithNeighbor(NeighborType position)
+	void Terrain::InitVerticesWithNeighbor(NeighborType position)
 	{
 		float deltaSize = m_vInitilizeArgs[mesh_arg_mapWidth] / (float)(m_nSize - 1);
 		int nMax = m_nSize - 1;
@@ -211,7 +211,7 @@ namespace generator {
 			}
 		}
 	}
-	void TerrainMesh::Start()
+	void Terrain::Start()
 	{
 		if (!m_bInitilized)
 		{
@@ -220,14 +220,14 @@ namespace generator {
 		}
 		WorkThread();
 	}
-	void TerrainMesh::Release()
+	void Terrain::Release()
 	{
 		if (m_pGenerator)
 		{
 			m_pGenerator->ReleaseUnusedBuffer();
 		}
 	}
-	void TerrainMesh::GetHeightMap(float * heightMap, int32_t size1, int32_t size2)
+	void Terrain::GetHeightMap(float * heightMap, int32_t size1, int32_t size2)
 	{
 		if (heightMap)
 		{
@@ -255,7 +255,7 @@ namespace generator {
 			LogErrorFormat("GetHeightMap Fail with null map ptr");
 		}
 	}
-	bool TerrainMesh::GetNeighborVertice(int32_t x, int32_t y, NeighborType neighbor, float & p)
+	bool Terrain::GetNeighborVertice(int32_t x, int32_t y, NeighborType neighbor, float & p)
 	{
 		switch (neighbor)
 		{
@@ -263,28 +263,28 @@ namespace generator {
 			//prevent unlimited circle
 			if (m_pLeftNeighbor && m_pLeftNeighbor->m_bGenerated/* && (m_pLeftNeighbor->m_pRightNeighbor == nullptr || m_pLeftNeighbor->m_pRightNeighbor == this)*/)
 			{
-				p = m_pLeftNeighbor->m_pGenerator->GetAtXY(x, y);
+				p = m_pLeftNeighbor->m_pGenerator->GetHeight(x, y);
 				return true;
 			}
 			break;
 		case  NeighborType::neighborPositionRight:
 			if (m_pRightNeighbor && m_pRightNeighbor->m_bGenerated /*&& (m_pRightNeighbor->m_pLeftNeighbor == nullptr || m_pRightNeighbor->m_pLeftNeighbor == this)*/)
 			{
-				p = m_pRightNeighbor->m_pGenerator->GetAtXY(x, y);
+				p = m_pRightNeighbor->m_pGenerator->GetHeight(x, y);
 				return true;
 			}
 			break;
 		case NeighborType::neighborPositionBottom:
 			if (m_pBottomNeighbor && m_pBottomNeighbor->m_bGenerated /*&& (m_pBottomNeighbor->m_pTopNeighbor == nullptr || m_pBottomNeighbor->m_pTopNeighbor == this)*/)
 			{
-				p = m_pBottomNeighbor->m_pGenerator->GetAtXY(x, y);
+				p = m_pBottomNeighbor->m_pGenerator->GetHeight(x, y);
 				return true;
 			}
 			break;
 		case  NeighborType::neighborPositionTop:
 			if (m_pTopNeighbor && m_pTopNeighbor->m_bGenerated /*&& (m_pTopNeighbor->m_pBottomNeighbor == nullptr || m_pTopNeighbor->m_pBottomNeighbor == this)*/)
 			{
-				p = m_pTopNeighbor->m_pGenerator->GetAtXY(x, y);
+				p = m_pTopNeighbor->m_pGenerator->GetHeight(x, y);
 				return true;
 			}
 			break;
@@ -293,11 +293,11 @@ namespace generator {
 		}
 		return false;
 	}
-	void TerrainMesh::WorkThread()
+	void Terrain::WorkThread()
 	{
 		m_pGenerator = new Diamond_Square(m_vInitilizeArgs[mesh_arg_seed], m_vInitilizeArgs[mesh_arg_I], m_vInitilizeArgs[mesh_arg_H], m_vHeightMap,this);
-		//auto callback = std::bind(&TerrainMesh::GetNeighborVertice, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
-		m_pGenerator->SetGetVerticeCallBack(&TerrainMesh::StaticGetNeighborVertice);
+		//auto callback = std::bind(&Terrain::GetNeighborVertice, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+		m_pGenerator->SetGetVerticeCallBack(&Terrain::StaticGetNeighborVertice);
 		//m_cbMeshInitilizer(m_nInstanceId, meshTopologyMeshCount, m_pTerrianData->meshCount, 0, 0);
 		m_nSize = m_pGenerator->GetSquareSize();
 		float cornor[] = { m_vInitilizeArgs[mesh_arg_h0],m_vInitilizeArgs[mesh_arg_h1],m_vInitilizeArgs[mesh_arg_h2],m_vInitilizeArgs[mesh_arg_h3] };

@@ -1,17 +1,17 @@
 #ifndef TERRIAN_MESH_H
 #define TERRIAN_MESH_H
 #include "Generators/generator.h"
-#include "Generators/TerrianGenerator/Diamond_Square.h"
+#include "Generators/TerrainGenerator/Diamond_Square.h"
 NS_GNRT_START
 
-class TerrainMesh
+class Terrain
 {
 public:
-	TerrainMesh(int32_t ins);
-	~TerrainMesh();
+	Terrain(int32_t ins);
+	~Terrain();
 	void Init(int32_t* args, int32_t argsize,float* heightMap,int32_t heightMapSize, MeshInitilizerCallBack callback);
 	void InitVerticesWithNeighbor(NeighborType position = NeighborType::neighborPositionAll);
-	void InitNeighbor(NeighborType edge, TerrainMesh* mesh);
+	void InitNeighbor(NeighborType edge, Terrain* mesh);
 	void Start();
 	void Release();
 	void GetHeightMap(float* heightMap, int32_t size1, int32_t size2);
@@ -22,10 +22,10 @@ private:
 private:
 	TerrianDataBinding * m_pTerrianData;
 	MeshInitilizerCallBack m_cbMeshInitilizer;
-	TerrainMesh* m_pLeftNeighbor;
-	TerrainMesh* m_pRightNeighbor;
-	TerrainMesh* m_pBottomNeighbor;
-	TerrainMesh* m_pTopNeighbor;
+	Terrain* m_pLeftNeighbor;
+	Terrain* m_pRightNeighbor;
+	Terrain* m_pBottomNeighbor;
+	Terrain* m_pTopNeighbor;
 	Diamond_Square* m_pGenerator;
 	std::vector<int32_t> m_vInitilizeArgs;
 	/*std::vector<float>*/float* m_vHeightMap;

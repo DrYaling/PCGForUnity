@@ -16,9 +16,6 @@
     <Filter Include="源文件\Generators">
       <UniqueIdentifier>{dfa8d13a-b310-49e0-b3db-632c22fd8954}</UniqueIdentifier>
     </Filter>
-    <Filter Include="源文件\Generators\TerrianGenerator">
-      <UniqueIdentifier>{4c21d14f-e965-4095-b721-7f6ae1e10bef}</UniqueIdentifier>
-    </Filter>
     <Filter Include="源文件\Mesh">
       <UniqueIdentifier>{3cee0d88-8cca-4ddc-87d4-54694c22e2cd}</UniqueIdentifier>
     </Filter>
@@ -28,22 +25,16 @@
     <Filter Include="源文件\Noises">
       <UniqueIdentifier>{2c6c1a60-0b7e-4be1-9354-ab175c34725b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="源文件\Terrian">
+    <Filter Include="源文件\Generators\TerrainGenerator">
+      <UniqueIdentifier>{4c21d14f-e965-4095-b721-7f6ae1e10bef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Terrain">
       <UniqueIdentifier>{81806a14-2f5a-4f3f-8a2d-9cd168c4caef}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\code\Tools\Generators\generator.h">
       <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Generators\TerrianGenerator\Mountain.h">
-      <Filter>源文件\Generators\TerrianGenerator</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Generators\TerrianGenerator\Terrian.h">
-      <Filter>源文件\Generators\TerrianGenerator</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Generators\MeshGenerator.h">
-      <Filter>源文件\Generators</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\code\Tools\Mesh\UnityMesh.h">
       <Filter>源文件\Mesh</Filter>
@@ -69,31 +60,34 @@
     <ClInclude Include="..\..\..\code\Tools\Noises\PerlinNoise.h">
       <Filter>源文件\Noises</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Generators\TerrianGenerator\Diamond_Square.h">
-      <Filter>源文件\Generators\TerrianGenerator</Filter>
+    <ClInclude Include="..\..\..\code\Tools\Generators\TerrainGenerator.h">
+      <Filter>源文件\Generators</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Terrian\TerrianMesh.h">
-      <Filter>源文件\Terrian</Filter>
+    <ClInclude Include="..\..\..\code\Tools\Generators\TerrainGenerator\Mountain.h">
+      <Filter>源文件\Generators\TerrainGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\code\Tools\Generators\TerrainGenerator\Diamond_Square.h">
+      <Filter>源文件\Generators\TerrainGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\code\Tools\Terrain\Terrain.h">
+      <Filter>源文件\Terrain</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\code\Tools\Generators\TerrianGenerator\Mountain.cpp">
-      <Filter>源文件\Generators\TerrianGenerator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\code\Tools\Generators\TerrianGenerator\Terrian.cpp">
-      <Filter>源文件\Generators\TerrianGenerator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\code\Tools\Generators\MeshGenerator.cpp">
-      <Filter>源文件\Generators</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\code\Tools\Mesh\UnityMesh.cpp">
       <Filter>源文件\Mesh</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\Tools\Generators\TerrianGenerator\Diamond_Square.cpp">
-      <Filter>源文件\Generators\TerrianGenerator</Filter>
+    <ClCompile Include="..\..\..\code\Tools\Generators\TerrainGenerator.cpp">
+      <Filter>源文件\Generators</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\Tools\Terrian\TerrianMesh.cpp">
-      <Filter>源文件\Terrian</Filter>
+    <ClCompile Include="..\..\..\code\Tools\Generators\TerrainGenerator\Diamond_Square.cpp">
+      <Filter>源文件\Generators\TerrainGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\Tools\Generators\TerrainGenerator\Mountain.cpp">
+      <Filter>源文件\Generators\TerrainGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\Tools\Terrain\Terrain.cpp">
+      <Filter>源文件\Terrain</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

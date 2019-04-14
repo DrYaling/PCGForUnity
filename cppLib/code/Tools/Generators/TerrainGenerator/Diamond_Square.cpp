@@ -43,24 +43,24 @@ namespace generator
 		auto itr = m_mExtendedMap.find(0);
 		auto end = m_mExtendedMap.end();
 		if (itr == end)
-			SetAtXY(0, 0, corner[0] / MAX_MAP_HEIGHT);
+			SetHeight(0, 0, corner[0] / MAX_MAP_HEIGHT);
 		else
-			SetAtXY(0, 0, itr->second);
+			SetHeight(0, 0, itr->second);
 		itr = m_mExtendedMap.find(GetHeightMapIndex(m_nMax, 0));
 		if (itr == end)
-			SetAtXY(m_nMax, 0, corner[1] / MAX_MAP_HEIGHT);
+			SetHeight(m_nMax, 0, corner[1] / MAX_MAP_HEIGHT);
 		else
-			SetAtXY(m_nMax, 0, itr->second);
+			SetHeight(m_nMax, 0, itr->second);
 		itr = m_mExtendedMap.find(GetHeightMapIndex(0, m_nMax));
 		if (itr == end)
-			SetAtXY(0, m_nMax, corner[2] / MAX_MAP_HEIGHT);
+			SetHeight(0, m_nMax, corner[2] / MAX_MAP_HEIGHT);
 		else
-			SetAtXY(0, m_nMax, itr->second);
+			SetHeight(0, m_nMax, itr->second);
 		itr = m_mExtendedMap.find(GetHeightMapIndex(m_nMax, m_nMax));
 		if (itr == end)
-			SetAtXY(m_nMax, m_nMax, corner[3] / MAX_MAP_HEIGHT);
+			SetHeight(m_nMax, m_nMax, corner[3] / MAX_MAP_HEIGHT);
 		else
-			SetAtXY(m_nMax, m_nMax, itr->second);
+			SetHeight(m_nMax, m_nMax, itr->second);
 		//std::thread t(std::bind(&Diamond_Square::WorkThread, this,cb));
 		//t.detach();
 		//LogFormat("Diamond_Square Start,H %f,I %d,maxSize %d,meshCount %d", m_nH, m_nI, m_nSize, meshCount);
@@ -125,7 +125,7 @@ namespace generator
 			Iprocess = pro;
 		}
 		//LogFormat("ds over,total size %d,should be %d", genLen, m_nSize*m_nSize - 4);
-		//Blur();
+		Blur();
 		m_bIsFinished = true;
 		if (cb)
 		{
@@ -140,7 +140,7 @@ namespace generator
 			auto itr = m_mExtendedMap.find(GetHeightMapIndex(x, y));
 			if (itr != m_mExtendedMap.end())
 			{
-				SetAtXY(x, y, itr->second);
+				SetHeight(x, y, itr->second);
 				//LogWarningFormat("Diamond at x %d,y %d key %d extend found %f", x, y, x + y * m_nSize, itr->second);
 				return;
 			}
@@ -155,9 +155,9 @@ namespace generator
 		//so nigher x = 0 or x = max or y = 0 or y = max,but wont apear same time
 		if (x - size < 0)
 		{
-			p[1] = GetAtXY(x, y - size);// m_vHeightMap[m_nSize * (y - size)];
-			p[2] = GetAtXY(size, y);// m_vHeightMap[m_nSize*y + size];
-			p[3] = GetAtXY(x, y + size);// m_vHeightMap[m_nSize*(y + size)];
+			p[1] = GetHeight(x, y - size);// m_vHeightMap[m_nSize * (y - size)];
+			p[2] = GetHeight(size, y);// m_vHeightMap[m_nSize*y + size];
+			p[3] = GetHeight(x, y + size);// m_vHeightMap[m_nSize*(y + size)];
 			if (m_bEdgeExtended && m_cbGetNeighborVertice(x - size, y, NeighborType::neighborPositionLeft,p[4],m_pOwner))
 			{
 				p[0] = p[4];
@@ -169,9 +169,9 @@ namespace generator
 		}
 		else if (x + size > m_nMax)
 		{
-			p[0] = GetAtXY(x - size, y);// m_vHeightMap[x - size + m_nSize * y];
-			p[1] = GetAtXY(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
-			p[2] = p[3] = GetAtXY(x, y + size);// m_vHeightMap[x + m_nSize * (y + size)];
+			p[0] = GetHeight(x - size, y);// m_vHeightMap[x - size + m_nSize * y];
+			p[1] = GetHeight(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
+			p[2] = p[3] = GetHeight(x, y + size);// m_vHeightMap[x + m_nSize * (y + size)];
 			if (m_bEdgeExtended && m_cbGetNeighborVertice(x + size, y, NeighborType::neighborPositionRight, p[4], m_pOwner))
 			{
 				p[2] = p[4];
@@ -189,9 +189,9 @@ namespace generator
 		}
 		else if (y - size < 0)
 		{
-			p[0] = GetAtXY(x - size, 0);// m_vHeightMap[x - size];
-			p[2] = GetAtXY(x + size, 0);// m_vHeightMap[x + size];
-			p[3] = GetAtXY(x, size);// m_vHeightMap[x + m_nSize * size];
+			p[0] = GetHeight(x - size, 0);// m_vHeightMap[x - size];
+			p[2] = GetHeight(x + size, 0);// m_vHeightMap[x + size];
+			p[3] = GetHeight(x, size);// m_vHeightMap[x + m_nSize * size];
 			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, NeighborType::neighborPositionBottom, p[4], m_pOwner))
 			{
 				p[1] = p[4];
@@ -208,9 +208,9 @@ namespace generator
 		}
 		else if (y + size > m_nMax)
 		{
-			p[0] = GetAtXY(x - size, y);// m_vHeightMap[x - size + m_nSize * y];
-			p[1] = GetAtXY(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
-			p[2] = GetAtXY(x + size, y);//m_vHeightMap[x + size + m_nSize * y];
+			p[0] = GetHeight(x - size, y);// m_vHeightMap[x - size + m_nSize * y];
+			p[1] = GetHeight(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
+			p[2] = GetHeight(x + size, y);//m_vHeightMap[x + size + m_nSize * y];
 			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, NeighborType::neighborPositionRight, p[4], m_pOwner))
 			{
 				p[3] = p[4];
@@ -222,15 +222,15 @@ namespace generator
 		}
 		else
 		{
-			p[0] = GetAtXY(x - size, y);//m_vHeightMap[x - size + m_nSize * y];
-			p[1] = GetAtXY(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
-			p[2] = GetAtXY(x + size, y);//m_vHeightMap[x + size + m_nSize * y];
-			p[3] = GetAtXY(x, y + size);//m_vHeightMap[x + m_nSize * (y + size)];
+			p[0] = GetHeight(x - size, y);//m_vHeightMap[x - size + m_nSize * y];
+			p[1] = GetHeight(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
+			p[2] = GetHeight(x + size, y);//m_vHeightMap[x + size + m_nSize * y];
+			p[3] = GetHeight(x, y + size);//m_vHeightMap[x + m_nSize * (y + size)];
 		}
 		p[4] = (p[0] + p[1] + p[2] + p[3]) / 4.0f;
-		SetAtXY(x, y, p[4] + h * p[4]);
+		SetHeight(x, y, p[4] + h * p[4]);
 		//if (x == m_nMax)
-		//	LogFormat("diamond x %d,y %d,p %f,h %f,r %f,size %d", x, y, p[4], h, GetAtXY(x, y), size);
+		//	LogFormat("diamond x %d,y %d,p %f,h %f,r %f,size %d", x, y, p[4], h, GetHeight(x, y), size);
 	}
 	//正方形生成不用考虑边界条件
 	inline void Diamond_Square::Square(int x, int y, int size, float h)
@@ -240,7 +240,7 @@ namespace generator
 			auto itr = m_mExtendedMap.find(GetHeightMapIndex(x, y));
 			if (itr != m_mExtendedMap.end())
 			{
-				SetAtXY(x, y, itr->second);
+				SetHeight(x, y, itr->second);
 				//LogWarningFormat("square at x %d,y %d  extend found %f", x, y, itr->second);
 				return;
 			}
@@ -250,12 +250,12 @@ namespace generator
 			}
 		}
 		m_aPointBuffer[4] = (
-			GetAtXY(x - size, y - size) +
-			GetAtXY(x + size, y - size) +
-			GetAtXY(x - size, y + size) +
-			GetAtXY(x + size, y + size)
+			GetHeight(x - size, y - size) +
+			GetHeight(x + size, y - size) +
+			GetHeight(x - size, y + size) +
+			GetHeight(x + size, y + size)
 			) / 4.0f;
-		SetAtXY(x, y, m_aPointBuffer[4] + h * m_aPointBuffer[4]);
+		SetHeight(x, y, m_aPointBuffer[4] + h * m_aPointBuffer[4]);
 		//LogFormat("Square x %d,y %d,p %f,h %f,r %f", x, y, height, h, m_vHeightMap[x + m_nSize * y]);
 	}
 
@@ -270,7 +270,7 @@ namespace generator
 		{
 			for (size_t x = 0; x < m_nSize; x++)
 			{
-				SetBlurAtXY(x, y, GetAtXY(x, y));
+				Smooth(x, y);
 			}
 		}
 	}
@@ -288,7 +288,7 @@ namespace generator
 		{
 			for (int x = 0; x <= m_nMax; x++)
 			{
-				Vector3 p(GetDistance(x, maxCoord), GetAtXY(x, y), GetDistance(y, maxCoord));
+				Vector3 p(GetDistance(x, maxCoord), GetHeight(x, y), GetDistance(y, maxCoord));
 				m_vVertices[vidx++] = p;
 			}
 		}

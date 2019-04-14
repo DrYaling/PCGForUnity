@@ -118,11 +118,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\code\Tools\Generators\generator.h" />
-    <ClInclude Include="..\..\..\code\Tools\Generators\MeshGenerator.h" />
+    <ClInclude Include="..\..\..\code\Tools\Generators\TerrainGenerator.h" />
     <ClInclude Include="..\..\..\code\Tools\Generators\Plants\Plants.h" />
-    <ClInclude Include="..\..\..\code\Tools\Generators\TerrianGenerator\Diamond_Square.h" />
-    <ClInclude Include="..\..\..\code\Tools\Generators\TerrianGenerator\Mountain.h" />
-    <ClInclude Include="..\..\..\code\Tools\Generators\TerrianGenerator\Terrian.h" />
+    <ClInclude Include="..\..\..\code\Tools\Generators\TerrainGenerator\Diamond_Square.h" />
+    <ClInclude Include="..\..\..\code\Tools\Generators\TerrainGenerator\Mountain.h" />
     <ClInclude Include="..\..\..\code\Tools\Mesh\Delaunay.h" />
     <ClInclude Include="..\..\..\code\Tools\Mesh\Edge.h" />
     <ClInclude Include="..\..\..\code\Tools\Mesh\Mesh.h" />
@@ -130,15 +129,14 @@
     <ClInclude Include="..\..\..\code\Tools\Mesh\UnityMesh.h" />
     <ClInclude Include="..\..\..\code\Tools\Mesh\Vector2Lite.h" />
     <ClInclude Include="..\..\..\code\Tools\Noises\PerlinNoise.h" />
-    <ClInclude Include="..\..\..\code\Tools\Terrian\TerrianMesh.h" />
+    <ClInclude Include="..\..\..\code\Tools\Terrain\Terrain.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\code\Tools\Generators\MeshGenerator.cpp" />
-    <ClCompile Include="..\..\..\code\Tools\Generators\TerrianGenerator\Diamond_Square.cpp" />
-    <ClCompile Include="..\..\..\code\Tools\Generators\TerrianGenerator\Mountain.cpp" />
-    <ClCompile Include="..\..\..\code\Tools\Generators\TerrianGenerator\Terrian.cpp" />
+    <ClCompile Include="..\..\..\code\Tools\Generators\TerrainGenerator.cpp" />
+    <ClCompile Include="..\..\..\code\Tools\Generators\TerrainGenerator\Diamond_Square.cpp" />
+    <ClCompile Include="..\..\..\code\Tools\Generators\TerrainGenerator\Mountain.cpp" />
     <ClCompile Include="..\..\..\code\Tools\Mesh\UnityMesh.cpp" />
-    <ClCompile Include="..\..\..\code\Tools\Terrian\TerrianMesh.cpp" />
+    <ClCompile Include="..\..\..\code\Tools\Terrain\Terrain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\g3dlite\g3dlite.vcxproj">
