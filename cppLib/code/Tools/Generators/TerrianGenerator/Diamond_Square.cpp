@@ -10,7 +10,6 @@ namespace generator
 		m_nH(H / 100.0f),
 		m_bIsFinished(false),
 		m_bEdgeExtended(false),
-		m_fDeltaSize(1.0f),
 		m_vHeightMap(heightMap)
 	{
 		setRandomSeed(seed);
@@ -18,46 +17,13 @@ namespace generator
 		m_nMax = m_nSize - 1;
 		m_nheightMapSize = m_nSize * m_nSize;
 
-#if TERRAIN_GENERATE_VERTICES
-		//m_vExtendPoints.resize((m_nSize + 2)*(m_nSize + 2));
-		m_vVertices.resize(m_vHeightMap.size());
-		m_vNormals.resize(m_vHeightMap.size());
-
-		size_t meshCount = GetMeshTheoreticalCount();
-		int idx = 0;
-		int startY(0);
-		int nMax = m_nSize - 1;
-		int	 outBoundY(nMax);
-		int obY(nMax);
-		outBoundY = obY = nMax / meshCount;
-		//int32_t*** triangles;
-		while (idx < meshCount)
-		{
-			int32_t verticesCount = m_nSize * (outBoundY - startY + 1);
-			//LogFormat("mesh %d size %d,u %d,s %d", idx, verticesCount, outBoundY, startY);
-			m_vVerticesSize.push_back(verticesCount);
-			idx++;
-			if (idx >= meshCount && outBoundY < m_nMax)
-			{
-				meshCount++;
-			}
-			startY = outBoundY;//因为最上面和最右边一排不计算三角形，所以在交界处需要多计算一次
-			outBoundY += obY;
-			if (outBoundY > m_nMax)
-			{
-				outBoundY = m_nMax;
-			}
-		}
-#endif
 		//LogFormat("mesh count %d,nSize %d", meshCount, m_nSize);
 	}
 
 	Diamond_Square::~Diamond_Square()
 	{
 		m_cbProcessHandler = nullptr;
-#if TERRAIN_GENERATE_VERTICES
-		m_cbGetNeighborVertice = nullptr;
-#endif
+		m_vHeightMap = nullptr;
 	}
 	void Diamond_Square::Start(const float * corner, const int32_t size, std::function<void(void)> cb)
 	{
@@ -67,13 +33,6 @@ namespace generator
 			LogError("Diamond_Square Start Fail!");
 			return;
 		}
-#if TERRAIN_GENERATE_VERTICES
-		if (!m_cbGetNeighborVertice)
-		{
-			LogError("m_cbGetNeighborVertice is null!");
-			return;
-		}
-#endif
 		size_t meshCount = GetMeshTheoreticalCount();
 		if (meshCount > MAX_MESH_COUNT)
 		{
@@ -114,82 +73,8 @@ namespace generator
 			itr = m_mExtendedMap.erase(itr);
 		}
 		release_map(m_mExtendedMap);
-#if TERRAIN_GENERATE_VERTICES
-		release_vector(m_vNormals, G3D::Vector3);
-#endif
-		//release_vector(m_vVertices, G3D::Vector3);
 	}
-#if TERRAIN_GENERATE_VERTICES
-#define PrintVector3(x, y, v, str)\
-	{\
-		LogFormat("%s at x %d,y %d,v (x %f,y %f,z %f)", str, x, y, v.x, v.y, v.z);\
-	}
-	inline const G3D::Vector3 & Diamond_Square::GetRealVertice(int x, int y)
-	{
-		if (x >= 0 && x <= m_nMax && y >= 0 && y <= m_nMax)
-		{
-			return m_vVertices[x + y * m_nSize];
-		}
-		else//the below conditions only exist one
-		{
-			if (x < 0)
-			{
-				if (!m_cbGetNeighborVertice(x + m_nSize - 1, y, neighborPositionLeft, pNeibor[5]))
-				{
-					pNeibor[5] = G3D::Vector3(x*m_fDeltaSize, GetAtXY(0, y), y*m_fDeltaSize);
-					//PrintVector3(x, y, pNeibor[5], "neighborPositionLeft");
-				}
-				else
-				{
-					pNeibor[5].x = x * m_fDeltaSize;
-				}
-			}
-			else if (x > m_nMax)
-			{
-				if (!m_cbGetNeighborVertice(x - m_nSize + 1, y, neighborPositionRight, pNeibor[5]))
-				{
-					pNeibor[5] = G3D::Vector3(x*m_fDeltaSize, GetAtXY(m_nMax, y), y*m_fDeltaSize);
-					//LogFormat(" height %f", GetAtXY(m_nMax, y));
-					//PrintVector3(x, y, pNeibor[5], "neighborPositionRight");
-				}
-				else
-				{
-					pNeibor[5].x = x * m_fDeltaSize;
-				}
-			}
-			else if (y < 0)
-			{
-				if (!m_cbGetNeighborVertice(x, y + m_nSize - 1, neighborPositionBottom, pNeibor[5]))
-				{
-					pNeibor[5] = G3D::Vector3(x*m_fDeltaSize, GetAtXY(x, 0), y*m_fDeltaSize);
-					//PrintVector3(x, y, pNeibor[5], "neighborPositionBottom");
-				}
-				else
-				{
-					pNeibor[5].z = y * m_fDeltaSize;
-				}
-			}
-			else if (y > m_nMax)
-			{
-				if (!m_cbGetNeighborVertice(x, y - m_nSize + 1, neighborPositionTop, pNeibor[5]))
-				{
-					pNeibor[5] = G3D::Vector3(x*m_fDeltaSize, GetAtXY(x, m_nMax), y*m_fDeltaSize);
-					//PrintVector3(x, y, pNeibor[5], "neighborPositionTop");
-				}
-				else
-				{
-					pNeibor[5].z = y * m_fDeltaSize;
-				}
-			}
-			else
-			{
-				//just in case
-				LogError("aha???should not run to this line");
-			}
-			return pNeibor[5];
-		}
-	}
-#endif
+
 	void Diamond_Square::WorkThread(std::function<void(void)> cb)
 	{
 		float _H = m_nH;
@@ -239,12 +124,6 @@ namespace generator
 			Iprocess = pro;
 		}
 		//LogFormat("ds over,total size %d,should be %d", genLen, m_nSize*m_nSize - 4);
-		/*for (auto f : m_vHeightMap)
-		{
-			if (f > -1 && f < 1)
-				printf_s("%2f ", f);
-		}
-		printf_s("\n");*/
 		//Blur();
 		m_bIsFinished = true;
 		if (cb)
@@ -278,20 +157,9 @@ namespace generator
 			p[1] = GetAtXY(x, y - size);// m_vHeightMap[m_nSize * (y - size)];
 			p[2] = GetAtXY(size, y);// m_vHeightMap[m_nSize*y + size];
 			p[3] = GetAtXY(x, y + size);// m_vHeightMap[m_nSize*(y + size)];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x - size, y, NeighborType::neighborPositionLeft,
-#if TERRAIN_GENERATE_VERTICES
-				pNeibor[5]
-#else
-				p[4]
-#endif
-
-			))
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x - size, y, NeighborType::neighborPositionLeft,p[4]))
 			{
-#if TERRAIN_GENERATE_VERTICES
-				p[0] = pNeibor[5].y;
-#else
 				p[0] = p[4];
-#endif 
 			}
 			else
 			{
@@ -303,20 +171,9 @@ namespace generator
 			p[0] = GetAtXY(x - size, y);// m_vHeightMap[x - size + m_nSize * y];
 			p[1] = GetAtXY(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
 			p[2] = p[3] = GetAtXY(x, y + size);// m_vHeightMap[x + m_nSize * (y + size)];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x + size, y, NeighborType::neighborPositionRight,
-
-#if TERRAIN_GENERATE_VERTICES
-				pNeibor[5]
-#else
-				p[4]
-#endif
-			))
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x + size, y, NeighborType::neighborPositionRight, p[4]))
 			{
-#if TERRAIN_GENERATE_VERTICES
-				p[2] = pNeibor[5].y;
-#else
 				p[2] = p[4];
-#endif 
 			}
 			else
 			{
@@ -334,19 +191,9 @@ namespace generator
 			p[0] = GetAtXY(x - size, 0);// m_vHeightMap[x - size];
 			p[2] = GetAtXY(x + size, 0);// m_vHeightMap[x + size];
 			p[3] = GetAtXY(x, size);// m_vHeightMap[x + m_nSize * size];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, NeighborType::neighborPositionBottom,
-#if TERRAIN_GENERATE_VERTICES
-				pNeibor[5]
-#else
-				p[4]
-#endif
-			))
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, NeighborType::neighborPositionBottom, p[4]))
 			{
-#if TERRAIN_GENERATE_VERTICES
-				p[1] = pNeibor[5].y;
-#else
 				p[1] = p[4];
-#endif 
 			}
 			else
 			{
@@ -363,19 +210,9 @@ namespace generator
 			p[0] = GetAtXY(x - size, y);// m_vHeightMap[x - size + m_nSize * y];
 			p[1] = GetAtXY(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
 			p[2] = GetAtXY(x + size, y);//m_vHeightMap[x + size + m_nSize * y];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, NeighborType::neighborPositionRight,
-#if TERRAIN_GENERATE_VERTICES
-				pNeibor[5]
-#else
-				p[4]
-#endif
-			))
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, NeighborType::neighborPositionRight, p[4]))
 			{
-#if TERRAIN_GENERATE_VERTICES
-				p[3] = pNeibor[5].y;
-#else
 				p[3] = p[4];
-#endif 
 			}
 			else
 			{
@@ -436,41 +273,6 @@ namespace generator
 			}
 		}
 	}
-
-	/*void Diamond_Square::TrySetExtendedPoint(int x, int y, int hx, int hy, float mapWidth)
-	{
-		//not attached yet
-		if (!m_bEdgeExtended)
-		{
-			SetExtendedPoint(x, y, GetDistance(x, mapWidth), GetAtXY(hx, hy), GetDistance(y, mapWidth));
-		}
-		//if initilized already
-		else if (x >= 0 && x <= m_nMax && y >= 0 && y <= m_nMax)
-		{
-			auto itr = m_mExtendedMap.find(x + y * m_nSize);
-			if (itr == m_mExtendedMap.end())
-			{
-				SetExtendedPoint(x, y, GetDistance(x, mapWidth), GetAtXY(hx, hy), GetDistance(y, mapWidth));
-			}
-			/ *else
-			{
-				LogFormat("extend point exist x %d,y %d,rx %d,ry %d,h %f", x, y, hx, hy, itr->second);
-			}* /
-		}
-		//if not the up conditions and not initilized
-		else
-		{
-			auto v = GetExtendedPoint(x, y);
-			if (!IsValidPoint(v))
-			{
-				SetExtendedPoint(x, y, GetDistance(x, mapWidth), GetAtXY(hx, hy), GetDistance(y, mapWidth));
-			}
-			/ *else
-			{
-				LogWarningFormat("extend point x %d,y %d,rx %d,ry %d,(x %f,y %f,z %f)", x, y, hx, hy, v.x, v.y, v.z);
-			}* /
-		}
-	}*/
 
 #if TERRAIN_GENERATE_VERTICES
 	void Diamond_Square::GenerateTerrian(float maxCoord)
@@ -583,38 +385,6 @@ namespace generator
 			}
 		}
 		//LogWarningFormat("at mesh %d,recaculate normal size %d,indexSize %d", mesh, size, indexSize);
-	}
-	void Diamond_Square::SetVerticesAndNormal(G3D::Vector3 * pV, G3D::Vector3 * pN, int32_t size, int32_t mesh)
-	{
-		int vidx = 0;
-		if (mesh < 0 || mesh >= m_vVerticesSize.size())
-		{
-			LogErrorFormat("Mesh index error!%d", mesh);
-		}
-		int meshCount = GetMeshTheoreticalCount();
-		int vertexPerMesh = m_nMax / meshCount;
-		int upBound = (mesh + 1)*vertexPerMesh;
-		if (upBound > m_nMax)
-		{
-			upBound = m_nMax;
-		}
-		int start = mesh * vertexPerMesh;
-		//LogFormat("SetVerticesAndNormal mesh count %d,meshidx  %d,total mesh %d ,upBound %d ,start %d", meshCount, mesh, m_vVerticesSize[mesh], upBound, start);
-		for (int y = start; y <= upBound; y++)
-		{
-			for (int x = 0; x <= m_nMax; x++)
-			{
-				if (vidx >= size)
-				{
-					LogErrorFormat("vertice size is full!%d-max size %d", vidx, size);
-					return;
-				}
-				pV[vidx] = GetRealVertice(x, y);
-				pN[vidx] = GetRealNormal(x, y);
-				//LogFormat("vertice %d,%d -%d :(x %f,y %f,z %f)", x, y, vidx, pV[vidx].x, pV[vidx].y, pV[vidx].z);
-				vidx++;
-			}
-		}
 	}
 #endif
 }

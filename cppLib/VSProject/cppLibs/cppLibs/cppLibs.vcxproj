@@ -190,8 +190,8 @@
       <GenerateMapFile>true</GenerateMapFile>
     </Link>
     <PostBuildEvent>
-      <Command>Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(SolutionDir)../../../Project\Assets\Plugins\x86_x64/$(ProjectName).dll"
-Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).pdb" "$(SolutionDir)../../../Project\Assets\Plugins\x86_x64/$(ProjectName).pdb"</Command>
+      <Command>Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(SolutionDir)../../../Project\Assets\Plugins/$(ProjectName).dll"
+Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).pdb" "$(SolutionDir)../../../Project\Assets\Plugins/$(ProjectName).pdb"</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>
