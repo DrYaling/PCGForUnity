@@ -11,7 +11,11 @@ the more to be added:
 
 1.procedure by rules and conditions
 
-2.animation and model generation(will consider if need to add these)
+2.procedure generate road ,bridge and some else path
+
+3.procedure generate buildings(house) and dungeons(or holes)
+
+4.animation and model generation(will consider if need to add these)
 
 
 test:
