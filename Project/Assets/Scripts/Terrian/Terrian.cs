@@ -38,7 +38,7 @@ namespace SkyDram
         {
             Thread t = new Thread(new ThreadStart(() => {
             }));
-            int size = 1;
+            int size = 5;
             int lod = 1;
             var terrain0 = new TerrainPiece(size, lod);
             var terrain1 = new TerrainPiece(size, lod);
@@ -54,20 +54,21 @@ namespace SkyDram
             m_mapTerrains.Add(terrain1.instaneId, terrain1);
             m_mapTerrains.Add(terrain2.instaneId, terrain2);
             m_mapTerrains.Add(terrain3.instaneId, terrain3);
+            int mapSize = terrain0.GetSize();
             terrain0.Load();
 
             terrain1.SetNeighbor(terrain0, TerrainConst.neighborPositionLeft);
             terrain1.Load();
-            terrain1.SetPosition(new Vector3(100, 0, 0));
+            terrain1.SetPosition(new Vector3(mapSize, 0, 0));
 
             terrain2.SetNeighbor(terrain0, TerrainConst.neighborPositionTop);
             terrain2.Load();
-            terrain2.SetPosition(new Vector3(0, 0, -100));
+            terrain2.SetPosition(new Vector3(0, 0, -mapSize));
 
             terrain3.SetNeighbor(terrain1, TerrainConst.neighborPositionTop);
             terrain3.SetNeighbor(terrain2, TerrainConst.neighborPositionLeft);
             terrain3.Load();
-            terrain3.SetPosition(new Vector3(100, 0, -100));
+            terrain3.SetPosition(new Vector3(mapSize, 0, -mapSize));
 
             terrain0.SetNeighbor(terrain1, TerrainConst.neighborPositionRight);
             terrain0.SetNeighbor(terrain2, TerrainConst.neighborPositionBottom);
