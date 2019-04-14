@@ -5,7 +5,8 @@
 namespace generator
 {
 #define BLUR_SIZE 2
-	typedef std::function<bool(int32_t /*x*/, int32_t /*y*/, NeighborType /*neighbor*/, float& /*h*/)> GetNeighborVertice;
+	//typedef std::function<bool(int32_t /*x*/, int32_t /*y*/, NeighborType /*neighbor*/, float& /*h*/, void*/*owner*/)> GetNeighborVertice;
+	typedef bool(__fastcall *GetNeighborVertice)(int32_t /*x*/, int32_t /*y*/, NeighborType /*neighbor*/, float& /*h*/, void*/*owner*/);
 	/************************************************************************/
 	/*							菱形-正方形生成地形                         */
 	/*				点的序号为 x=0-x = max 为0-max,y轴向上递增				*/
@@ -13,7 +14,7 @@ namespace generator
 	class Diamond_Square :public TerrianGenerator
 	{
 	public:
-		Diamond_Square(int32_t seed, int32_t I, float H, /*std::vector<float>&*/float* heightMap);
+		Diamond_Square(int32_t seed, int32_t I, float H, /*std::vector<float>&*/float* heightMap,void* owner);
 		virtual ~Diamond_Square();
 		void SetProcessHandler(std::function<void(int32_t)> handler) { m_cbProcessHandler = handler; }
 		//平滑边沿，使之可以和其他地图拼接
@@ -111,6 +112,7 @@ namespace generator
 			SetAtXY(x, y, val);
 		}
 	private:
+		void* m_pOwner;
 		float* m_vHeightMap;
 		int32_t m_nheightMapSize;
 		GetNeighborVertice m_cbGetNeighborVertice;

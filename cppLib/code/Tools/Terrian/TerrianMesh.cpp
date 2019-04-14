@@ -3,7 +3,7 @@
 using namespace G3D;
 namespace generator {
 
-	TerrianMesh::TerrianMesh(int32_t ins) :
+	TerrainMesh::TerrainMesh(int32_t ins) :
 		m_bInitilized(false),
 		m_bGenerated(false),
 		m_pTerrianData(nullptr),
@@ -18,16 +18,28 @@ namespace generator {
 	{
 	}
 
-	TerrianMesh::~TerrianMesh()
+	TerrainMesh::~TerrainMesh()
 	{
 		Release();
 		safe_delete(m_pGenerator);
 		m_cbMeshInitilizer = nullptr;
-		//LogFormat("TerrianMesh deleted");
+		//LogFormat("TerrainMesh deleted");
 	}
 
+	bool TerrainMesh::StaticGetNeighborVertice(int32_t x, int32_t y, NeighborType neighbor, float & p,void* owner)
+	{
+		TerrainMesh* mesh = static_cast<TerrainMesh*>(owner);
+		if (mesh)
+		{
+			return mesh->GetNeighborVertice(x, y, neighbor, p);
+		}
+		else
+		{
+			return false;
+		}
+	}
 
-	void TerrianMesh::Init(int32_t * args, int32_t argsize, float* heightMap, int32_t heightMapSize, MeshInitilizerCallBack callback)
+	void TerrainMesh::Init(int32_t * args, int32_t argsize, float* heightMap, int32_t heightMapSize, MeshInitilizerCallBack callback)
 	{
 		if (!callback)
 		{
@@ -53,7 +65,7 @@ namespace generator {
 		m_bInitilized = true;
 	}
 
-	void TerrianMesh::InitNeighbor(NeighborType edge, TerrianMesh * neighbor)
+	void TerrainMesh::InitNeighbor(NeighborType edge, TerrainMesh * neighbor)
 	{
 		//LogFormat("InitNeighbor %d,neighbor %d", edge, neighbor->m_nInstanceId);
 		switch (edge)
@@ -99,7 +111,7 @@ namespace generator {
 		}
 	}
 
-	void TerrianMesh::InitVerticesWithNeighbor(NeighborType position)
+	void TerrainMesh::InitVerticesWithNeighbor(NeighborType position)
 	{
 		float deltaSize = m_vInitilizeArgs[mesh_arg_mapWidth] / (float)(m_nSize - 1);
 		int nMax = m_nSize - 1;
@@ -199,7 +211,7 @@ namespace generator {
 			}
 		}
 	}
-	void TerrianMesh::Start()
+	void TerrainMesh::Start()
 	{
 		if (!m_bInitilized)
 		{
@@ -208,14 +220,14 @@ namespace generator {
 		}
 		WorkThread();
 	}
-	void TerrianMesh::Release()
+	void TerrainMesh::Release()
 	{
 		if (m_pGenerator)
 		{
 			m_pGenerator->ReleaseUnusedBuffer();
 		}
 	}
-	void TerrianMesh::GetHeightMap(float * heightMap, int32_t size1, int32_t size2)
+	void TerrainMesh::GetHeightMap(float * heightMap, int32_t size1, int32_t size2)
 	{
 		if (heightMap)
 		{
@@ -243,7 +255,7 @@ namespace generator {
 			LogErrorFormat("GetHeightMap Fail with null map ptr");
 		}
 	}
-	bool TerrianMesh::GetNeighborVertice(int32_t x, int32_t y, NeighborType neighbor, float & p)
+	bool TerrainMesh::GetNeighborVertice(int32_t x, int32_t y, NeighborType neighbor, float & p)
 	{
 		switch (neighbor)
 		{
@@ -281,11 +293,11 @@ namespace generator {
 		}
 		return false;
 	}
-	void TerrianMesh::WorkThread()
+	void TerrainMesh::WorkThread()
 	{
-		m_pGenerator = new Diamond_Square(m_vInitilizeArgs[mesh_arg_seed], m_vInitilizeArgs[mesh_arg_I], m_vInitilizeArgs[mesh_arg_H], m_vHeightMap);
-		auto callback = std::bind(&TerrianMesh::GetNeighborVertice, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
-		m_pGenerator->SetGetVerticeCallBack(callback);
+		m_pGenerator = new Diamond_Square(m_vInitilizeArgs[mesh_arg_seed], m_vInitilizeArgs[mesh_arg_I], m_vInitilizeArgs[mesh_arg_H], m_vHeightMap,this);
+		//auto callback = std::bind(&TerrainMesh::GetNeighborVertice, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+		m_pGenerator->SetGetVerticeCallBack(&TerrainMesh::StaticGetNeighborVertice);
 		//m_cbMeshInitilizer(m_nInstanceId, meshTopologyMeshCount, m_pTerrianData->meshCount, 0, 0);
 		m_nSize = m_pGenerator->GetSquareSize();
 		float cornor[] = { m_vInitilizeArgs[mesh_arg_h0],m_vInitilizeArgs[mesh_arg_h1],m_vInitilizeArgs[mesh_arg_h2],m_vInitilizeArgs[mesh_arg_h3] };

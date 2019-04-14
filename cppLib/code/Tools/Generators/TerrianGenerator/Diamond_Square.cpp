@@ -5,11 +5,12 @@ namespace generator
 {
 	static G3D::Vector3 vector3_zero(0, 0, 0);
 	using namespace G3D;
-	Diamond_Square::Diamond_Square(int32_t seed, int32_t I, float H, /*std::vector<float>&*/float* heightMap) :
+	Diamond_Square::Diamond_Square(int32_t seed, int32_t I, float H, /*std::vector<float>&*/float* heightMap,void* owner) :
 		m_nI(I),
 		m_nH(H / 100.0f),
 		m_bIsFinished(false),
 		m_bEdgeExtended(false),
+		m_pOwner(owner),
 		m_vHeightMap(heightMap)
 	{
 		setRandomSeed(seed);
@@ -157,7 +158,7 @@ namespace generator
 			p[1] = GetAtXY(x, y - size);// m_vHeightMap[m_nSize * (y - size)];
 			p[2] = GetAtXY(size, y);// m_vHeightMap[m_nSize*y + size];
 			p[3] = GetAtXY(x, y + size);// m_vHeightMap[m_nSize*(y + size)];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x - size, y, NeighborType::neighborPositionLeft,p[4]))
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x - size, y, NeighborType::neighborPositionLeft,p[4],m_pOwner))
 			{
 				p[0] = p[4];
 			}
@@ -171,7 +172,7 @@ namespace generator
 			p[0] = GetAtXY(x - size, y);// m_vHeightMap[x - size + m_nSize * y];
 			p[1] = GetAtXY(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
 			p[2] = p[3] = GetAtXY(x, y + size);// m_vHeightMap[x + m_nSize * (y + size)];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x + size, y, NeighborType::neighborPositionRight, p[4]))
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x + size, y, NeighborType::neighborPositionRight, p[4], m_pOwner))
 			{
 				p[2] = p[4];
 			}
@@ -191,7 +192,7 @@ namespace generator
 			p[0] = GetAtXY(x - size, 0);// m_vHeightMap[x - size];
 			p[2] = GetAtXY(x + size, 0);// m_vHeightMap[x + size];
 			p[3] = GetAtXY(x, size);// m_vHeightMap[x + m_nSize * size];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, NeighborType::neighborPositionBottom, p[4]))
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, NeighborType::neighborPositionBottom, p[4], m_pOwner))
 			{
 				p[1] = p[4];
 			}
@@ -210,7 +211,7 @@ namespace generator
 			p[0] = GetAtXY(x - size, y);// m_vHeightMap[x - size + m_nSize * y];
 			p[1] = GetAtXY(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
 			p[2] = GetAtXY(x + size, y);//m_vHeightMap[x + size + m_nSize * y];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, NeighborType::neighborPositionRight, p[4]))
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, NeighborType::neighborPositionRight, p[4], m_pOwner))
 			{
 				p[3] = p[4];
 			}
