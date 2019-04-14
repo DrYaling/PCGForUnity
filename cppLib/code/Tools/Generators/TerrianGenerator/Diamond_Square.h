@@ -4,7 +4,7 @@
 #include <vector>
 namespace generator
 {
-
+#define BLUR_SIZE 2
 #if TERRAIN_GENERATE_VERTICES
 	typedef std::function<bool(int32_t /*x*/, int32_t /*y*/, int32_t /*neighbor*/, G3D::Vector3& /*p*/)> GetNeighborVertice;
 #else
@@ -17,7 +17,7 @@ namespace generator
 	class Diamond_Square :public TerrianGenerator
 	{
 	public:
-		Diamond_Square(int32_t seed, int32_t I, float H, std::vector<float>& heightMap);
+		Diamond_Square(int32_t seed, int32_t I, float H, /*std::vector<float>&*/float* heightMap);
 		virtual ~Diamond_Square();
 		void SetProcessHandler(std::function<void(int32_t)> handler) { m_cbProcessHandler = handler; }
 		//平滑边沿，使之可以和其他地图拼接
@@ -27,7 +27,7 @@ namespace generator
 			//SetExtendedPoint(x, y, point);
 			if (insertMap && x >= 0 && x < m_nSize && y >= 0 && y < m_nSize)
 			{
-				int key = x + y * m_nSize;
+				int key = GetHeightMapIndex(x, y);
 				m_mExtendedMap.insert(std::make_pair(key, point.y));
 			}
 		}
@@ -37,7 +37,7 @@ namespace generator
 			//SetExtendedPoint(x, y, fx, fy, fz);
 			if (insertMap && x >= 0 && x < m_nSize && y >= 0 && y < m_nSize)
 			{
-				int key = x + y * m_nSize;
+				int key = GetHeightMapIndex(x, y);
 				m_mExtendedMap.insert(std::make_pair(key, fy));
 			}
 		}
@@ -67,7 +67,7 @@ namespace generator
 			return m_vVerticesSize.size();
 		}
 #endif
-		inline float GetAtXY(int x, int y) { return m_vHeightMap[x + y * m_nSize]; }
+		inline float GetAtXY(int x, int y) { return m_vHeightMap[GetHeightMapIndex(x, y)]; }
 		bool IsFinished() { return m_bIsFinished; }
 		int32_t GetSquareSize() { return m_nSize; }
 		//mesh 理论值
@@ -85,7 +85,7 @@ namespace generator
 		size_t GetAlloc() {
 			size_t t = 0;
 			t += sizeof(Diamond_Square);
-			t += sizeof(float)*m_vHeightMap.capacity();
+			//t += sizeof(float)*m_nheightMapSize;
 #if TERRAIN_GENERATE_VERTICES
 			t += sizeof(G3D::Vector3)*m_vVertices.capacity();
 			t += sizeof(G3D::Vector3)*m_vNormals.capacity();
@@ -105,14 +105,49 @@ namespace generator
 		{
 			return xy * maxDistance / (float)m_nMax;
 		}
-		inline void SetAtXY(int32_t x, int32_t y, float val) { m_vHeightMap[x + y * m_nSize] = val; }
-		inline size_t GetSize() { return m_vHeightMap.size(); }
+		inline void SetAtXY(int32_t x, int32_t y, float val) { m_vHeightMap[GetHeightMapIndex(x,y)] = val; }
+		inline size_t GetSize() { return m_nheightMapSize; }
 		bool IsValidPoint(const G3D::Vector3& v)
 		{
 			return fabsf(v.x) > 0.0001f && fabsf(v.y) > 0.0001f && fabsf(v.z) > 0.0001f;
 		}
+		void Blur();
+		void SetBlurAtXY(int32_t x, int32_t y, float val)
+		{
+			//middle 0.4
+			//edge 0.5/8 = 
+#if false
+			static int edgeSize = BLUR_SIZE / 2;
+			if (x >= edgeSize && x <= m_nMax - edgeSize && y >= edgeSize && y <= m_nMax - edgeSize)
+			{
+				static float edge_f = 0.4f / (float)(BLUR_SIZE*BLUR_SIZE - 1);
+				val *= 0.6f;
+				for (size_t iy = -edgeSize; iy <= edgeSize; iy++)
+				{
+					for (size_t ix = -edgeSize; ix <= edgeSize; ix++)
+					{
+						if (ix == 0 && iy == 0)
+						{
+							continue;
+						}
+						val += GetAtXY(x + ix, y + iy)*edge_f;
+					}
+				}
+			}
+#endif
+			if (x > 0 && x < m_nMax && y >0 && y < m_nMax)
+			{
+				float tm = GetAtXY(x - 1, y);
+				tm += GetAtXY(x, y - 1);
+				tm += GetAtXY(x + 1, y);
+				tm += GetAtXY(x, y + 1);
+				val = val * 0.5f + tm * 0.5f / 4.0f;
+			}
+			SetAtXY(x, y, val);
+		}
 	private:
-		std::vector<float>& m_vHeightMap;
+		float* m_vHeightMap;
+		int32_t m_nheightMapSize;
 		GetNeighborVertice m_cbGetNeighborVertice;
 		std::function<void(int32_t)> m_cbProcessHandler;
 		std::map<int32_t, float> m_mExtendedMap;

@@ -169,5 +169,6 @@ enum class TerrainInitType
 };
 #define TERRAIN_GENERATE_VERTICES 0
 #define  MAX_MAP_HEIGHT 1000.0f
+#define GetHeightMapIndex(x,y) y+x*m_nSize
 // typedef geography* pGeography;
 #endif

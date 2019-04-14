@@ -9,7 +9,7 @@ class TerrianMesh
 public:
 	TerrianMesh(int32_t ins);
 	~TerrianMesh();
-	void Init(int32_t* args, int32_t argsize, MeshInitilizerCallBack callback);
+	void Init(int32_t* args, int32_t argsize,float* heightMap,int32_t heightMapSize, MeshInitilizerCallBack callback);
 	void InitVerticesWithNeighbor(NeighborType position = NeighborType::neighborPositionAll);
 #if TERRAIN_GENERATE_VERTICES
 	void Init(int32_t* args, int32_t argsize, MeshInitilizerCallBack callback, GeneratorNotifier notifier);
@@ -61,7 +61,8 @@ private:
 	TerrianMesh* m_pTopNeighbor;
 	Diamond_Square* m_pGenerator;
 	std::vector<int32_t> m_vInitilizeArgs;
-	std::vector<float> m_vHeightMap;
+	/*std::vector<float>*/float* m_vHeightMap;
+	int32_t m_nheightMapSize;
 	int32_t m_nSize;
 	bool m_bInitilized;
 	bool m_bGenerated;

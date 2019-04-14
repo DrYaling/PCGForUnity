@@ -13,7 +13,7 @@ int32_t* GetGeneratorTrianglesData(int arg0);
 int32_t GetGeneratorVerticesData(Vector3* pV,Vector3* pN, int index);
 */
 
-void Internal_InitTerrianMesh(int32_t instanceId,int32_t* args,int32_t argsize, MeshInitilizerCallBack cb, GeneratorNotifier notifier);
+void Internal_InitTerrianMesh(int32_t instanceId,int32_t* args,int32_t argsize, float* heightMap, int32_t heightMapSize, MeshInitilizerCallBack cb);
 void Internal_StartGenerateOrLoad(int32_t instanceId);
 void Internal_ResetLod(int32_t instanceId,int32_t lod);
 void Internal_RegisterTerrianMeshBinding(int32_t instance);

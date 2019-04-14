@@ -5,7 +5,7 @@ namespace generator
 {
 	static G3D::Vector3 vector3_zero(0, 0, 0);
 	using namespace G3D;
-	Diamond_Square::Diamond_Square(int32_t seed, int32_t I, float H, std::vector<float>& heightMap) :
+	Diamond_Square::Diamond_Square(int32_t seed, int32_t I, float H, /*std::vector<float>&*/float* heightMap) :
 		m_nI(I),
 		m_nH(H / 100.0f),
 		m_bIsFinished(false),
@@ -16,7 +16,7 @@ namespace generator
 		setRandomSeed(seed);
 		m_nSize = std::pow(2, 2 * I) + 1;
 		m_nMax = m_nSize - 1;
-		m_vHeightMap.resize(m_nSize*m_nSize);
+		m_nheightMapSize = m_nSize * m_nSize;
 
 #if TERRAIN_GENERATE_VERTICES
 		//m_vExtendPoints.resize((m_nSize + 2)*(m_nSize + 2));
@@ -83,22 +83,22 @@ namespace generator
 		auto itr = m_mExtendedMap.find(0);
 		auto end = m_mExtendedMap.end();
 		if (itr == end)
-			SetAtXY(0, 0, corner[0]);
+			SetAtXY(0, 0, corner[0] / MAX_MAP_HEIGHT);
 		else
 			SetAtXY(0, 0, itr->second);
-		itr = m_mExtendedMap.find(m_nMax);
+		itr = m_mExtendedMap.find(GetHeightMapIndex(m_nMax, 0));
 		if (itr == end)
-			SetAtXY(m_nMax, 0, corner[1]);
+			SetAtXY(m_nMax, 0, corner[1] / MAX_MAP_HEIGHT);
 		else
 			SetAtXY(m_nMax, 0, itr->second);
-		itr = m_mExtendedMap.find(m_nSize*m_nMax);
+		itr = m_mExtendedMap.find(GetHeightMapIndex(0, m_nMax));
 		if (itr == end)
-			SetAtXY(0, m_nMax, corner[2]);
+			SetAtXY(0, m_nMax, corner[2] / MAX_MAP_HEIGHT);
 		else
 			SetAtXY(0, m_nMax, itr->second);
-		itr = m_mExtendedMap.find(m_nMax + m_nMax * m_nSize);
+		itr = m_mExtendedMap.find(GetHeightMapIndex(m_nMax, m_nMax));
 		if (itr == end)
-			SetAtXY(m_nMax, m_nMax, corner[3]);
+			SetAtXY(m_nMax, m_nMax, corner[3] / MAX_MAP_HEIGHT);
 		else
 			SetAtXY(m_nMax, m_nMax, itr->second);
 		//std::thread t(std::bind(&Diamond_Square::WorkThread, this,cb));
@@ -109,7 +109,7 @@ namespace generator
 
 	void Diamond_Square::ReleaseUnusedBuffer()
 	{
-		for (auto itr = m_mExtendedMap.begin();itr!=m_mExtendedMap.end();)
+		for (auto itr = m_mExtendedMap.begin(); itr != m_mExtendedMap.end();)
 		{
 			itr = m_mExtendedMap.erase(itr);
 		}
@@ -245,6 +245,7 @@ namespace generator
 				printf_s("%2f ", f);
 		}
 		printf_s("\n");*/
+		//Blur();
 		m_bIsFinished = true;
 		if (cb)
 		{
@@ -256,7 +257,7 @@ namespace generator
 	{
 		if (m_bEdgeExtended)
 		{
-			auto itr = m_mExtendedMap.find(x + y * m_nSize);
+			auto itr = m_mExtendedMap.find(GetHeightMapIndex(x, y));
 			if (itr != m_mExtendedMap.end())
 			{
 				SetAtXY(x, y, itr->second);
@@ -398,7 +399,7 @@ namespace generator
 	{
 		if (m_bEdgeExtended)
 		{
-			auto itr = m_mExtendedMap.find(x + y * m_nSize);
+			auto itr = m_mExtendedMap.find(GetHeightMapIndex(x, y));
 			if (itr != m_mExtendedMap.end())
 			{
 				SetAtXY(x, y, itr->second);
@@ -423,6 +424,17 @@ namespace generator
 	inline float Diamond_Square::Randomize(float h)
 	{
 		return _frandom_f(-h, h);
+	}
+
+	void Diamond_Square::Blur()
+	{
+		for (size_t y = 0; y < m_nSize; y++)
+		{
+			for (size_t x = 0; x < m_nSize; x++)
+			{
+				SetBlurAtXY(x, y, GetAtXY(x, y));
+			}
+		}
 	}
 
 	/*void Diamond_Square::TrySetExtendedPoint(int x, int y, int hx, int hy, float mapWidth)
@@ -492,7 +504,7 @@ namespace generator
 				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[1], p - pNeibor[2]);
 				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[2], p - pNeibor[3]);
 				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[3], p - pNeibor[0]);
-				m_vNormals[vidx++] = unityMesh::normalize(m_stNormalBuffer);				
+				m_vNormals[vidx++] = unityMesh::normalize(m_stNormalBuffer);
 			}
 		}
 	}

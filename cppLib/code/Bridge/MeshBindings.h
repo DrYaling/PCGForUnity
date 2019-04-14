@@ -22,10 +22,10 @@ EXPORT_API void RegisterTerrianMeshBindings(int32_t instanceId)
 	generator::Internal_RegisterTerrianMeshBinding(instanceId);
 }
 
-EXPORT_API void	 STD_CALL InitTerrianMesh(int32_t instanceId, int32_t* args, int32_t argsize, MeshInitilizerCallBack cb, GeneratorNotifier notifier)
+EXPORT_API void	 STD_CALL InitTerrianMesh(int32_t instanceId, int32_t* args, int32_t argsize, float* heightMap, int32_t heightMapSize, MeshInitilizerCallBack cb)
 {
 	LogFormat("InitTerrianMesh %d", instanceId);
-	generator::Internal_InitTerrianMesh(instanceId, args, argsize, cb, notifier);
+	generator::Internal_InitTerrianMesh(instanceId, args, argsize,heightMap,heightMapSize, cb);
 }
 EXPORT_API void STD_CALL GetTerraniHeightMap(int32_t instanceId, float* heightMap, int32_t size1, int32_t size2)
 {

@@ -19,7 +19,7 @@ static inline TerrianMesh* Internal_GetTerrianMesh(int32_t instance)
 		return nullptr;
 	}
 }
-void Internal_InitTerrianMesh(int32_t instanceId, int32_t* args, int32_t argsize, MeshInitilizerCallBack cb, GeneratorNotifier notifier)
+void Internal_InitTerrianMesh(int32_t instanceId, int32_t* args, int32_t argsize, float* heightMap, int32_t heightMapSize, MeshInitilizerCallBack cb)
 {
 	//LogFormat("Internal_InitTerrianMesh %d", instanceId);
 	TerrianMesh* mesh = Internal_GetTerrianMesh(instanceId);
@@ -29,7 +29,7 @@ void Internal_InitTerrianMesh(int32_t instanceId, int32_t* args, int32_t argsize
 		//LogFormat("Init Terrian %d", instanceId);
 		mesh->Init(args, argsize, cb, notifier);
 #else
-		mesh->Init(args, argsize, cb);
+		mesh->Init(args, argsize,heightMap,heightMapSize, cb);
 #endif
 	}
 }

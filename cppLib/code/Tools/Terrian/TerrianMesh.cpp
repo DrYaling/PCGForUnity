@@ -33,7 +33,7 @@ namespace generator {
 #if TERRAIN_GENERATE_VERTICES
 	void TerrianMesh::Init(int32_t * args, int32_t argsize, MeshInitilizerCallBack callback, GeneratorNotifier notifier)
 #else
-	void TerrianMesh::Init(int32_t * args, int32_t argsize, MeshInitilizerCallBack callback)
+	void TerrianMesh::Init(int32_t * args, int32_t argsize, float* heightMap, int32_t heightMapSize, MeshInitilizerCallBack callback)
 #endif
 	{
 		if (!callback)
@@ -41,6 +41,13 @@ namespace generator {
 			LogError("TerrianDataBinding and MeshInitilizerCallBack cant be null");
 			return;
 		}
+		if (!heightMap)
+		{
+			LogError("TerrianDataBinding and heightMap cant be null");
+			return;
+		}
+		m_vHeightMap = heightMap;
+		m_nheightMapSize = heightMapSize;
 		m_cbMeshInitilizer = callback;
 #if TERRAIN_GENERATE_VERTICES
 		m_cbNotifier = notifier;
@@ -178,14 +185,14 @@ namespace generator {
 					LogErrorFormat("neighbor size %d is not equal to neighbor %d", m_nSize, m_pLeftNeighbor->m_nSize);
 					return;
 				}
-				else if (m_pLeftNeighbor->m_vHeightMap.size() > 0)
+				else if (m_pLeftNeighbor->m_nheightMapSize > 0)
 				{
 					//add left edge
 					int x = 0;
 					int nx(x + nMax);
 					for (int y = 0; y <= nMax; y++)
 					{
-						float nheight = m_pLeftNeighbor->m_vHeightMap[nx + y * m_nSize];
+						float nheight = m_pLeftNeighbor->m_vHeightMap[GetHeightMapIndex(nx, y)];
 						m_pGenerator->SetPulse(x, y, x*deltaSize, nheight, y*deltaSize, insert);
 						//LogFormat("SetPulse x %d,y %d, nx %d,height %f", x, y, nx, nheight);
 					}
@@ -203,13 +210,13 @@ namespace generator {
 					LogErrorFormat("neighbor size %d is not equal to neighbor %d", m_nSize, m_pRightNeighbor->m_nSize);
 					return;
 				}
-				else if (m_pRightNeighbor->m_vHeightMap.size() > 0)
+				else if (m_pRightNeighbor->m_nheightMapSize > 0)
 				{
 					int x = nMax;
 					int nx(x - nMax);
 					for (int y = 0; y <= nMax; y++)
 					{
-						float nheight = m_pRightNeighbor->m_vHeightMap[nx + y * m_nSize];
+						float nheight = m_pRightNeighbor->m_vHeightMap[GetHeightMapIndex(nx, y)];
 						m_pGenerator->SetPulse(x, y, x*deltaSize, nheight, y*deltaSize, insert);
 					}
 				}
@@ -226,13 +233,13 @@ namespace generator {
 					LogErrorFormat("neighbor size %d is not equal to neighbor %d", m_nSize, m_pBottomNeighbor->m_nSize);
 					return;
 				}
-				else if (m_pBottomNeighbor->m_vHeightMap.size() > 0)
+				else if (m_pBottomNeighbor->m_nheightMapSize > 0)
 				{
 					int y = 0;
 					int nY(y + nMax);
 					for (int x = 0; x <= nMax; x++)
 					{
-						float nheight = m_pBottomNeighbor->m_vHeightMap[x + nY * m_nSize];
+						float nheight = m_pBottomNeighbor->m_vHeightMap[GetHeightMapIndex(x, nY)];
 						m_pGenerator->SetPulse(x, y, x*deltaSize, nheight, y*deltaSize, insert);
 					}
 				}
@@ -249,13 +256,13 @@ namespace generator {
 					LogErrorFormat("neighbor size %d is not equal to neighbor %d", m_nSize, m_pTopNeighbor->m_nSize);
 					return;
 				}
-				else if (m_pTopNeighbor->m_vHeightMap.size() > 0)
+				else if (m_pTopNeighbor->m_nheightMapSize > 0)
 				{
 					int y = nMax;
 					int nY(y - nMax);
 					for (int x = 0; x <= nMax; x++)
 					{
-						float nheight = m_pTopNeighbor->m_vHeightMap[x + nY * m_nSize];
+						float nheight = m_pTopNeighbor->m_vHeightMap[GetHeightMapIndex(x, nY)];
 						m_pGenerator->SetPulse(x, y, x*deltaSize, nheight, y*deltaSize, insert);
 					}
 				}
@@ -413,7 +420,7 @@ namespace generator {
 			if (size1 == size2 && size1 == m_nSize)
 			{
 				//memcpy(heightMap, m_vHeightMap.data(), m_vHeightMap.size()*sizeof(float));
-				for (int32_t i = 0; i< m_vHeightMap.size(); i++)
+				for (int32_t i = 0; i < m_nheightMapSize; i++)
 					heightMap[i] = m_vHeightMap[i] / MAX_MAP_HEIGHT;
 				/*for (int32_t x = 0; x < size1; x++)
 				{
@@ -519,7 +526,7 @@ namespace generator {
 #if TERRAIN_GENERATE_VERTICES
 		m_pTerrianData->SetMeshCount(m_pGenerator->GetMeshRealCount(), m_pGenerator->GetMeshTheoreticalCount());
 #endif
-		m_cbMeshInitilizer(m_nInstanceId, meshTopologyMeshCount, m_pTerrianData->meshCount, 0, 0);
+		//m_cbMeshInitilizer(m_nInstanceId, meshTopologyMeshCount, m_pTerrianData->meshCount, 0, 0);
 		m_nSize = m_pGenerator->GetSquareSize();
 		float cornor[] = { m_vInitilizeArgs[mesh_arg_h0],m_vInitilizeArgs[mesh_arg_h1],m_vInitilizeArgs[mesh_arg_h2],m_vInitilizeArgs[mesh_arg_h3] };
 
@@ -544,7 +551,8 @@ namespace generator {
 		}
 		m_cbNotifier(m_nInstanceId, meshTopologyTriangle, 0, m_pTerrianData->currentLod);
 #else
-		m_cbMeshInitilizer(m_nInstanceId, (int32_t)TerrainInitType::HeightMap, m_nSize, m_nSize, m_vHeightMap.size());
+		//LogErrorFormat("cpp height 0 %f,1 %f",m_vHeightMap[0], m_vHeightMap[m_nSize+1]);
+		m_cbMeshInitilizer(m_nInstanceId, (int32_t)TerrainInitType::HeightMap, m_nSize, m_nSize, m_nheightMapSize);
 #endif
 	}
 };
