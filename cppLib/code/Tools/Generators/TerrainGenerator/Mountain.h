@@ -1,6 +1,6 @@
 #ifndef _MOUNTAIN_H
 #define _MOUNTAIN_H
-#include "Generators/generator.h"
+#include "generator.h"
 #include <stack>
 using namespace G3D;
 

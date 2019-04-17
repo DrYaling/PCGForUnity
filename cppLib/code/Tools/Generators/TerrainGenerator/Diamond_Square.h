@@ -1,6 +1,6 @@
 #ifndef DIAMOND_SQUARE_H
 #define DIAMOND_SQUARE_H
-#include "../generator.h"
+#include "generator.h"
 #include <vector>
 #include <algorithm>
 namespace generator

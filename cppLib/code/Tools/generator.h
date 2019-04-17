@@ -40,7 +40,7 @@ static inline void setRandomSeed(int seed)
 	std::srand(seed);
 }
 //µÿ–Œ
-enum eGeographyType :int16_t
+enum class eGeographyType :int16_t
 {
 	e_geo_trench = 0x0000,
 	e_geo_deepSea = 0x0001,
@@ -54,7 +54,7 @@ enum eGeographyType :int16_t
 	e_geo_heightLand = 0x0100,
 };
 //sub geography property
-enum eGeographySubType :int16_t
+enum class eGeographySubType :int16_t
 {
 	eg_sub_volcano = 1,//ª…Ω
 	eg_sub_marsh = 2,//’”‘Û
@@ -166,13 +166,38 @@ enum class NeighborType
 enum class TerrainInitType
 {
 	HeightMap = 0,
+	AlphaMap,
 };
 #define TERRAIN_GENERATE_VERTICES 0
 #define  MAX_MAP_HEIGHT 1000.0f
 #define GetHeightMapIndex(x,y) x+y*m_nSize
+#define GetSplatMapIndex(x,y,z,sizeY,sizeZ) ((x * sizeY + y) * sizeZ+z) 
 #define generator_clamp(x,low,high) if (x < low) \
 		x = low; \
 	else if (x > high)\
-		x = high; \
+		x = high;
+namespace generator
+{
+	template <typename T>
+	static inline T clamp(T a, T l, T h)
+	{
+		if (a < l)
+		{
+			return l;
+		}
+		else if (a > h)
+			return  h;
+		else
+		{
+			return a;
+		}
+	}
+	static inline float GetDistance2D(float x, float y, float targetX, float targetY)
+	{
+		float dx = targetX - x;
+		float dy = targetY - y;
+		return std::sqrt(dx*dx + dy * dy);
+	}
+}
 // typedef geography* pGeography;
 #endif

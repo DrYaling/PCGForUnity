@@ -6,8 +6,10 @@
 #include "Logger/Logger.h"
 #include <stdio.h>
 #include "Network/Socket/SocketTime.h"
+/*
 #include "Generators/TerrianGenerator/Mountain.h"
-#include "Generators/TerrianGenerator/Diamond_Square.h"
+#include "Generators/TerrianGenerator/Diamond_Square.h"*/
+#include "generator.h"
 using namespace generator;
 
 void StartTestServer()
@@ -70,10 +72,27 @@ int main()
 	thr.detach();
 	sleep(4000);
 */
+	int afp[3][2][3] = { 0 };
+	afp[1][1][1] = 1;
+	afp[0][0][0] = 2;
+	afp[2][0][2] = 3;
+	afp[2][1][2] = 5;
+	int* fp = &afp[0][0][0];
+	for (int i = 0; i < 3; i++)
+	{
+		for (size_t j = 0; j < 2; j++)
+		{
+			for (size_t k = 0; k < 3; k++)
+			{
+				LogFormat("fp %d %d %d-%d is %d", i, j, k, (i * 2 + j) * 3 + k, fp[(i * 2 + j) * 3+k]);
+			}
+
+		}
+	}
 	std::vector<int> list;
 	list.resize(100);
 	list.clear();
-	LogFormat("list size %d,%d",list.size(),list.capacity());
+	LogFormat("list size %d,%d", list.size(), list.capacity());
 	{
 		std::vector<int> tmp = list;
 		tmp.swap(list);

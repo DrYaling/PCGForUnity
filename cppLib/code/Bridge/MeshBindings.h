@@ -5,7 +5,7 @@
 #include "G3D/Vector3.h"
 #include "Map/TransformMap.h"
 #include "Generators/TerrainGenerator.h"
-#include "Generators/generator.h"
+#include "generator.h"
 EXTERN_C_BEGIN
 
 
