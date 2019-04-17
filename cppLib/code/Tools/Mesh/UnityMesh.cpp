@@ -1,5 +1,5 @@
 #include "UnityMesh.h"
-#include "Generators/generator.h"
+#include "generator.h"
 NS_UMESH_START
 
 void trianglate(const std::vector<G3D::Vector3>& input,std::vector<int32_t>& out)

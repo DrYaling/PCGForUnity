@@ -1,6 +1,6 @@
 #ifndef TERRIAN_MESH_H
 #define TERRIAN_MESH_H
-#include "Generators/generator.h"
+#include "generator.h"
 #include "Generators/TerrainGenerator/Diamond_Square.h"
 NS_GNRT_START
 

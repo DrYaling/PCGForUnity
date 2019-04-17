@@ -31,11 +31,11 @@
     <Filter Include="源文件\Terrain">
       <UniqueIdentifier>{81806a14-2f5a-4f3f-8a2d-9cd168c4caef}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\Terrain\Painter">
+      <UniqueIdentifier>{78158984-1b0d-4e9d-8c8a-c24fc2a58ccf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\code\Tools\Generators\generator.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\code\Tools\Mesh\UnityMesh.h">
       <Filter>源文件\Mesh</Filter>
     </ClInclude>
@@ -72,6 +72,33 @@
     <ClInclude Include="..\..\..\code\Tools\Terrain\Terrain.h">
       <Filter>源文件\Terrain</Filter>
     </ClInclude>
+    <ClInclude Include="SplatPainter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\code\Tools\generator.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\code\Tools\Terrain\Painter\SplatPainter.h">
+      <Filter>源文件\Terrain\Painter</Filter>
+    </ClInclude>
+    <ClInclude Include="PainterBrush.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\code\Tools\Terrain\Painter\PainterBrush.h">
+      <Filter>源文件\Terrain\Painter</Filter>
+    </ClInclude>
+    <ClInclude Include="AutomaticPainter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\code\Tools\Terrain\Painter\AutomaticPainter.h">
+      <Filter>源文件\Terrain\Painter</Filter>
+    </ClInclude>
+    <ClInclude Include="Painter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\code\Tools\Terrain\Painter\Painter.h">
+      <Filter>源文件\Terrain\Painter</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\Tools\Mesh\UnityMesh.cpp">
@@ -88,6 +115,18 @@
     </ClCompile>
     <ClCompile Include="..\..\..\code\Tools\Terrain\Terrain.cpp">
       <Filter>源文件\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\Tools\Terrain\Painter\SplatPainter.cpp">
+      <Filter>源文件\Terrain\Painter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\Tools\Terrain\Painter\PainterBrush.cpp">
+      <Filter>源文件\Terrain\Painter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\Tools\Terrain\Painter\AutomaticPainter.cpp">
+      <Filter>源文件\Terrain\Painter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\Tools\Terrain\Painter\Painter.cpp">
+      <Filter>源文件\Terrain\Painter</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

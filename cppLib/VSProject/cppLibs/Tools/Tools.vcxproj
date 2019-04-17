@@ -117,7 +117,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\code\Tools\Generators\generator.h" />
+    <ClInclude Include="..\..\..\code\Tools\generator.h" />
     <ClInclude Include="..\..\..\code\Tools\Generators\TerrainGenerator.h" />
     <ClInclude Include="..\..\..\code\Tools\Generators\Plants\Plants.h" />
     <ClInclude Include="..\..\..\code\Tools\Generators\TerrainGenerator\Diamond_Square.h" />
@@ -129,13 +129,25 @@
     <ClInclude Include="..\..\..\code\Tools\Mesh\UnityMesh.h" />
     <ClInclude Include="..\..\..\code\Tools\Mesh\Vector2Lite.h" />
     <ClInclude Include="..\..\..\code\Tools\Noises\PerlinNoise.h" />
+    <ClInclude Include="..\..\..\code\Tools\Terrain\Painter\AutomaticPainter.h" />
+    <ClInclude Include="..\..\..\code\Tools\Terrain\Painter\Painter.h" />
+    <ClInclude Include="..\..\..\code\Tools\Terrain\Painter\PainterBrush.h" />
+    <ClInclude Include="..\..\..\code\Tools\Terrain\Painter\SplatPainter.h" />
     <ClInclude Include="..\..\..\code\Tools\Terrain\Terrain.h" />
+    <ClInclude Include="AutomaticPainter.h" />
+    <ClInclude Include="Painter.h" />
+    <ClInclude Include="PainterBrush.h" />
+    <ClInclude Include="SplatPainter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\Tools\Generators\TerrainGenerator.cpp" />
     <ClCompile Include="..\..\..\code\Tools\Generators\TerrainGenerator\Diamond_Square.cpp" />
     <ClCompile Include="..\..\..\code\Tools\Generators\TerrainGenerator\Mountain.cpp" />
     <ClCompile Include="..\..\..\code\Tools\Mesh\UnityMesh.cpp" />
+    <ClCompile Include="..\..\..\code\Tools\Terrain\Painter\AutomaticPainter.cpp" />
+    <ClCompile Include="..\..\..\code\Tools\Terrain\Painter\Painter.cpp" />
+    <ClCompile Include="..\..\..\code\Tools\Terrain\Painter\PainterBrush.cpp" />
+    <ClCompile Include="..\..\..\code\Tools\Terrain\Painter\SplatPainter.cpp" />
     <ClCompile Include="..\..\..\code\Tools\Terrain\Terrain.cpp" />
   </ItemGroup>
   <ItemGroup>
