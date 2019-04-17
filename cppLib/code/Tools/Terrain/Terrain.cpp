@@ -26,7 +26,7 @@ namespace generator {
 		//LogFormat("Terrain deleted");
 	}
 
-	bool Terrain::StaticGetNeighborVertice(int32_t x, int32_t y, NeighborType neighbor, float & p,void* owner)
+	bool Terrain::StaticGetNeighborVertice(int32_t x, int32_t y, NeighborType neighbor, float & p, void* owner)
 	{
 		Terrain* mesh = static_cast<Terrain*>(owner);
 		if (mesh)
@@ -109,6 +109,14 @@ namespace generator {
 		default:
 			break;
 		}
+	}
+
+	void Terrain::AutoGenSplatMap(float * alphaMap, int32_t sizeXY, int32_t splatCount)
+	{
+		m_pPainter = new AutomaticPainter();
+		m_pPainter->Init(m_vHeightMap, m_nSize, alphaMap, sizeXY, splatCount);
+		m_pPainter->DrawSplatMap();
+		safe_delete(m_pPainter);
 	}
 
 	void Terrain::InitVerticesWithNeighbor(NeighborType position)
@@ -295,7 +303,7 @@ namespace generator {
 	}
 	void Terrain::WorkThread()
 	{
-		m_pGenerator = new Diamond_Square(m_vInitilizeArgs[mesh_arg_seed], m_vInitilizeArgs[mesh_arg_I], m_vInitilizeArgs[mesh_arg_H], m_vHeightMap,this);
+		m_pGenerator = new Diamond_Square(m_vInitilizeArgs[mesh_arg_seed], m_vInitilizeArgs[mesh_arg_I], m_vInitilizeArgs[mesh_arg_H], m_vHeightMap, this);
 		//auto callback = std::bind(&Terrain::GetNeighborVertice, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 		m_pGenerator->SetGetVerticeCallBack(&Terrain::StaticGetNeighborVertice);
 		//m_cbMeshInitilizer(m_nInstanceId, meshTopologyMeshCount, m_pTerrianData->meshCount, 0, 0);

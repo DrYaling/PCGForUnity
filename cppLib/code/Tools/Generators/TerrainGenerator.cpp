@@ -96,6 +96,14 @@ void Internal_SetMeshNeighbor(int32_t instanceId, int32_t neighborId, int32_t ne
 		}
 	}
 }
+void Internal_InitTerrainPainter(int32_t instanceId, float * alphaMap, int32_t sizeXy, int32_t splatCount)
+{
+	auto itr = mTerrianBindings.find(instanceId);
+	if (itr != mTerrianBindings.end())
+	{
+		mTerrianBindings[instanceId]->AutoGenSplatMap(alphaMap, sizeXy, splatCount);
+	}
+}
 void Internal_ReleaseAllMeshed()
 {
 	//LogFormat("Internal_ReleaseAllMeshed %d",mTerrianBindings.size());

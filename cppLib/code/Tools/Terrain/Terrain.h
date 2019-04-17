@@ -2,6 +2,7 @@
 #define TERRIAN_MESH_H
 #include "generator.h"
 #include "Generators/TerrainGenerator/Diamond_Square.h"
+#include "Painter/AutomaticPainter.h"
 NS_GNRT_START
 
 class Terrain
@@ -12,6 +13,7 @@ public:
 	void Init(int32_t* args, int32_t argsize,float* heightMap,int32_t heightMapSize, MeshInitilizerCallBack callback);
 	void InitVerticesWithNeighbor(NeighborType position = NeighborType::neighborPositionAll);
 	void InitNeighbor(NeighborType edge, Terrain* mesh);
+	void AutoGenSplatMap(float* alphaMap, int32_t sizeXY, int32_t splatCount);
 	void Start();
 	void Release();
 	void GetHeightMap(float* heightMap, int32_t size1, int32_t size2);
@@ -27,6 +29,7 @@ private:
 	Terrain* m_pBottomNeighbor;
 	Terrain* m_pTopNeighbor;
 	Diamond_Square* m_pGenerator;
+	AutomaticPainter* m_pPainter;
 	std::vector<int32_t> m_vInitilizeArgs;
 	/*std::vector<float>*/float* m_vHeightMap;
 	int32_t m_nheightMapSize;

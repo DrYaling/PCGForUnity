@@ -32,10 +32,11 @@ namespace SkyDram
         extern static void FlushMeshGenerator(int ins);
         [DllImport(dllName)]
         extern static unsafe void GetTerraniHeightMap(int instanceId, [Out]float* heightMap, int sizeX, int sizey);
-
-
+        [DllImport(dllName)]
+        extern static unsafe void InitTerrainPainter(int instanceId, float* alphaMap, int sizeXy, int splatCount);
         int terrainInstance = EgineUtils.GetInstanceId();
         float[,] _heightMap;
+        float[,,] _splatMap;
         public int instaneId
         {
             get
@@ -43,6 +44,7 @@ namespace SkyDram
                 return terrainInstance;
             }
         }
+        private int MapWidth = 100;
         TerrainPiece _neighborLeft;
         TerrainPiece _neighborRight;
         TerrainPiece _neighborBottom;
@@ -60,12 +62,15 @@ namespace SkyDram
             {
                 Debug.LogWarningFormat("with a size of {0},map take huge cost(with {1} vertices),pay attantion that if it is needed to continue do this.", mapSize, heightMapSize);
             }
-            _heightMap = new float[heightMapWidth, heightMapWidth];
             _maxLod = maxLod;
             UnityCppBindings.RegistBinding(terrainInstance, this);
             RegisterTerrianMeshBindings(terrainInstance);
             int[] args = GetInitArgs(Random.Range(0, 5), maxLod, mapSize, 33, 100, 380, 500, 240, 700);
 
+            _heightMap = new float[heightMapWidth, heightMapWidth];
+           /* MapWidth = _heightMap.GetLength(0) ;
+            if (MapWidth % 2 != 0)
+                MapWidth++;*/
             fixed (float* ptr = _heightMap)
             {
                 //传递高度图的首地址
@@ -80,7 +85,7 @@ namespace SkyDram
         }
         public int GetSize()
         {
-            return _heightMap.GetLength(0);
+            return MapWidth;
         }
         public void Load()
         {
@@ -166,6 +171,11 @@ namespace SkyDram
                         //传递高度图的首地址
                         GetTerraniHeightMap(terrainInstance, ptr, arg0, arg1);
                     }*/
+                    _splatMap = new float[_heightMap.GetLength(0), _heightMap.GetLength(1), 2];
+                    fixed (float* ptr = _splatMap)
+                    {
+                        InitTerrainPainter(instaneId, ptr, _splatMap.GetLength(1), 2);
+                    }
                     OnHeightMapLoaded();
                     break;
                 default:
@@ -177,10 +187,10 @@ namespace SkyDram
             terrainData = new TerrainData();
             //地形设置
             int size = _heightMap.GetLength(0);
-            Vector3 terrainSize = new Vector3(size, 1000, size); //地形的大小，最高、最低点的差值
+            Vector3 terrainSize = new Vector3(MapWidth, 1000, MapWidth); //地形的大小，最高、最低点的差值
             Debug.LogFormat("Terrain {0} Size {1}",terrainInstance, terrainSize);
             terrainData.size = terrainSize;
-            terrainData.heightmapResolution = size + 1;
+            terrainData.heightmapResolution = size;
             /* float[,] hxy = new float[size, size];
              for (int x = 0; x < _heightMap.GetLength(0); x++)
              {
@@ -191,6 +201,18 @@ namespace SkyDram
                  }
              }*/
             terrainData.SetHeights(0, 0, _heightMap); //一切都是为了这个方法...
+            var tmp = new SplatPrototype[2];
+            var splat0 = new SplatPrototype();
+            splat0.texture = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/ForestFloor2/forest_floor_2");
+            splat0.normalMap = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/ForestFloor2/forest_floor_2_normal");
+            
+            var splat1 = new SplatPrototype();
+            splat1.texture = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/SolidRock2/solid_rock_2");
+            splat1.normalMap = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/SolidRock2/solid_rock_2_normal");
+            tmp[0] = splat0;
+            tmp[1] = splat1;
+            terrainData.splatPrototypes = tmp;
+            terrainData.SetAlphamaps(0, 0, _splatMap);
             var t = Terrain.CreateTerrainGameObject(terrainData);
             t.name = terrainInstance.ToString();
             terrain = t.GetComponent<Terrain>();

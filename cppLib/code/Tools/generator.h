@@ -182,15 +182,11 @@ namespace generator
 	static inline T clamp(T a, T l, T h)
 	{
 		if (a < l)
-		{
 			return l;
-		}
 		else if (a > h)
 			return  h;
 		else
-		{
 			return a;
-		}
 	}
 	static inline float GetDistance2D(float x, float y, float targetX, float targetY)
 	{

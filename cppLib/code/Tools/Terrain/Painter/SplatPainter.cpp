@@ -3,46 +3,60 @@
 namespace generator
 {
 
-	SplatPainter::SplatPainter()
+	SplatPainter::SplatPainter():
+		m_pAlphaMap(nullptr),
+		m_nAlphaCount(0),
+		m_nSize(0)
 	{
+		m_pBrush = new PainterBrush();
 	}
 
 
 	SplatPainter::~SplatPainter()
 	{
+		safe_delete(m_pBrush);
+	}
+	void SplatPainter::Init(float * alphaMap, int32_t sizeXY, int32_t splatCount)
+	{
+		m_nAlphaCount = splatCount;
+		m_nSize = sizeXY;
+		m_pAlphaMap = alphaMap;
+		m_pBrush->Initilize(BrushStyle::Circle_middle, 5);
+	}
+	void SplatPainter::ResetBrush(int32_t brushSize)
+	{
+		m_pBrush->Initilize(BrushStyle::Circle_middle, brushSize);
 	}
 	//ensure alphaMap has enough space
-	inline void SplatPainter::Normalize(int32_t x, int32_t y, int32_t splatCount, int32_t splatIndex, float * alphaMap)
+	inline void SplatPainter::Normalize(int32_t x, int32_t y, int32_t splatIndex)
 	{
-		if (splatIndex < 0 || splatIndex >= splatCount)
+		if (splatIndex < 0 || splatIndex >= m_nAlphaCount)
 		{
 			return;
 		}
-		if (!alphaMap)
-			return;
 		int	 line = GetSplatMapIndex(x, y, 0, m_nSize, m_nAlphaCount); ;
-		float newAlpha = alphaMap[line + splatIndex];
+		float newAlpha = m_pAlphaMap[line + splatIndex];
 		float totalAlphaOthers = 0;
-		for (int32_t i = 0; i < splatCount; i++)
+		for (int32_t i = 0; i < m_nAlphaCount; i++)
 		{
 			if (i != splatIndex)
-				totalAlphaOthers += alphaMap[line + i];
+				totalAlphaOthers += m_pAlphaMap[line + i];
 		}
 
-		if (totalAlphaOthers > 0.01)
+		if (totalAlphaOthers > 0.01f)
 		{
 			float adjust = (1.0F - newAlpha) / totalAlphaOthers;
-			for (int a = 0; a < splatCount; a++)
+			for (int a = 0; a < m_nAlphaCount; a++)
 			{
 				if (a != splatIndex)
-					alphaMap[line + a] *= adjust;
+					m_pAlphaMap[line + a] *= adjust;
 			}
 		}
 		else
 		{
-			for (int a = 0; a < splatCount; a++)
+			for (int a = 0; a < m_nAlphaCount; a++)
 			{
-				alphaMap[line + a] = a == splatIndex ? 1.0F : 0.0F;
+				m_pAlphaMap[line + a] = a == splatIndex ? 1.0F : 0.0F;
 			}
 		}
 
@@ -69,11 +83,10 @@ namespace generator
 				int xBrushOffset = (xmin + x) - (xCenter - intRadius + intFraction);
 				int yBrushOffset = (ymin + y) - (yCenter - intRadius + intFraction);
 				float brushStrength = m_pBrush->GetStrength(xBrushOffset, yBrushOffset);
-
+				int index = GetSplatMapIndex(y, x, splatIndex, m_nSize, m_nAlphaCount);
 				// Paint with brush
-				float newAlpha = m_pAlphaMap[GetSplatMapIndex(y, x, splatIndex, m_nSize, m_nAlphaCount)] + brushStrength;
-				m_pAlphaMap[GetSplatMapIndex(y,x,splatIndex,m_nSize,m_nAlphaCount)]= newAlpha;
-				Normalize(x, y, splatIndex, splatIndex, m_pAlphaMap);
+				m_pAlphaMap[index] += brushStrength;
+				Normalize(x, y, splatIndex);
 			}
 		}
 	}

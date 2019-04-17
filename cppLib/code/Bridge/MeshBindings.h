@@ -40,6 +40,11 @@ EXPORT_API void STD_CALL StartGenerateOrLoad(int32_t instanceId)
 {
 	generator::Internal_StartGenerateOrLoad(instanceId);
 }
+EXPORT_API void STD_CALL InitTerrainPainter(int32_t instanceId,float * alphaMap,int32_t sizeXy,int32_t splatCount)
+{
+	//LogFormat("InitTerrainPainter addr %d,size %d,count %d,f %f",alphaMap,sizeXy,splatCount,alphaMap[GetSplatMapIndex(0,1,0,sizeXy,splatCount)]);
+	generator::Internal_InitTerrainPainter(instanceId, alphaMap, sizeXy, splatCount);
+}
 
 EXTERN_C_END
 
