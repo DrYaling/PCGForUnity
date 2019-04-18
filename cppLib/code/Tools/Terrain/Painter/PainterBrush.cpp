@@ -1,5 +1,6 @@
 #include "PainterBrush.h"
 #include "generator.h"
+#include "Logger/Logger.h"
 namespace generator
 {
 	PainterBrush::PainterBrush() :m_vStrength(nBrushMinSize*nBrushMinSize)
@@ -34,21 +35,22 @@ namespace generator
 		case generator::BrushStyle::Circle_middle:
 		case generator::BrushStyle::Square_middle:
 		{
-			float minStrength = 0.05f;
+			float minStrength = 0.0f;
 			float middle = size / 2;
-			float radius = size;
+			float radius = size * 0.5f;
 			for (int32_t y = 0; y < size; y++)
 			{
 				for (int32_t x = 0; x < size; x++)
 				{
 					float distance = GetDistance2D(x, y, middle, middle);
-					float value = (1 - distance) / radius;
+					float value = (radius - distance) / radius;
 					value = value <= minStrength ? minStrength : value;
 					m_vStrength[y*size + x] = value;
+					//LogFormat("Brush Strength %f",value);
 				}
 			}
 		}
-			break;
+		break;
 		default:
 			break;
 		}

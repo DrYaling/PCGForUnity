@@ -5,6 +5,7 @@ namespace SkyDram
 {
     static class TerrainConst
     {
+        public const float MaxTerrainHeight = 1000;
         public const int maxVerticesPerMesh = 65000;
         public const int meshTopologyVertice = 0;
         public const int meshTopologyTriangle = 1;
@@ -38,7 +39,7 @@ namespace SkyDram
         {
             Thread t = new Thread(new ThreadStart(() => {
             }));
-            int size = 5;
+            int size = 3;
             int lod = 3;
             var terrain0 = new TerrainPiece(size, lod);
             var terrain1 = new TerrainPiece(size, lod);

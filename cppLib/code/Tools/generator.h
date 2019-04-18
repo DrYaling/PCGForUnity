@@ -32,8 +32,12 @@ static inline float _frandom_f(float min, float max)
 	{
 		return min;
 	}
-	int i(min * 10000), a(max * 10000);
+	int i(min * 10000.f), a(max * 10000.f);
 	return (float)(_irandom(i, a) / 10000.0f);
+}
+static inline bool GetChance(float chance)
+{
+	return _frandom_f(0, 1.0f) <= chance;
 }
 static inline void setRandomSeed(int seed)
 {
@@ -168,8 +172,16 @@ enum class TerrainInitType
 	HeightMap = 0,
 	AlphaMap,
 };
+enum class TerrainSmoothType :int32_t
+{
+	Smooth = 100,//平坦地形
+	Rough = 250,//粗糙地形
+	Sharp//尖锐地形
+};
 #define TERRAIN_GENERATE_VERTICES 0
 #define  MAX_MAP_HEIGHT 1000.0f
+#define TERRAIN_HIGH_NO_GRASS_HEIGHT 550.0f
+#define TERRAIN_LOW_NO_GRASS_HEIGHT 50.0f
 #define GetHeightMapIndex(x,y) x+y*m_nSize
 #define GetSplatMapIndex(x,y,z,sizeY,sizeZ) ((x * sizeY + y) * sizeZ+z) 
 #define generator_clamp(x,low,high) if (x < low) \

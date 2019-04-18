@@ -85,6 +85,29 @@ void SetLogCallBack(int type, CPPLogCallback cb)
 		break;
 	}
 }
+#if WIN32
+DWORD start, stop;
+const char* profilerContent;
+#endif
+void ProfilerStart(const char * content)
+{
+#if WIN32
+	start = GetTickCount();
+	profilerContent = content;
+#endif
+}
+void ProfilerEnd()
+{
+#if WIN32
+	stop = GetTickCount();
+	if (!profilerContent)
+	{
+		profilerContent = "";
+	}
+	LogFormat("%s cost time %d ms",profilerContent, stop - start);
+	profilerContent = nullptr;
+#endif
+}
 int LogContent(LoggerType eType, const char	* fp, int line, const char* func, const char* format, ...)
 {
 	std::lock_guard<std::mutex> lck(_logMtx);

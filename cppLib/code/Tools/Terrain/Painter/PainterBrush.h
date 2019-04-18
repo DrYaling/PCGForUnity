@@ -21,7 +21,9 @@ namespace generator
 		PainterBrush();
 		~PainterBrush();
 		float GetStrength(int32_t xOffset, int32_t yOffset);
-		void Initilize(BrushStyle style,int32_t size);
+		void Initilize(BrushStyle style, int32_t size);
+		int32_t GetBrushSize() { return m_nSize; }
+		static int32_t GetMinBrushSize() { return nBrushMinSize; }
 	private:
 		int32_t m_nSize;
 		int32_t m_nMax;

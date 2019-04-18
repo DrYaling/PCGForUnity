@@ -266,9 +266,9 @@ namespace generator
 
 	void Diamond_Square::Blur()
 	{
-		for (size_t y = 0; y < m_nSize; y++)
+		for (size_t y = 1; y < m_nMax; y++)
 		{
-			for (size_t x = 0; x < m_nSize; x++)
+			for (size_t x = 1; x < m_nMax; x++)
 			{
 				Smooth(x, y);
 			}

@@ -37,6 +37,8 @@ namespace SkyDram
         int terrainInstance = EgineUtils.GetInstanceId();
         float[,] _heightMap;
         float[,,] _splatMap;
+        const int splatMapSize = 512;
+        const int splatCount = 2;
         public int instaneId
         {
             get
@@ -44,7 +46,7 @@ namespace SkyDram
                 return terrainInstance;
             }
         }
-        private int MapWidth = 100;
+        private int MapWidth = 400;
         TerrainPiece _neighborLeft;
         TerrainPiece _neighborRight;
         TerrainPiece _neighborBottom;
@@ -68,9 +70,9 @@ namespace SkyDram
             int[] args = GetInitArgs(Random.Range(0, 5), maxLod, mapSize, 33, 100, 380, 500, 240, 700);
 
             _heightMap = new float[heightMapWidth, heightMapWidth];
-           /* MapWidth = _heightMap.GetLength(0) ;
-            if (MapWidth % 2 != 0)
-                MapWidth++;*/
+            /* MapWidth = _heightMap.GetLength(0) ;
+             if (MapWidth % 2 != 0)
+                 MapWidth++;*/
             fixed (float* ptr = _heightMap)
             {
                 //传递高度图的首地址
@@ -171,11 +173,13 @@ namespace SkyDram
                         //传递高度图的首地址
                         GetTerraniHeightMap(terrainInstance, ptr, arg0, arg1);
                     }*/
-                    _splatMap = new float[_heightMap.GetLength(0), _heightMap.GetLength(1), 2];
+                    _splatMap = new float[splatMapSize, splatMapSize, splatCount];
+                    Debug.LogFormat("TerrainInitilizer splat of terrain {0},{1},{2},{3}", instaneId, _splatMap.GetLength(0), _splatMap.GetLength(1), _splatMap.GetLength(2));
                     fixed (float* ptr = _splatMap)
                     {
-                        InitTerrainPainter(instaneId, ptr, _splatMap.GetLength(1), 2);
+                        InitTerrainPainter(instaneId, ptr, splatMapSize, splatCount);
                     }
+                    Debug.LogFormat("TerrainInitilizer splat of terrain {0},{1},{2},{3}", instaneId, _splatMap.GetLength(0), _splatMap.GetLength(1), _splatMap.GetLength(2));
                     OnHeightMapLoaded();
                     break;
                 default:
@@ -187,32 +191,46 @@ namespace SkyDram
             terrainData = new TerrainData();
             //地形设置
             int size = _heightMap.GetLength(0);
-            Vector3 terrainSize = new Vector3(MapWidth, 1000, MapWidth); //地形的大小，最高、最低点的差值
-            Debug.LogFormat("Terrain {0} Size {1}",terrainInstance, terrainSize);
+            Vector3 terrainSize = new Vector3(MapWidth, TerrainConst.MaxTerrainHeight, MapWidth); //地形的大小，最高、最低点的差值
+            //Debug.LogFormat("Terrain {0} Size {1}", terrainInstance, terrainSize);
             terrainData.size = terrainSize;
-            terrainData.heightmapResolution = size;
-            /* float[,] hxy = new float[size, size];
-             for (int x = 0; x < _heightMap.GetLength(0); x++)
-             {
-                 for (int y = 0; y < _heightMap.GetLength(1); y++)
-                 {
-                     //Debug.LogErrorFormat("height 0 {0}", _heightMap[x, y]);
-                     hxy[x,y] = _heightMap[x, y] / 1000.0f;
-                 }
-             }*/
+            terrainData.heightmapResolution = size + 1;
             terrainData.SetHeights(0, 0, _heightMap); //一切都是为了这个方法...
-            var tmp = new SplatPrototype[2];
+            var tmp = new SplatPrototype[splatCount];
             var splat0 = new SplatPrototype();
             splat0.texture = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/ForestFloor2/forest_floor_2");
             splat0.normalMap = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/ForestFloor2/forest_floor_2_normal");
-            
+
             var splat1 = new SplatPrototype();
             splat1.texture = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/SolidRock2/solid_rock_2");
             splat1.normalMap = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/SolidRock2/solid_rock_2_normal");
             tmp[0] = splat0;
             tmp[1] = splat1;
             terrainData.splatPrototypes = tmp;
+            Debug.LogFormat("splat of terrain {0},{1},{2},{3}",instaneId,_splatMap.GetLength(0),_splatMap.GetLength(1),_splatMap.GetLength(2));
             terrainData.SetAlphamaps(0, 0, _splatMap);
+            int xmin = 0;
+            int xmax = 0;
+            int ymin = 0;
+            int ymax = 0;
+            if (instaneId == 0)
+            {
+                xmin = 1110;
+                xmax = 200;
+                ymin = 500;
+                ymax = 511;
+            }
+            for (int x = xmin; x <= xmax; x++)
+            {
+                for (int y = ymin; y <= ymax; y++)
+                {
+                    //Debug.LogErrorFormat("height of {0} is at x {1},y {2} is  {3}-normalized {4}", instaneId, x, y, terrainData.GetHeight(x, y), _heightMap[y, x]);
+                    for(int i = 0;i<2;i++)
+                    {
+                        Debug.LogFormat("splat x {0},y {1},alpha {2} is {3}",x,y,i,_splatMap[x,y,i]);
+                    }
+                }
+            }
             var t = Terrain.CreateTerrainGameObject(terrainData);
             t.name = terrainInstance.ToString();
             terrain = t.GetComponent<Terrain>();
@@ -225,6 +243,7 @@ namespace SkyDram
         private void SetNeighbors()
         {
             terrain.SetNeighbors(GetNeighbor(TerrainConst.neighborPositionLeft), GetNeighbor(TerrainConst.neighborPositionTop), GetNeighbor(TerrainConst.neighborPositionRight), GetNeighbor(TerrainConst.neighborPositionBottom));
+            terrain.Flush();
         }
         internal void Release()
         {

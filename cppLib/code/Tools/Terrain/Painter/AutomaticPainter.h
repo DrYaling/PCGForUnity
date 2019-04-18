@@ -16,10 +16,13 @@ namespace generator
 		void DrawSplatMap();
 	private:
 		void InitSplatMap();
+		void Paint(int32_t x, int32_t y, int32_t brushSize,float scale);
+		TerrainSmoothType GetTerrainStateNear(int32_t x, int32_t y,float height);
 	private:
 		Painter * m_pPainter;
 		float* m_pHeightMap;
-		int32_t m_nHeightMapSize;
+		int32_t m_nSize;//height map size
+		int32_t m_nMax;
 	};
 }
 #endif

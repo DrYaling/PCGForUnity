@@ -60,7 +60,7 @@ float GetChangeF(char from, char to)
 		return 0;
 	}
 }
-bool GetChange(char from, char to)
+bool GetChance(char from, char to)
 {
 	float chance = _frandom(0, 1);
 	return chance <= GetChangeF(from, to);
@@ -170,7 +170,7 @@ static bool IFlushGen(char prevGenV, std::string::iterator& headItr, const std::
 			return false;
 
 		//caculate if we continue
-		if (GetChange(prevGenV, c))
+		if (GetChance(prevGenV, c))
 		{
 			genList.push_back(tmp);
 			genList.push_back(c);
@@ -185,7 +185,7 @@ static bool IFlushGen(char prevGenV, std::string::iterator& headItr, const std::
 	else if (isvariables(tmp))
 	{
 		//caculate if we continue
-		if (GetChange(prevGenV, tmp))
+		if (GetChance(prevGenV, tmp))
 		{
 			genList.push_back(tmp);
 		}
@@ -213,7 +213,7 @@ static bool IFlushGen(char prevGenV, std::string::iterator& headItr, const std::
 		else if (isvariables(*headItr))
 		{
 			//caculate if we continue
-			if (GetChange(prevGenV, *headItr))
+			if (GetChance(prevGenV, *headItr))
 			{
 				genList.push_back(tmp);
 				genList.push_back(*headItr);
@@ -234,7 +234,7 @@ static bool IFlushGen(char prevGenV, std::string::iterator& headItr, const std::
 			if (isvariables(*headItr))
 			{
 				//caculate if we continue
-				if (GetChange(prevGenV, *headItr))
+				if (GetChance(prevGenV, *headItr))
 				{
 					genList.push_back(tmp);
 					genList.push_back(*(headItr - 1));

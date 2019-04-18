@@ -51,6 +51,8 @@ extern "C"
 	void printStackTrace(void);
 	void ClearLogger(void);
 	void SetLogCallBack(int type, CPPLogCallback cb);
+	void ProfilerStart(const char* content);
+	void ProfilerEnd();
 
 #ifdef __cplusplus
 }
