@@ -1,11 +1,12 @@
 #include "Diamond_Square.h"
 #include "Mesh/UnityMesh.h"
 #include "Logger/Logger.h"
+#include "Noises/PerlinNoise.h"
 namespace generator
 {
 	static G3D::Vector3 vector3_zero(0, 0, 0);
 	using namespace G3D;
-	Diamond_Square::Diamond_Square(int32_t seed, int32_t I, float H, /*std::vector<float>&*/float* heightMap,void* owner) :
+	Diamond_Square::Diamond_Square(int32_t seed, int32_t I, float H, /*std::vector<float>&*/float* heightMap, void* owner) :
 		m_nI(I),
 		m_nH(H / 100.0f),
 		m_bIsFinished(false),
@@ -26,7 +27,7 @@ namespace generator
 		m_cbProcessHandler = nullptr;
 		m_vHeightMap = nullptr;
 	}
-	void Diamond_Square::Start(const float * corner, const int32_t size, std::function<void(void)> cb)
+	void Diamond_Square::Start(const float * corner, const int32_t size, int32_t mapWidth, std::function<void(void)> cb)
 	{
 		m_bIsFinished = false;
 		if (size != 4 || nullptr == corner)
@@ -39,6 +40,11 @@ namespace generator
 		{
 
 			return;
+		}
+		m_fDeltaSize = mapWidth / (float)m_nSize;
+		if (m_fDeltaSize < 0.001f)
+		{
+			m_fDeltaSize = -0.01f;
 		}
 		auto itr = m_mExtendedMap.find(0);
 		auto end = m_mExtendedMap.end();
@@ -125,6 +131,7 @@ namespace generator
 			Iprocess = pro;
 		}
 		//LogFormat("ds over,total size %d,should be %d", genLen, m_nSize*m_nSize - 4);
+		Blur(m_fDeltaSize > 0);
 		Blur();
 		m_bIsFinished = true;
 		if (cb)
@@ -158,7 +165,7 @@ namespace generator
 			p[1] = GetHeight(x, y - size);// m_vHeightMap[m_nSize * (y - size)];
 			p[2] = GetHeight(size, y);// m_vHeightMap[m_nSize*y + size];
 			p[3] = GetHeight(x, y + size);// m_vHeightMap[m_nSize*(y + size)];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x - size, y, NeighborType::neighborPositionLeft,p[4],m_pOwner))
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x - size, y, NeighborType::neighborPositionLeft, p[4], m_pOwner))
 			{
 				p[0] = p[4];
 			}
@@ -264,12 +271,19 @@ namespace generator
 		return _frandom_f(-h, h);
 	}
 
-	void Diamond_Square::Blur()
+	void Diamond_Square::Blur(bool perlin)
 	{
 		for (size_t y = 1; y < m_nMax; y++)
 		{
 			for (size_t x = 1; x < m_nMax; x++)
 			{
+				if (perlin)
+				{
+					float height = GetHeight(x, y);
+					float noise = PerlinNoise::noise(x*m_fDeltaSize, y*m_fDeltaSize, height);
+					generator_clamp(noise, -0.5f, 0.5f);
+					SetHeight(x, y, height*(1 + noise));
+				}
 				Smooth(x, y);
 			}
 		}

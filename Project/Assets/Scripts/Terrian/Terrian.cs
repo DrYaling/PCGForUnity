@@ -39,7 +39,7 @@ namespace SkyDram
         {
             Thread t = new Thread(new ThreadStart(() => {
             }));
-            int size = 3;
+            int size = 5;
             int lod = 3;
             var terrain0 = new TerrainPiece(size, lod);
             var terrain1 = new TerrainPiece(size, lod);

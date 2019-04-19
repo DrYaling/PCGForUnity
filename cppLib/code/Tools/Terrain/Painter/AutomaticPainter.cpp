@@ -145,25 +145,25 @@ namespace generator
 			switch (type)
 			{
 			case TerrainSmoothType::Smooth:
-				if (alpha0 > 0.35f)
+				if (alpha0 > 0.15f)
 				{
-					alpha0_change = GetChance(0.75f);
+					alpha0_change = GetChance(0.85f);
 				}
 				else
 				{
-					alpha0 = alpha0 > 0.1f ? 0.3f : 0.05f;
+					alpha0 = alpha0 > 0.1f ? 0.3f : 0.15f;
 					alpha0_change = GetChance(alpha0);
 				}
 				break;
 			case TerrainSmoothType::Rough:
 			{
-				if (alpha0 > 0.55f)
+				if (alpha0 > 0.25f)
 				{
 					alpha0_change = GetChance(0.45f);
 				}
 				else
 				{
-					alpha0 = alpha0 > 0.3 ? 0.65 : 0.45;
+					alpha0 = alpha0 > 0.125 ? 0.65 : 0.45;
 					alpha0_change = GetChance(alpha0);
 				}
 			}

@@ -311,7 +311,7 @@ namespace generator {
 		float cornor[] = { m_vInitilizeArgs[mesh_arg_h0],m_vInitilizeArgs[mesh_arg_h1],m_vInitilizeArgs[mesh_arg_h2],m_vInitilizeArgs[mesh_arg_h3] };
 
 		InitVerticesWithNeighbor();
-		m_pGenerator->Start(cornor, 4);
+		m_pGenerator->Start(cornor, 4, m_vInitilizeArgs[mesh_arg_mapWidth]);
 		//LogErrorFormat("cpp height 0 %f,1 %f",m_vHeightMap[0], m_vHeightMap[m_nSize+1]);
 		m_cbMeshInitilizer(m_nInstanceId, (int32_t)TerrainInitType::HeightMap, m_nSize, m_nSize, m_nheightMapSize);
 	}

@@ -20,6 +20,7 @@ namespace SkyDram
 
         [DllImport(dllName)]
         extern static void RegisterTerrianMeshBindings(int ins);
+        //if mapSize > 0 use perlin noise
         [DllImport(dllName)]
         extern static unsafe void InitTerrianMesh(int ins, [In]int[] args, int argsize, [In, Out]float* heightMap, int heightMapSize, MeshInitilizer cb);
         [DllImport(dllName)]
@@ -58,17 +59,34 @@ namespace SkyDram
         public unsafe TerrainPiece(int mapSize, int maxLod = 3, bool useUV = false)
         {
             //Debug.LogFormat("mesh map size {0} ,maxLod {1}", mapSize, maxLod);
+            //perfect low resolution mesh size
+            switch(mapSize)
+            {
+                case 1:
+                    MapWidth = 16;
+                    break;
+                case 2:
+                    mapSize = 32;
+                    break;
+                case 3:
+                    MapWidth = 64;
+                    break;
+                case 4:
+                    MapWidth = 128;
+                    break;
+                case 5:
+                    MapWidth = 512;
+                    break;
+                default:
+                    Debug.LogErrorFormat("Error MapSize {0} not supported",mapSize);
+                    return;
+            }
             int heightMapWidth = (int)(Mathf.Pow(2, 2 * mapSize) + 1);
             int heightMapSize = heightMapWidth * heightMapWidth;
-            if (mapSize > 4)
-            {
-                Debug.LogWarningFormat("with a size of {0},map take huge cost(with {1} vertices),pay attantion that if it is needed to continue do this.", mapSize, heightMapSize);
-            }
             _maxLod = maxLod;
             UnityCppBindings.RegistBinding(terrainInstance, this);
             RegisterTerrianMeshBindings(terrainInstance);
-            int[] args = GetInitArgs(Random.Range(0, 5), maxLod, mapSize, 33, 100, 380, 500, 240, 700);
-
+            int[] args = GetInitArgs(Random.Range(0, 5), maxLod, mapSize, 33, -1, 380, 500, 240, 700);
             _heightMap = new float[heightMapWidth, heightMapWidth];
             /* MapWidth = _heightMap.GetLength(0) ;
              if (MapWidth % 2 != 0)
@@ -209,7 +227,7 @@ namespace SkyDram
             terrainData.splatPrototypes = tmp;
             Debug.LogFormat("splat of terrain {0},{1},{2},{3}",instaneId,_splatMap.GetLength(0),_splatMap.GetLength(1),_splatMap.GetLength(2));
             terrainData.SetAlphamaps(0, 0, _splatMap);
-            int xmin = 0;
+           /* int xmin = 0;
             int xmax = 0;
             int ymin = 0;
             int ymax = 0;
@@ -230,7 +248,7 @@ namespace SkyDram
                         Debug.LogFormat("splat x {0},y {1},alpha {2} is {3}",x,y,i,_splatMap[x,y,i]);
                     }
                 }
-            }
+            }*/
             var t = Terrain.CreateTerrainGameObject(terrainData);
             t.name = terrainInstance.ToString();
             terrain = t.GetComponent<Terrain>();

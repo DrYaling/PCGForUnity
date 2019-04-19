@@ -39,7 +39,7 @@ namespace generator
 				m_mExtendedMap.insert(std::make_pair(key, fy));
 			}
 		}
-		void Start(const float* corner, const int32_t size = 4, std::function<void(void)> cb = nullptr);
+		void Start(const float* corner, const int32_t size = 4,int32_t mapWidth = 10, std::function<void(void)> cb = nullptr);
 		void SetGetVerticeCallBack(GetNeighborVertice cb) { m_cbGetNeighborVertice = cb; }
 		inline float GetHeight(int x, int y) {
 			generator_clamp(x, 0, m_nMax);
@@ -82,7 +82,7 @@ namespace generator
 		{
 			return fabsf(v.x) > 0.0001f && fabsf(v.y) > 0.0001f && fabsf(v.z) > 0.0001f;
 		}
-		void Blur();
+		void Blur(bool perlin = false);
 		void Smooth(int32_t x, int32_t y)
 		{
 			float h = 0.0F;
@@ -110,6 +110,7 @@ namespace generator
 		float m_nH;//´Ö²Ú¶È
 		int32_t	m_nI;//¼¶Êý
 		int32_t m_nMax;
+		float m_fDeltaSize;
 		bool m_bIsFinished;
 		bool m_bEdgeExtended;
 	};
