@@ -109,13 +109,14 @@ namespace generator
 			{
 				for (int32_t a = 0; a < count; a++)
 				{
-					map[GetSplatMapIndex(x, y, a, size, count)] = a == 1 ? 1.0f : 0;
+					map[GetSplatMapIndex(x, y, a, size, count)] = a == 0 ? 1.0f : 0;
 				}
 			}
 		}
 	}
 	void AutomaticPainter::Paint(int32_t x, int32_t y, int32_t brushSize, float scale)
 	{
+		return;
 		SplatPainter* painter = dynamic_cast<SplatPainter*>(m_pPainter);
 		int heightMapX = 0, heightMapY = 0;
 		heightMapX = (int)(scale*x);
@@ -151,7 +152,7 @@ namespace generator
 				}
 				else
 				{
-					alpha0 = alpha0 > 0.1f ? 0.3f : 0.15f;
+					alpha0 = alpha0 > 0.1f ? 0.65f : 0.55f;
 					alpha0_change = GetChance(alpha0);
 				}
 				break;
@@ -176,7 +177,7 @@ namespace generator
 				}
 				else
 				{
-					alpha0 = alpha0 > 0.2 ? 0.15 : 0.05;
+					alpha0 = alpha0 > 0.15 ? 0.45 : 0.35;
 					alpha0_change = GetChance(alpha0);
 				}
 			}
@@ -192,12 +193,12 @@ namespace generator
 			}
 			else
 			{
-				painter->SetBaseBrushStrength(1.0f);
-				painter->Paint(x, y, 1);
+				//painter->SetBaseBrushStrength(1.0f);
+				//painter->Paint(x, y, 0);
 			}
 			/*if (type == TerrainSmoothType::Smooth && x % 2 == 0)
 			{
-			LogFormat("smooth x %d,y %d is %f,change %f", x, y, painter->GetAlpha(x, y, 0), alpha0_change);;
+				LogFormat("smooth x %d,y %d is %f,change %d", x, y, painter->GetAlpha(x, y, 0), alpha0_change);;
 			}*/
 		}
 	}

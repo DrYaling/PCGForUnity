@@ -12,6 +12,7 @@ namespace generator
 	}
 	float PainterBrush::GetStrength(int32_t xOffset, int32_t yOffset)
 	{
+		return 1.0f;
 		generator_clamp(xOffset, 0, m_nMax);
 		generator_clamp(yOffset, 0, m_nMax);
 		return m_vStrength[yOffset*m_nSize + xOffset];
@@ -26,6 +27,8 @@ namespace generator
 			memset(m_vStrength.data(), 1, sizeof(float)*m_vStrength.size());
 			return;
 		}
+		memset(m_vStrength.data(), 1, sizeof(float)*m_vStrength.size());
+		return;
 		switch (style)
 		{
 		case generator::BrushStyle::Circle_ful:

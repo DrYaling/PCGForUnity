@@ -227,25 +227,28 @@ namespace SkyDram
             terrainData.splatPrototypes = tmp;
             Debug.LogFormat("splat of terrain {0},{1},{2},{3}",instaneId,_splatMap.GetLength(0),_splatMap.GetLength(1),_splatMap.GetLength(2));
             terrainData.SetAlphamaps(0, 0, _splatMap);
-           /* int xmin = 0;
+            /*int xmin = 0;
             int xmax = 0;
             int ymin = 0;
             int ymax = 0;
             if (instaneId == 0)
             {
-                xmin = 1110;
-                xmax = 200;
-                ymin = 500;
+                xmin = 400;
+                xmax = 511;
+                ymin = 400;
                 ymax = 511;
             }
             for (int x = xmin; x <= xmax; x++)
             {
                 for (int y = ymin; y <= ymax; y++)
                 {
+                    float d = 0;
                     //Debug.LogErrorFormat("height of {0} is at x {1},y {2} is  {3}-normalized {4}", instaneId, x, y, terrainData.GetHeight(x, y), _heightMap[y, x]);
-                    for(int i = 0;i<2;i++)
+                    for(int i = 0;i<1;i++)
                     {
-                        Debug.LogFormat("splat x {0},y {1},alpha {2} is {3}",x,y,i,_splatMap[x,y,i]);
+                        d += _splatMap[x, y, i];
+                        if(d > 0.1f)
+                            Debug.LogFormat("splat x {0},y {1},alpha {2}", x, y, d);
                     }
                 }
             }*/
