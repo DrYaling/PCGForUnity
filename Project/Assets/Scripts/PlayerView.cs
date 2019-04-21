@@ -1,64 +1,18 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-class PlayerCollider : MonoBehaviour
+class PlayerMoveTranslater : MonoBehaviour
 {
-    public PlayerView view;
+    CharacterController controller;
     bool isTouchedTerrain;
     private void Awake()
     {
+        controller = gameObject.AddComponent<CharacterController>();
     }
-    private void OnCollisionEnter(Collision collision)
+    public void Move(Vector3 offset)
     {
-        /*if (!view.isMoving)
-            return;*/
-        if (collision.gameObject.GetComponent<Terrain>() != null)
-        {
-            isTouchedTerrain = true;
-        }
-    }
-    private void OnCollisionStay(Collision collision)
-    {
-        /*if (!view.isMoving)
-            return;*/
-        //         if (collision.gameObject.GetComponent<Terrain>() != null)
-        //         {
-        //             transform.position += Vector3.up * 0.01f;
-        //         }
-    }
-    private void OnCollisionExit(Collision collision)
-    {
-        /*if (!view.isMoving)
-            return;*/
-        if (collision.gameObject.GetComponent<Terrain>() != null)
-        {
-            isTouchedTerrain = false;
-        }
-    }
-    private void Update()
-    {
-        //if (!view.isMoving)
-        //    return;
-        if (!isTouchedTerrain)
-        {
-            var dir = Vector3.down * 0.1f;
-            RaycastHit hit;
-            if (Physics.Raycast(transform.position, dir, out hit, view.Height))
-            {
-                if (hit.collider.gameObject.GetComponent<Terrain>() != null)
-                {
-                    transform.position -= dir;
-                    return;
-                }
-            }
-            else if (Physics.Raycast(transform.position, -dir, out hit, 500))
-            {
-                transform.position = hit.point + view.HeightV;
-                return;
-            }
-            transform.position += dir;
-        }
+        controller.Move(offset);
+        controller.Move(Vector3.down);
     }
 }
 public class PlayerView : MonoBehaviour
@@ -79,8 +33,8 @@ public class PlayerView : MonoBehaviour
     PlayerState currentState;
     PlayerState prevState = PlayerState.Stand;
     bool moveForward = false;
-    public bool jumpUp = false;
-    public bool isMoving = false;
+    bool jumpUp = false;
+    bool isMoving = false;
     public GameObject Player
     {
         get; private set;
@@ -95,6 +49,7 @@ public class PlayerView : MonoBehaviour
         get;
         private set;
     }
+    PlayerMoveTranslater translater;
     // Use this for initialization
     void Start()
     {
@@ -107,11 +62,11 @@ public class PlayerView : MonoBehaviour
         collider.height = 0.1f;
         collider.radius = 1f;
         controller.SetInteger(stateName, 0);
-        player.AddComponent<PlayerCollider>().view = this;
+        translater = player.AddComponent<PlayerMoveTranslater>();
         var rig = player.AddComponent<Rigidbody>();
         Height = 0.5f;
         HeightV = new Vector3(0, 0.5f, 0);
-        rig.useGravity = false;
+        rig.useGravity = true;
         Player = player;
         rig.constraints = RigidbodyConstraints.FreezeAll;
         tick = 0;
@@ -171,7 +126,7 @@ public class PlayerView : MonoBehaviour
             tick += Time.deltaTime;
             Vector3 offset = Vector3.up * moveSpeed * (jumpUp ? 1 : -1) * Time.deltaTime / 5f;
             offset = player.transform.TransformVector(offset);
-            player.transform.position += offset;
+            translater.Move(offset);
             if (tick > 1.0f)
             {
                 tick = 0f;
@@ -190,7 +145,7 @@ public class PlayerView : MonoBehaviour
         {
             Vector3 offset = Vector3.forward * moveSpeed * (moveForward ? 1 : -1) * Time.deltaTime;
             offset = player.transform.TransformVector(offset);
-            player.transform.position += offset;
+            translater.Move(offset);
         }
     }
     private void Stand()

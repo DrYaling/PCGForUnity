@@ -72,22 +72,10 @@ int main()
 	thr.detach();
 	sleep(4000);
 */
-	int afp[3][2][3] = { 0 };
-	afp[1][1][1] = 1;
-	afp[0][0][0] = 2;
-	afp[2][0][2] = 3;
-	afp[2][1][2] = 5;
-	int* fp = &afp[0][0][0];
-	for (int i = 0; i < 3; i++)
+	G3D::Vector3 p(0.1f, 0.f, 1.2f);
+	for (size_t i = 0; i < 3; i++)
 	{
-		for (size_t j = 0; j < 2; j++)
-		{
-			for (size_t k = 0; k < 3; k++)
-			{
-				LogFormat("fp %d %d %d-%d is %d", i, j, k, (i * 2 + j) * 3 + k, fp[(i * 2 + j) * 3+k]);
-			}
-
-		}
+		LogFormat("%d", (uint32&)p[i]);
 	}
 	std::vector<int> list;
 	list.resize(100);
