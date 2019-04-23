@@ -109,14 +109,13 @@ namespace generator
 			{
 				for (int32_t a = 0; a < count; a++)
 				{
-					map[GetSplatMapIndex(x, y, a, size, count)] = a == 0 ? 1.0f : 0;
+					map[GetSplatMapIndex(y, x, a, size, count)] = a == 1 ? 1.0f : 0;
 				}
 			}
 		}
 	}
 	void AutomaticPainter::Paint(int32_t x, int32_t y, int32_t brushSize, float scale)
 	{
-		return;
 		SplatPainter* painter = dynamic_cast<SplatPainter*>(m_pPainter);
 		int heightMapX = 0, heightMapY = 0;
 		heightMapX = (int)(scale*x);
@@ -141,31 +140,50 @@ namespace generator
 			//if rough nearby,paint random grass and rock
 			//if sharp nearby,paint rock with high level
 			auto type = GetTerrainStateNear(heightMapX, heightMapY, height);
-			float alpha0 = painter->GetAlpha(x - brushSize, y - brushSize, 0);
-			bool alpha0_change = false;
-			switch (type)
+			float alpha0 = painter->GetAlpha(x, y, 0);
+			bool alpha0_chance = true;
+			int neighborCnt = 0;
+			for (int32_t x0 = -brushSize;x0<= brushSize;x0+=brushSize)
+			{
+				for (int32_t y0 = -brushSize;y0<= brushSize;y0 += brushSize)
+				{
+					if (x == x0 && y == y0)
+					{
+						continue;
+					}
+					if (painter->GetAlpha(x, y, 0)>0.5f)
+					{
+						neighborCnt++;
+					}
+				}
+			}
+			if (neighborCnt < 5)
+			{
+				alpha0_chance = GetChance(0.5f);
+			}
+			/*switch (type)
 			{
 			case TerrainSmoothType::Smooth:
 				if (alpha0 > 0.15f)
 				{
-					alpha0_change = GetChance(0.85f);
+					alpha0_chance = GetChance(0.85f);
 				}
 				else
 				{
 					alpha0 = alpha0 > 0.1f ? 0.65f : 0.55f;
-					alpha0_change = GetChance(alpha0);
+					alpha0_chance = GetChance(alpha0);
 				}
 				break;
 			case TerrainSmoothType::Rough:
 			{
 				if (alpha0 > 0.25f)
 				{
-					alpha0_change = GetChance(0.45f);
+					alpha0_chance = GetChance(0.45f);
 				}
 				else
 				{
 					alpha0 = alpha0 > 0.125 ? 0.65 : 0.45;
-					alpha0_change = GetChance(alpha0);
+					alpha0_chance = GetChance(alpha0);
 				}
 			}
 			break;
@@ -173,20 +191,20 @@ namespace generator
 			{
 				if (alpha0 > 0.85f)
 				{
-					alpha0_change = GetChance(0.45f);
+					alpha0_chance = GetChance(0.45f);
 				}
 				else
 				{
 					alpha0 = alpha0 > 0.15 ? 0.45 : 0.35;
-					alpha0_change = GetChance(alpha0);
+					alpha0_chance = GetChance(alpha0);
 				}
 			}
 			break;
 			default:
 				break;
-			}
+			}*/
 
-			if (alpha0_change)
+			if (alpha0_chance)
 			{
 				painter->SetBaseBrushStrength(1);
 				painter->Paint(x, y, 0);

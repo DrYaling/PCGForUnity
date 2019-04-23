@@ -8,6 +8,7 @@ class PlayerMoveTranslater : MonoBehaviour
     private void Awake()
     {
         controller = gameObject.AddComponent<CharacterController>();
+        controller.center = Vector3.up;
     }
     public void Move(Vector3 offset)
     {
@@ -57,18 +58,15 @@ public class PlayerView : MonoBehaviour
         player.transform.SetParent(null, false);
         player.transform.position = new Vector3(100, 300, 100);
         controller = player.GetComponent<Animator>();
-        var collider = player.AddComponent<CapsuleCollider>();
-        collider.center = Vector3.zero;
-        collider.height = 0.1f;
-        collider.radius = 1f;
+
         controller.SetInteger(stateName, 0);
         translater = player.AddComponent<PlayerMoveTranslater>();
-        var rig = player.AddComponent<Rigidbody>();
+        //var rig = player.AddComponent<Rigidbody>();
         Height = 0.5f;
         HeightV = new Vector3(0, 0.5f, 0);
-        rig.useGravity = true;
+        //rig.useGravity = true;
         Player = player;
-        rig.constraints = RigidbodyConstraints.FreezeAll;
+        //rig.constraints = RigidbodyConstraints.FreezeAll;
         tick = 0;
         currentState = PlayerState.Stand;
         Camera.main.transform.SetParent(player.transform, false);

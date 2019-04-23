@@ -66,7 +66,7 @@ namespace SkyDram
                     MapWidth = 16;
                     break;
                 case 2:
-                    mapSize = 32;
+                    MapWidth = 32;
                     break;
                 case 3:
                     MapWidth = 64;
@@ -218,24 +218,25 @@ namespace SkyDram
             var splat0 = new SplatPrototype();
             splat0.texture = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/ForestFloor2/forest_floor_2");
             splat0.normalMap = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/ForestFloor2/forest_floor_2_normal");
+            splat0.smoothness = 0.5f;
 
             var splat1 = new SplatPrototype();
             splat1.texture = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/SolidRock2/solid_rock_2");
             splat1.normalMap = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/SolidRock2/solid_rock_2_normal");
+            splat1.smoothness = 0.5f;
             tmp[0] = splat0;
             tmp[1] = splat1;
             terrainData.splatPrototypes = tmp;
             Debug.LogFormat("splat of terrain {0},{1},{2},{3}",instaneId,_splatMap.GetLength(0),_splatMap.GetLength(1),_splatMap.GetLength(2));
-            terrainData.SetAlphamaps(0, 0, _splatMap);
             /*int xmin = 0;
             int xmax = 0;
             int ymin = 0;
             int ymax = 0;
             if (instaneId == 0)
             {
-                xmin = 400;
+                xmin = 300;
                 xmax = 511;
-                ymin = 400;
+                ymin = 300;
                 ymax = 511;
             }
             for (int x = xmin; x <= xmax; x++)
@@ -244,14 +245,21 @@ namespace SkyDram
                 {
                     float d = 0;
                     //Debug.LogErrorFormat("height of {0} is at x {1},y {2} is  {3}-normalized {4}", instaneId, x, y, terrainData.GetHeight(x, y), _heightMap[y, x]);
-                    for(int i = 0;i<1;i++)
+                    / *for(int i = 0;i<1;i++)
                     {
                         d += _splatMap[x, y, i];
                         if(d > 0.1f)
                             Debug.LogFormat("splat x {0},y {1},alpha {2}", x, y, d);
-                    }
+                    }* /
+                    //_splatMap[x, y, 0] = 0.67f;
+                    //_splatMap[x, y, 1] = 0.33f;
+                    d += _splatMap[x, y, 0];
+                    d += _splatMap[x, y, 1];
+                    if (d > 1f)
+                        Debug.LogFormat("splat x {0},y {1},alpha {2}", x, y, d);
                 }
             }*/
+            terrainData.SetAlphamaps(0, 0, _splatMap);
             var t = Terrain.CreateTerrainGameObject(terrainData);
             t.name = terrainInstance.ToString();
             terrain = t.GetComponent<Terrain>();

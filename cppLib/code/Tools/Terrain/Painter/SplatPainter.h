@@ -16,7 +16,7 @@ namespace generator
 		~SplatPainter();
 		void Init(float* alphaMap, int32_t sizeXY, int32_t splatCount);
 		void ResetBrush(int32_t brushSize);
-		inline void Normalize(int32_t x, int32_t y, int32_t splatIndex);
+		inline void Normalize(int32_t x, int32_t y,float strength, int32_t splatIndex);
 		void Paint(int xCenter, int yCenter, int splatIndex);
 		float* GetAlphaMap() { return m_pAlphaMap; }
 		int32_t GetAlphaCount() { return m_nAlphaCount; }
@@ -40,7 +40,7 @@ namespace generator
 			}
 			generator_clamp(x, 0, m_nSize - 1);
 			generator_clamp(y, 0, m_nSize - 1);
-			return m_pAlphaMap[GetSplatMapIndex(x, y, splatIndex, m_nSize, m_nAlphaCount)];
+			return m_pAlphaMap[GetSplatMapIndex(y, x, splatIndex, m_nSize, m_nAlphaCount)];
 		}
 	private:
 		PainterBrush * m_pBrush;

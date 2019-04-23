@@ -183,7 +183,7 @@ enum class TerrainSmoothType :int32_t
 #define TERRAIN_HIGH_NO_GRASS_HEIGHT 550.0f
 #define TERRAIN_LOW_NO_GRASS_HEIGHT 50.0f
 #define GetHeightMapIndex(x,y) x+y*m_nSize
-#define GetSplatMapIndex(x,y,z,sizeY,sizeZ) ((x * sizeY + y) * sizeZ+z) 
+#define GetSplatMapIndex(x,y,z,size,sizeAlpha) ((x * size + y) * sizeAlpha+z) 
 #define generator_clamp(x,low,high) if (x < low) \
 		x = low; \
 	else if (x > high)\

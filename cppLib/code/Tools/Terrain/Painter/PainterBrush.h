@@ -28,7 +28,7 @@ namespace generator
 		int32_t m_nSize;
 		int32_t m_nMax;
 		std::vector<float> m_vStrength;
-		static const int nBrushMinSize = 3;
+		static const int nBrushMinSize = 1;
 	};
 
 

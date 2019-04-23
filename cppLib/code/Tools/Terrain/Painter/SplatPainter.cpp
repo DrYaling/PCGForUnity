@@ -22,17 +22,18 @@ namespace generator
 		m_nAlphaCount = splatCount;
 		m_nSize = sizeXY;
 		m_pAlphaMap = alphaMap;
-		m_pBrush->Initilize(BrushStyle::Circle_middle, 5);
+		m_pBrush->Initilize(BrushStyle::Circle_middle, 1);
 	}
 	void SplatPainter::ResetBrush(int32_t brushSize)
 	{
-		m_pBrush->Initilize(BrushStyle::Circle_middle, brushSize);
+		m_pBrush->Initilize(BrushStyle::Circle_middle, 1);
 	}
 	//ensure alphaMap has enough space
-	inline void SplatPainter::Normalize(int32_t x, int32_t y, int32_t splatIndex)
+	inline void SplatPainter::Normalize(int32_t x, int32_t y, float newAlpha, int32_t splatIndex)
 	{
-		int	 line = GetSplatMapIndex(x, y, 0, m_nSize, m_nAlphaCount); ;
-		float newAlpha = m_pAlphaMap[line + splatIndex];
+		int	 line = GetSplatMapIndex(y, x, 0, m_nSize, m_nAlphaCount); ;
+		generator_clamp(newAlpha,0,1.0f);
+		m_pAlphaMap[line + splatIndex] = newAlpha;
 		float totalAlphaOthers = 0;
 		for (int32_t i = 0; i < m_nAlphaCount; i++)
 		{
@@ -45,7 +46,9 @@ namespace generator
 			for (int a = 0; a < m_nAlphaCount; a++)
 			{
 				if (a != splatIndex)
+				{
 					m_pAlphaMap[line + a] *= adjust;
+				}
 			}
 		}
 		else
@@ -55,7 +58,6 @@ namespace generator
 				m_pAlphaMap[line + a] = a == splatIndex ? 1.0F : 0.0F;
 			}
 		}
-
 	}
 	void SplatPainter::Paint(int xCenter, int yCenter, int splatIndex)
 	{
@@ -87,10 +89,12 @@ namespace generator
 				float brushStrength = m_pBrush->GetStrength(xBrushOffset, yBrushOffset)*m_fBrushStrength;
 				int index = GetSplatMapIndex(ry, rx, splatIndex, m_nSize, m_nAlphaCount);
 				// Paint with brush
-				m_pAlphaMap[index] += brushStrength;
-				m_pAlphaMap[index] =generator::clamp<float>(m_pAlphaMap[index], 0, 1);
-				Normalize(rx, ry, splatIndex);
-				//LogFormat("alpha %d at x %d,y %d,index %d,str %f,is %f",splatIndex,x,y,index,brushStrength,m_pAlphaMap[index]);
+				Normalize(rx, ry, m_pAlphaMap[index] += brushStrength, splatIndex);
+				/*if (splatIndex == 0)
+				{
+					int other = 1;
+					LogFormat("alpha %d at x %d,y %d,index %d,str %f,is %f,other %d index %d,alpha %f", splatIndex, rx, ry, index, brushStrength, m_pAlphaMap[index], other, GetSplatMapIndex(ry, rx, other, m_nSize, m_nAlphaCount), m_pAlphaMap[GetSplatMapIndex(ry, rx, other, m_nSize, m_nAlphaCount)]);
+				}*/
 			}
 		}
 	}
