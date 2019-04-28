@@ -76,9 +76,9 @@ namespace generator
 		int height = ymax - ymin;
 		int	 nMax = m_nSize - 1;
 		int rx, ry;
-		for (int y = 0; y < height; y++)
+		for (int x = 0; x < width; x++)
 		{
-			for (int x = 0; x < width; x++)
+			for (int y = 0; y < height; y++)
 			{
 				int xBrushOffset = (xmin + x) - (xCenter - intRadius + intFraction);
 				int yBrushOffset = (ymin + y) - (yCenter - intRadius + intFraction);
@@ -92,8 +92,8 @@ namespace generator
 				Normalize(rx, ry, m_pAlphaMap[index] += brushStrength, splatIndex);
 				/*if (splatIndex == 0)
 				{
-					int other = 1;
-					LogFormat("alpha %d at x %d,y %d,index %d,str %f,is %f,other %d index %d,alpha %f", splatIndex, rx, ry, index, brushStrength, m_pAlphaMap[index], other, GetSplatMapIndex(ry, rx, other, m_nSize, m_nAlphaCount), m_pAlphaMap[GetSplatMapIndex(ry, rx, other, m_nSize, m_nAlphaCount)]);
+				int other = 1;
+				LogFormat("alpha %d at x %d,y %d,index %d,str %f,is %f,other %d index %d,alpha %f", splatIndex, rx, ry, index, brushStrength, m_pAlphaMap[index], other, GetSplatMapIndex(ry, rx, other, m_nSize, m_nAlphaCount), m_pAlphaMap[GetSplatMapIndex(ry, rx, other, m_nSize, m_nAlphaCount)]);
 				}*/
 			}
 		}

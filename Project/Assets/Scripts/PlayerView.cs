@@ -56,7 +56,7 @@ public class PlayerView : MonoBehaviour
     {
         player = GameObject.Instantiate(Resources.Load<GameObject>("PlayerModel/Player"));
         player.transform.SetParent(null, false);
-        player.transform.position = new Vector3(100, 300, 100);
+        player.transform.position = new Vector3(100, 400, 100);
         controller = player.GetComponent<Animator>();
 
         controller.SetInteger(stateName, 0);

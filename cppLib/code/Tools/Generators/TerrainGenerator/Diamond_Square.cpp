@@ -156,6 +156,7 @@ namespace generator
 				//LogWarningFormat("Diamond at x %d,y %d  extend not found", x, y);
 			}
 		}
+		float m_aPointBuffer[5];
 		float *p = m_aPointBuffer;// p0/*left*/, p1/*bottom*/, p2/*right*/, p3/*top*/;
 
 		//four corner is excluded
@@ -256,13 +257,14 @@ namespace generator
 				//LogWarningFormat("square at x %d,y %d  extend not found", x, y);
 			}
 		}
-		m_aPointBuffer[4] = (
+		float p;
+		p = (
 			GetHeight(x - size, y - size) +
 			GetHeight(x + size, y - size) +
 			GetHeight(x - size, y + size) +
 			GetHeight(x + size, y + size)
 			) / 4.0f;
-		SetHeight(x, y, m_aPointBuffer[4] + h * m_aPointBuffer[4]);
+		SetHeight(x, y, p + h * p);
 		//LogFormat("Square x %d,y %d,p %f,h %f,r %f", x, y, height, h, m_vHeightMap[x + m_nSize * y]);
 	}
 

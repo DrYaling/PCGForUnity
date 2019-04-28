@@ -9,10 +9,22 @@
 #include <stdint.h>
 typedef void(__stdcall *CPPUpdateCallback)(int tick);
 EXTERN_C_BEGIN
-
+void runnable()
+{
+	int tick = 0;
+	while (true)
+	{
+		sleep(1000);
+		LogFormat("run tick %d",tick);
+		tick++;
+	}
+}
 EXPORT_API void STD_CALL InitCppEngine(const char* engineDir)
 {
 	transformMap::InitTransformMap(engineDir);
+#include <thread>
+	auto t = std::thread(runnable);
+	t.detach();
 }
 /*
 
