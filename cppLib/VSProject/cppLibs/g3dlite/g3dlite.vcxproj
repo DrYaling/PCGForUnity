@@ -55,8 +55,6 @@
     <ClCompile Include="..\..\..\code\dep\G3D\source\MeshAlgAdjacency.cpp" />
     <ClCompile Include="..\..\..\code\dep\G3D\source\MeshAlgWeld.cpp" />
     <ClCompile Include="..\..\..\code\dep\G3D\source\MeshBuilder.cpp" />
-    <ClCompile Include="..\..\..\code\dep\G3D\source\NetAddress.cpp" />
-    <ClCompile Include="..\..\..\code\dep\G3D\source\NetworkDevice.cpp" />
     <ClCompile Include="..\..\..\code\dep\G3D\source\PhysicsFrame.cpp" />
     <ClCompile Include="..\..\..\code\dep\G3D\source\PhysicsFrameSpline.cpp" />
     <ClCompile Include="..\..\..\code\dep\G3D\source\Plane.cpp" />
@@ -72,10 +70,10 @@
     <ClCompile Include="..\..\..\code\dep\G3D\source\Stopwatch.cpp" />
     <ClCompile Include="..\..\..\code\dep\G3D\source\stringutils.cpp" />
     <ClCompile Include="..\..\..\code\dep\G3D\source\System.cpp" />
-    <ClCompile Include="..\..\..\code\dep\G3D\source\ThreadSet.cpp" />
+    <ClCompile Include="..\..\..\code\dep\G3D\source\TextInput.cpp" />
+    <ClCompile Include="..\..\..\code\dep\G3D\source\TextOutput.cpp" />
     <ClCompile Include="..\..\..\code\dep\G3D\source\Triangle.cpp" />
     <ClCompile Include="..\..\..\code\dep\G3D\source\uint128.cpp" />
-    <ClCompile Include="..\..\..\code\dep\G3D\source\UprightFrame.cpp" />
     <ClCompile Include="..\..\..\code\dep\G3D\source\Vector2.cpp" />
     <ClCompile Include="..\..\..\code\dep\G3D\source\Vector2int16.cpp" />
     <ClCompile Include="..\..\..\code\dep\G3D\source\Vector3.cpp" />
@@ -83,14 +81,12 @@
     <ClCompile Include="..\..\..\code\dep\G3D\source\Vector3int32.cpp" />
     <ClCompile Include="..\..\..\code\dep\G3D\source\Vector4.cpp" />
     <ClCompile Include="..\..\..\code\dep\G3D\source\Vector4int8.cpp" />
-    <ClCompile Include="..\..\..\code\dep\G3D\source\Welder.cpp" />
-    <ClCompile Include="..\..\..\code\dep\G3D\source\XML.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{0033A2A2-8D2B-472C-BFBB-8326B06B7EAF}</ProjectGuid>
     <RootNamespace>g3dlite</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

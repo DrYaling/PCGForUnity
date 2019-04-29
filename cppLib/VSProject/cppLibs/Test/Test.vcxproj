@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{6C1746DF-DB16-4C73-B62D-A778FF2AE9AC}</ProjectGuid>
     <RootNamespace>Test</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -139,8 +139,14 @@
     <ProjectReference Include="..\cppLibs\cppLibs.vcxproj">
       <Project>{4676fa69-9bd3-4ca5-847a-dbad80e5f290}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\ecs\ecs.vcxproj">
+      <Project>{702436e0-def3-4dc6-8922-f9cb0d085588}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\g3dlite\g3dlite.vcxproj">
       <Project>{0033a2a2-8d2b-472c-bfbb-8326b06b7eaf}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Logger\Logger\Logger.vcxproj">
+      <Project>{35edf0d3-5175-4fdf-9c39-48894d61472c}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Network\Network.vcxproj">
       <Project>{9834b7f4-bbbc-4516-affb-5ab0cbaf50a3}</Project>

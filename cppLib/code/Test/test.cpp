@@ -6,11 +6,13 @@
 #include "Logger/Logger.h"
 #include <stdio.h>
 #include "Network/Socket/SocketTime.h"
+#include "ECS/SystemContainer.h"
 /*
 #include "Generators/TerrianGenerator/Mountain.h"
 #include "Generators/TerrianGenerator/Diamond_Square.h"*/
 #include "generator.h"
 using namespace generator;
+/*
 class IComponent
 {
 public:
@@ -20,7 +22,7 @@ public:
 public:
 	char d0;
 	char d1;
-};
+};*/
 class Component :IComponent
 {
 public:
@@ -28,7 +30,7 @@ public:
 	~Component();
 	void Print() 
 	{
-		LogFormat("comp addr 0-3  %d,%d,%d,%d", &d0, &d1, &d2, &d3);
+		LogFormat("comp addr 0-3  %d,%d,%d,%d", &m_ID, &m_Dirty, &d2, &d3);
 		LogFormat("comp addr this %d", this);
 	}
 
@@ -71,6 +73,11 @@ int main()
 {
 	Component comp;
 	comp.Print();
+	SystemContainer* pc = new SystemContainer();
+	pc->OnUpdate(1);
+	pc->AddSystem(SystemCatalog::MOVEMENT);
+	pc->OnUpdate(2);
+	safe_delete(pc);
 	DWORD start, stop;
 	start = GetTickCount();
 	/*auto p = Vector3();

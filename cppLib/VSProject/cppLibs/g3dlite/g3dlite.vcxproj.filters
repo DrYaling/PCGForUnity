@@ -108,12 +108,6 @@
     <ClCompile Include="..\..\..\code\dep\G3D\source\MeshBuilder.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\dep\G3D\source\NetAddress.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\code\dep\G3D\source\NetworkDevice.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\code\dep\G3D\source\PhysicsFrame.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -156,19 +150,10 @@
     <ClCompile Include="..\..\..\code\dep\G3D\source\stringutils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\dep\G3D\source\System.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\code\dep\G3D\source\ThreadSet.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\code\dep\G3D\source\Triangle.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\code\dep\G3D\source\uint128.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\code\dep\G3D\source\UprightFrame.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\code\dep\G3D\source\Vector2.cpp">
@@ -192,12 +177,6 @@
     <ClCompile Include="..\..\..\code\dep\G3D\source\Vector4int8.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\dep\G3D\source\Welder.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\code\dep\G3D\source\XML.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\code\dep\G3D\source\AABox.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -211,6 +190,15 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\code\dep\G3D\source\BinaryFormat.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\dep\G3D\source\System.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\dep\G3D\source\TextOutput.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\dep\G3D\source\TextInput.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
