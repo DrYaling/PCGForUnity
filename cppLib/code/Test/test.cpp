@@ -11,7 +11,39 @@
 #include "Generators/TerrianGenerator/Diamond_Square.h"*/
 #include "generator.h"
 using namespace generator;
+class IComponent
+{
+public:
+	IComponent() :d0(0), d1(0) {}
+	~IComponent() {}
 
+public:
+	char d0;
+	char d1;
+};
+class Component :IComponent
+{
+public:
+	Component();
+	~Component();
+	void Print() 
+	{
+		LogFormat("comp addr 0-3  %d,%d,%d,%d", &d0, &d1, &d2, &d3);
+		LogFormat("comp addr this %d", this);
+	}
+
+public:
+	char d2;
+	char d3;
+};
+
+Component::Component() :d2(0), d3(0)
+{
+}
+
+Component::~Component()
+{
+}
 void StartTestServer()
 {
 	SocketServer* server = sSocketServer;
@@ -37,6 +69,8 @@ void StartTestServer()
 }
 int main()
 {
+	Component comp;
+	comp.Print();
 	DWORD start, stop;
 	start = GetTickCount();
 	/*auto p = Vector3();
@@ -75,17 +109,17 @@ int main()
 	G3D::Vector3 p(0.1f, 0.f, 1.2f);
 	for (size_t i = 0; i < 3; i++)
 	{
-		LogFormat("%d", (uint32&)p[i]);
+		//LogFormat("%d", (uint32&)p[i]);
 	}
 	std::vector<int> list;
 	list.resize(100);
 	list.clear();
-	LogFormat("list size %d,%d", list.size(), list.capacity());
+	//LogFormat("list size %d,%d", list.size(), list.capacity());
 	{
 		std::vector<int> tmp = list;
 		tmp.swap(list);
 	}
-	LogFormat("list size %d,%d", list.size(), list.capacity());
+	//LogFormat("list size %d,%d", list.size(), list.capacity());
 	while (true)
 	{
 		sleep(1000);
