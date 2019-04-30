@@ -30,3 +30,5 @@
 /Project/Assets/Plugins/x86/*.pdb
 /Project/Assets/Plugins/x86_x64/*.pdb
 /Project/.vs
+/Project/Assets/Resources/PlayerModel.meta
+/Project/Assets/Resources/Realistic Terrain Collection.meta
