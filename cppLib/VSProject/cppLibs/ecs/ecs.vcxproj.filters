@@ -39,6 +39,12 @@
     <ClInclude Include="..\..\..\code\ECS\StatusComponent.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\code\ECS\IEntity.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\code\ECS\EntityDemo.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\ECS\MovementSystem.cpp">

@@ -8,6 +8,7 @@ class MovementSystem :public ISystem<MovementComponent>,public ISystemInterface
 	typedef ISystem base;
 public:	
 	MovementSystem();
+	MovementSystem(const MovementSystem& copy) { LogError("wow!its here!"); }
 	~MovementSystem();
 	SystemCatalog GetCatalog()override;
 	void OnUpdate(int32_t time_diff) override;

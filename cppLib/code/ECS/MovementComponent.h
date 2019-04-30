@@ -2,6 +2,10 @@
 #define Movement_Component_h
 #include "IComponent.h"
 struct MovementComponent :public IComponent {
-
+public:
+	MovementComponent() :IComponent(0) { SetCatalog(ComponentCatalog::MOVEMENT); }
+	MovementComponent(int32_t id) :IComponent(id) { SetCatalog(ComponentCatalog::MOVEMENT); }
+	MovementComponent(const MovementComponent& copy) :IComponent(copy) {}
+	~MovementComponent() {}
 };
 #endif

@@ -8,6 +8,9 @@
 #include "Network/Socket/SocketTime.h"
 #include "ECS/SystemContainer.h"
 #include "generator.h"
+#include "ECS/StatusComponent.h"
+#include "ECS/MovementComponent.h"
+#include "ECS/EntityDemo.h"
 using namespace generator;
 void StartTestServer()
 {
@@ -42,16 +45,33 @@ int main()
 	LogFormat("\t\n");
 	pc->AddSystem(SystemCatalog::STATUS);
 	pc->OnUpdate(3);
-	LogFormat("\t\n");
-	pc->SetPriority(SystemCatalog::STATUS, 2);
-	pc->OnUpdate(4);
-	LogFormat("\t\n");
-	pc->SetPriority(SystemCatalog::MOVEMENT, 5);
-	pc->OnUpdate(5);
-	LogFormat("\t\n");
+	LogFormat("");
+	pc->SetPriority(SystemCatalog::STATUS, 1);
+	pc->OnUpdate(3);
+	LogFormat("");
+	pc->SetPriority(SystemCatalog::MOVEMENT, 2);
+	pc->OnUpdate(3);
+	LogFormat("");
 	pc->SetPriority(SystemCatalog::MOVEMENT, 0);
-	pc->OnUpdate(6);
-	LogFormat("\t\n");
+	pc->OnUpdate(3);
+	LogFormat("");
+	EntityDemo* pDemo = new EntityDemo();
+	pDemo->Initilize(pc);
+	pc->OnUpdate(4);
+	LogFormat("");
+	pDemo->ReleaseTest();
+	pc->OnUpdate(5);
+	LogFormat("");
+
+	pDemo->ChangeComponentDirty(1, ComponentCatalog::MOVEMENT, true);
+	pDemo->ChangeComponentDirty(2, ComponentCatalog::STATUS, true);
+	pDemo->ChangeComponentDirty(4, ComponentCatalog::STATUS, true);
+	pDemo->ChangeComponentDirty(6, ComponentCatalog::STATUS, true);
+	pDemo->ChangeComponentDirty(3, ComponentCatalog::STATUS, true);
+	pc->OnUpdate(5);
+	LogFormat("");
+
+	safe_delete(pDemo);
 	safe_delete(pc);
 	DWORD start, stop;
 	start = GetTickCount();

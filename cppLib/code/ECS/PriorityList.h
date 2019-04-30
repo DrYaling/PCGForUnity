@@ -6,13 +6,140 @@ template<class T>
 class priorityList
 {
 public:
-	priorityList() :_wpos(0)
+	class Node
 	{
-		head = nullptr;
+		friend priorityList;
+	public:
+		Node() = delete;
+		explicit Node(T* data) :data(data)
+		{
+		}
+		explicit Node(const Node& n) :data(n.data), next(n.next), priority(n.priority) {}
+		T* data;
+	private:
+		Node * next;
+		int32_t priority;
+		void insertAfter(Node* node)
+		{
+			if (!node)
+			{
+				return;
+			}
+			node->next = next;
+			next = node;
+		}
+	};
+public:
+
+	class iterator
+	{
+	public:
+		friend class priorityList;  // suggest u to use friend class
+		explicit iterator(Node* p = 0) {
+			current = p;
+		}
+		iterator(const iterator& other) {
+			current = other.current;
+		}
+		T* ptr()
+		{
+			return current->data;
+		}
+		iterator& operator++() {
+			current = current->next;;
+			return *this;
+		}
+		iterator operator++(int) {
+			iterator temp = *this;
+			++(*this);
+			return temp;
+		}
+		T* operator->() {
+			return current->data;
+		}
+		T& operator*() {
+			return *current->data;
+		}
+		const T* operator->()const {
+			return current->data;
+		}
+		const T& operator*() const {
+			return current->data;
+		}
+		bool operator==(const iterator & rhs) const
+		{
+			return current == rhs.current;
+		}
+		bool operator!=(const iterator & rhs) const
+		{
+			return !(*this == rhs);
+		}
+		// u can use iterator as Node* sometimes
+		operator T * () { return current->data; }  // conversion;
+	private:
+		Node * current;  // current listelem or 0;
+	};
+
+private:
+	iterator __end;
+public:
+	/*
+	C++ STL style iterator variable.  Call begin() to get
+	the first iterator, pre-increment (++i) the iterator to get to
+	the next value.  Use dereference (*i) to access the element.
+	*/
+	typedef iterator& Iterator;
+	/** C++ STL style const iterator in same style as Iterator. */
+	typedef const iterator& ConstIterator;
+
+	/** stl porting compatibility helper */
+	typedef ConstIterator const_iterator;
+	/** stl porting compatibility helper */
+	typedef iterator value_type;
+	priorityList() :_wpos(0), head(nullptr), __end(nullptr)
+	{
 	}
 	~priorityList()
 	{
 		clear();
+	}
+	ConstIterator begin() const
+	{
+		return head ? iterator(head) : __end;
+	}
+	ConstIterator end() const
+	{
+		return __end;
+	}
+	iterator erase(iterator position) {
+		Node* p = position.current;
+		Node* node = head;
+		iterator retVal(p->next);
+		Node* prev = nullptr;
+		while (node != p)
+		{
+			prev = node;
+			node = node->next;
+			if (!node)
+			{
+				break;;
+			}
+		}
+		if (prev)
+		{
+			prev->next = p->next;
+		}
+		else if (node)//remove first one element
+		{
+			head = p->next;
+		}
+		else
+		{
+			//??? next is null and no element is equals to current
+		}
+		delete p;
+		_wpos--;
+		return retVal;
 	}
 	void clear(bool deleteData = false)
 	{
@@ -31,21 +158,50 @@ public:
 	}
 	bool ResetPriority(T* data, int32_t priority)
 	{
-		if (_rpos > 0 && _wpos > 0)
+		if (_wpos <= 0)
 		{
-			LogError("try to add new element when reading");
+			LogError("no element was in this link list!");
 			return false;
 		}
-		remove(data);
-		return add(data, priority);
+		Node* element = nullptr;
+		Node* prev = nullptr;
+		Node* node = head;
+		while (node)
+		{
+			if (node->data == data)
+			{
+				if (node->priority == priority)
+				{
+					return true;
+				}
+				element = node;
+				element->priority = priority;
+				//remove elememt from list
+				if (node == head/*prev == nullptr*/)
+				{
+					head = node->next;
+				}
+				else
+				{
+					prev->next = node->next;
+				}
+				_wpos--;
+				break;
+			}
+			prev = node;
+			node = node->next;
+		}
+		if (element)//found
+		{
+			return add(element);
+		}
+		else//not found
+		{
+			return false;
+		}
 	}
 	bool add(T* data, int32_t priority)
 	{
-		if (_rpos > 0 && _wpos > 0)
-		{
-			LogError("try to add new element when reading");
-			return false;
-		}
 		Node* element = new Node(data);
 		if (!element)
 		{
@@ -54,6 +210,14 @@ public:
 		element->data = data;
 		element->priority = priority;
 		element->next = nullptr;
+		return add(element);
+	}
+	bool add(Node* element)
+	{
+		if (!element)
+		{
+			return false;
+		}
 		if (head == nullptr)
 		{
 			head = element;
@@ -62,7 +226,7 @@ public:
 		{
 			Node* node = head;
 			Node* prev = nullptr;
-			while (node->priority >= priority)
+			while (node->priority >= element->priority)
 			{
 				prev = node;
 				node = node->next;
@@ -84,15 +248,35 @@ public:
 		_wpos++;
 		return true;
 	}
-	bool remove(const T* data)
+
+	T* GetAtIndex(int32_t index)
+	{
+		if (index >= 0 && index < _wpos)
+		{
+			Node* pnode = head;
+			while (index > 0)
+			{
+				index--;
+				pnode = pnode->next;
+				if (!pnode)
+					return nullptr;
+			}
+			return pnode->data;
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+	int32_t size()
+	{
+		return _wpos;
+	}
+private:
+	bool _remove(const T* data)
 	{
 		if (_wpos <= 0)
 		{
-			return false;
-		}
-		if (_rpos > 0 && _wpos > 0)
-		{
-			LogError("try to add new element when reading");
 			return false;
 		}
 		Node* node = head;
@@ -118,57 +302,8 @@ public:
 		} while (node);
 		return false;
 	}
-	T* GetAtIndex(int32_t index)
-	{
-		if (index >= 0 && index < _wpos)
-		{
-			Node* pnode = head;
-			while (index > 0)
-			{
-				index--;
-				pnode = pnode->next;
-				if (!pnode)
-					return nullptr;
-			}
-			return pnode->data;
-		}
-		else
-		{
-			return nullptr;
-		}
-	}
-	T* ReadNext()
-	{
-		return GetAtIndex(_rpos++);
-	}
-	void ReadReset()
-	{
-		_rpos = 0;
-	}
-	int32_t size()
-	{
-		return _wpos;
-	}
 private:
-	struct Node
-	{
-		Node() = delete;
-		explicit Node(T* data) :data(data) {}
-		T* data;
-		Node* next;
-		int32_t priority;
-		void insertAfter(Node* node)
-		{
-			if (!node)
-			{
-				return;
-			}
-			node->next = next;
-			next = node;
-		}
-	};
-	Node* head;
+	Node * head;
 	int32_t _wpos;
-	int32_t _rpos;
 };
 #endif
