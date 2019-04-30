@@ -30,7 +30,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\ECS\MovementSystem.cpp" />
-    <ClCompile Include="..\..\..\code\ECS\StatusComponent.cpp" />
     <ClCompile Include="..\..\..\code\ECS\StatusSystem.cpp" />
     <ClCompile Include="..\..\..\code\ECS\SystemContainer.cpp" />
   </ItemGroup>

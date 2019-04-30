@@ -50,8 +50,5 @@
     <ClCompile Include="..\..\..\code\ECS\StatusSystem.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\ECS\StatusComponent.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>
