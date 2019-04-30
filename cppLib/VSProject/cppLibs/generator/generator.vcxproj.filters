@@ -36,96 +36,96 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\code\Tools\Mesh\UnityMesh.h">
+    <ClInclude Include="..\..\..\code\Generator\Mesh\UnityMesh.h">
       <Filter>源文件\Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Generators\Plants\Plants.h">
+    <ClInclude Include="..\..\..\code\Generator\Generators\Plants\Plants.h">
       <Filter>源文件\Generators\Plants</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Mesh\Mesh.h">
+    <ClInclude Include="..\..\..\code\Generator\Mesh\Mesh.h">
       <Filter>源文件\Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Mesh\Triangle2D.h">
+    <ClInclude Include="..\..\..\code\Generator\Mesh\Triangle2D.h">
       <Filter>源文件\Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Mesh\Vector2Lite.h">
+    <ClInclude Include="..\..\..\code\Generator\Mesh\Vector2Lite.h">
       <Filter>源文件\Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Mesh\Edge.h">
+    <ClInclude Include="..\..\..\code\Generator\Mesh\Edge.h">
       <Filter>源文件\Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Mesh\Delaunay.h">
+    <ClInclude Include="..\..\..\code\Generator\Mesh\Delaunay.h">
       <Filter>源文件\Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Noises\PerlinNoise.h">
+    <ClInclude Include="..\..\..\code\Generator\Noises\PerlinNoise.h">
       <Filter>源文件\Noises</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Generators\TerrainGenerator.h">
+    <ClInclude Include="..\..\..\code\Generator\Generators\TerrainGenerator.h">
       <Filter>源文件\Generators</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Generators\TerrainGenerator\Mountain.h">
+    <ClInclude Include="..\..\..\code\Generator\Generators\TerrainGenerator\Mountain.h">
       <Filter>源文件\Generators\TerrainGenerator</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Generators\TerrainGenerator\Diamond_Square.h">
+    <ClInclude Include="..\..\..\code\Generator\Generators\TerrainGenerator\Diamond_Square.h">
       <Filter>源文件\Generators\TerrainGenerator</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Terrain\Terrain.h">
+    <ClInclude Include="..\..\..\code\Generator\Terrain\Terrain.h">
       <Filter>源文件\Terrain</Filter>
     </ClInclude>
     <ClInclude Include="SplatPainter.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\generator.h">
+    <ClInclude Include="..\..\..\code\Generator\generator.h">
       <Filter>源文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Terrain\Painter\SplatPainter.h">
+    <ClInclude Include="..\..\..\code\Generator\Terrain\Painter\SplatPainter.h">
       <Filter>源文件\Terrain\Painter</Filter>
     </ClInclude>
     <ClInclude Include="PainterBrush.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Terrain\Painter\PainterBrush.h">
+    <ClInclude Include="..\..\..\code\Generator\Terrain\Painter\PainterBrush.h">
       <Filter>源文件\Terrain\Painter</Filter>
     </ClInclude>
     <ClInclude Include="AutomaticPainter.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Terrain\Painter\AutomaticPainter.h">
+    <ClInclude Include="..\..\..\code\Generator\Terrain\Painter\AutomaticPainter.h">
       <Filter>源文件\Terrain\Painter</Filter>
     </ClInclude>
     <ClInclude Include="Painter.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Tools\Terrain\Painter\Painter.h">
+    <ClInclude Include="..\..\..\code\Generator\Terrain\Painter\Painter.h">
       <Filter>源文件\Terrain\Painter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\code\Tools\Mesh\UnityMesh.cpp">
+    <ClCompile Include="..\..\..\code\Generator\Mesh\UnityMesh.cpp">
       <Filter>源文件\Mesh</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\Tools\Generators\TerrainGenerator.cpp">
+    <ClCompile Include="..\..\..\code\Generator\Generators\TerrainGenerator.cpp">
       <Filter>源文件\Generators</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\Tools\Generators\TerrainGenerator\Diamond_Square.cpp">
+    <ClCompile Include="..\..\..\code\Generator\Generators\TerrainGenerator\Diamond_Square.cpp">
       <Filter>源文件\Generators\TerrainGenerator</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\Tools\Generators\TerrainGenerator\Mountain.cpp">
+    <ClCompile Include="..\..\..\code\Generator\Generators\TerrainGenerator\Mountain.cpp">
       <Filter>源文件\Generators\TerrainGenerator</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\Tools\Terrain\Terrain.cpp">
+    <ClCompile Include="..\..\..\code\Generator\Terrain\Terrain.cpp">
       <Filter>源文件\Terrain</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\Tools\Terrain\Painter\SplatPainter.cpp">
+    <ClCompile Include="..\..\..\code\Generator\Terrain\Painter\SplatPainter.cpp">
       <Filter>源文件\Terrain\Painter</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\Tools\Terrain\Painter\PainterBrush.cpp">
+    <ClCompile Include="..\..\..\code\Generator\Terrain\Painter\PainterBrush.cpp">
       <Filter>源文件\Terrain\Painter</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\Tools\Terrain\Painter\AutomaticPainter.cpp">
+    <ClCompile Include="..\..\..\code\Generator\Terrain\Painter\AutomaticPainter.cpp">
       <Filter>源文件\Terrain\Painter</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\Tools\Terrain\Painter\Painter.cpp">
+    <ClCompile Include="..\..\..\code\Generator\Terrain\Painter\Painter.cpp">
       <Filter>源文件\Terrain\Painter</Filter>
     </ClCompile>
   </ItemGroup>

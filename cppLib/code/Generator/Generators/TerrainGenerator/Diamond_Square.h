@@ -7,7 +7,7 @@ namespace generator
 {
 #define BLUR_SIZE 2
 	//typedef std::function<bool(int32_t /*x*/, int32_t /*y*/, NeighborType /*neighbor*/, float& /*h*/, void*/*owner*/)> GetNeighborVertice;
-	typedef bool(__fastcall *GetNeighborVertice)(int32_t /*x*/, int32_t /*y*/, NeighborType /*neighbor*/, float& /*h*/, void*/*owner*/);
+	typedef bool(__fastcall *GetNeighborVertice)(int32_t /*x*/, int32_t /*y*/, NeighborType /*neighbor*/, float& /*h*/, void* /*owner*/);
 	/************************************************************************/
 	/*							菱形-正方形生成地形                         */
 	/*				点的序号为 x=0-x = max 为0-max,y轴向上递增				*/

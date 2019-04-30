@@ -16,7 +16,7 @@ SystemCatalog MovementSystem::GetCatalog()
 
 void MovementSystem::OnUpdate(int32_t time_diff)
 {
-	LogFormat("MovementSystem::OnUpdate(int32_t %d)",time_diff);
+	LogFormat("MovementSystem::OnUpdate(int32_t %d),pririoty %d",time_diff,GetPriority());
 	for (auto itr = m_aData.begin();itr!= m_aData.end();itr++)
 	{
 		if (itr->IsDirty())

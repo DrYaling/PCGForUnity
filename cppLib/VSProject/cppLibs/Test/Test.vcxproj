@@ -78,7 +78,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/dep/;$(SolutionDir)../../code/Tools;$(SolutionDir)../../code/dep/G3D/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/dep/;$(SolutionDir)../../code/Generator;$(SolutionDir)../../code/dep/G3D/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;WIN32;_WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp14</LanguageStandard>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
@@ -99,6 +99,7 @@
       <ConformanceMode>true</ConformanceMode>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PreprocessorDefinitions>_MBCS;WIN32;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/dep/;$(SolutionDir)../../code/Generator;$(SolutionDir)../../code/dep/G3D/include</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -109,6 +110,7 @@
       <ConformanceMode>true</ConformanceMode>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PreprocessorDefinitions>_MBCS;WIN32;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/dep/;$(SolutionDir)../../code/Generator;$(SolutionDir)../../code/dep/G3D/include</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -119,7 +121,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/dep/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/dep/;$(SolutionDir)../../code/Generator;$(SolutionDir)../../code/dep/G3D/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;WIN32;_WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp14</LanguageStandard>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
@@ -145,6 +147,9 @@
     <ProjectReference Include="..\g3dlite\g3dlite.vcxproj">
       <Project>{0033a2a2-8d2b-472c-bfbb-8326b06b7eaf}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\generator\generator.vcxproj">
+      <Project>{022d67b6-9188-4d52-9b09-cb21241e1028}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Logger\Logger\Logger.vcxproj">
       <Project>{35edf0d3-5175-4fdf-9c39-48894d61472c}</Project>
     </ProjectReference>
@@ -153,9 +158,6 @@
     </ProjectReference>
     <ProjectReference Include="..\Proto\Proto.vcxproj">
       <Project>{29103b86-3cf7-4010-bf7c-5bdaef308ccd}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Tools\Tools.vcxproj">
-      <Project>{b1126bbc-9eae-4ea5-8bbe-161c904d43b1}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

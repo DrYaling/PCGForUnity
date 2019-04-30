@@ -94,7 +94,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../../code/;../../../code/Network;../../../code/dep/;../../../code/Network/Proto</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/Network;$(SolutionDir)../../code/dep/;$(SolutionDir)../../code/Network/Proto</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PreprocessorDefinitions>_MBCS; _WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -106,7 +106,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../../code/;../../../code/Network;../../../code/dep/;../../../code/Network/Proto</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/Network;$(SolutionDir)../../code/dep/;$(SolutionDir)../../code/Network/Proto</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PreprocessorDefinitions>_MBCS; _WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>

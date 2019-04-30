@@ -2,7 +2,7 @@
 #define Movement_system_h
 #include "ISystem.h"
 #include "MovementComponent.h"
-class MovementSystem :public ISystem
+class MovementSystem :public ISystem<MovementComponent>,public ISystemInterface
 {
 	typedef ISystem base;
 public:	

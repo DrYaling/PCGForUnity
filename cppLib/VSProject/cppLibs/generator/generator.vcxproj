@@ -20,36 +20,37 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{B1126BBC-9EAE-4EA5-8BBE-161C904D43B1}</ProjectGuid>
-    <RootNamespace>Tools</RootNamespace>
+    <ProjectGuid>{022D67B6-9188-4D52-9B09-CB21241E1028}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>generator</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -69,7 +70,18 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -78,7 +90,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../../code/dep/G3D/source;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Tools;$(SolutionDir)../../code</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/dep/G3D/source;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Generator;$(SolutionDir)../../code</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -92,6 +104,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/dep/G3D/source;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Generator;$(SolutionDir)../../code</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -100,6 +113,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/dep/G3D/source;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Generator;$(SolutionDir)../../code</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -110,45 +124,46 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/dep/G3D/source;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Generator;$(SolutionDir)../../code</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\..\code\Tools\generator.h" />
-    <ClInclude Include="..\..\..\code\Tools\Generators\TerrainGenerator.h" />
-    <ClInclude Include="..\..\..\code\Tools\Generators\Plants\Plants.h" />
-    <ClInclude Include="..\..\..\code\Tools\Generators\TerrainGenerator\Diamond_Square.h" />
-    <ClInclude Include="..\..\..\code\Tools\Generators\TerrainGenerator\Mountain.h" />
-    <ClInclude Include="..\..\..\code\Tools\Mesh\Delaunay.h" />
-    <ClInclude Include="..\..\..\code\Tools\Mesh\Edge.h" />
-    <ClInclude Include="..\..\..\code\Tools\Mesh\Mesh.h" />
-    <ClInclude Include="..\..\..\code\Tools\Mesh\Triangle2D.h" />
-    <ClInclude Include="..\..\..\code\Tools\Mesh\UnityMesh.h" />
-    <ClInclude Include="..\..\..\code\Tools\Mesh\Vector2Lite.h" />
-    <ClInclude Include="..\..\..\code\Tools\Noises\PerlinNoise.h" />
-    <ClInclude Include="..\..\..\code\Tools\Terrain\Painter\AutomaticPainter.h" />
-    <ClInclude Include="..\..\..\code\Tools\Terrain\Painter\Painter.h" />
-    <ClInclude Include="..\..\..\code\Tools\Terrain\Painter\PainterBrush.h" />
-    <ClInclude Include="..\..\..\code\Tools\Terrain\Painter\SplatPainter.h" />
-    <ClInclude Include="..\..\..\code\Tools\Terrain\Terrain.h" />
+ <ItemGroup>
+    <ClInclude Include="..\..\..\code\Generator\generator.h" />
+    <ClInclude Include="..\..\..\code\Generator\Generators\TerrainGenerator.h" />
+    <ClInclude Include="..\..\..\code\Generator\Generators\Plants\Plants.h" />
+    <ClInclude Include="..\..\..\code\Generator\Generators\TerrainGenerator\Diamond_Square.h" />
+    <ClInclude Include="..\..\..\code\Generator\Generators\TerrainGenerator\Mountain.h" />
+    <ClInclude Include="..\..\..\code\Generator\Mesh\Delaunay.h" />
+    <ClInclude Include="..\..\..\code\Generator\Mesh\Edge.h" />
+    <ClInclude Include="..\..\..\code\Generator\Mesh\Mesh.h" />
+    <ClInclude Include="..\..\..\code\Generator\Mesh\Triangle2D.h" />
+    <ClInclude Include="..\..\..\code\Generator\Mesh\UnityMesh.h" />
+    <ClInclude Include="..\..\..\code\Generator\Mesh\Vector2Lite.h" />
+    <ClInclude Include="..\..\..\code\Generator\Noises\PerlinNoise.h" />
+    <ClInclude Include="..\..\..\code\Generator\Terrain\Painter\AutomaticPainter.h" />
+    <ClInclude Include="..\..\..\code\Generator\Terrain\Painter\Painter.h" />
+    <ClInclude Include="..\..\..\code\Generator\Terrain\Painter\PainterBrush.h" />
+    <ClInclude Include="..\..\..\code\Generator\Terrain\Painter\SplatPainter.h" />
+    <ClInclude Include="..\..\..\code\Generator\Terrain\Terrain.h" />
     <ClInclude Include="AutomaticPainter.h" />
     <ClInclude Include="Painter.h" />
     <ClInclude Include="PainterBrush.h" />
     <ClInclude Include="SplatPainter.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\code\Tools\Generators\TerrainGenerator.cpp" />
-    <ClCompile Include="..\..\..\code\Tools\Generators\TerrainGenerator\Diamond_Square.cpp" />
-    <ClCompile Include="..\..\..\code\Tools\Generators\TerrainGenerator\Mountain.cpp" />
-    <ClCompile Include="..\..\..\code\Tools\Mesh\UnityMesh.cpp" />
-    <ClCompile Include="..\..\..\code\Tools\Terrain\Painter\AutomaticPainter.cpp" />
-    <ClCompile Include="..\..\..\code\Tools\Terrain\Painter\Painter.cpp" />
-    <ClCompile Include="..\..\..\code\Tools\Terrain\Painter\PainterBrush.cpp" />
-    <ClCompile Include="..\..\..\code\Tools\Terrain\Painter\SplatPainter.cpp" />
-    <ClCompile Include="..\..\..\code\Tools\Terrain\Terrain.cpp" />
+    <ClCompile Include="..\..\..\code\Generator\Generators\TerrainGenerator.cpp" />
+    <ClCompile Include="..\..\..\code\Generator\Generators\TerrainGenerator\Diamond_Square.cpp" />
+    <ClCompile Include="..\..\..\code\Generator\Generators\TerrainGenerator\Mountain.cpp" />
+    <ClCompile Include="..\..\..\code\Generator\Mesh\UnityMesh.cpp" />
+    <ClCompile Include="..\..\..\code\Generator\Terrain\Painter\AutomaticPainter.cpp" />
+    <ClCompile Include="..\..\..\code\Generator\Terrain\Painter\Painter.cpp" />
+    <ClCompile Include="..\..\..\code\Generator\Terrain\Painter\PainterBrush.cpp" />
+    <ClCompile Include="..\..\..\code\Generator\Terrain\Painter\SplatPainter.cpp" />
+    <ClCompile Include="..\..\..\code\Generator\Terrain\Terrain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\g3dlite\g3dlite.vcxproj">

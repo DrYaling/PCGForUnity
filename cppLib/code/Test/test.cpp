@@ -7,45 +7,8 @@
 #include <stdio.h>
 #include "Network/Socket/SocketTime.h"
 #include "ECS/SystemContainer.h"
-/*
-#include "Generators/TerrianGenerator/Mountain.h"
-#include "Generators/TerrianGenerator/Diamond_Square.h"*/
 #include "generator.h"
 using namespace generator;
-/*
-class IComponent
-{
-public:
-	IComponent() :d0(0), d1(0) {}
-	~IComponent() {}
-
-public:
-	char d0;
-	char d1;
-};*/
-class Component :IComponent
-{
-public:
-	Component();
-	~Component();
-	void Print() 
-	{
-		LogFormat("comp addr 0-3  %d,%d,%d,%d", &m_ID, &m_Dirty, &d2, &d3);
-		LogFormat("comp addr this %d", this);
-	}
-
-public:
-	char d2;
-	char d3;
-};
-
-Component::Component() :d2(0), d3(0)
-{
-}
-
-Component::~Component()
-{
-}
 void StartTestServer()
 {
 	SocketServer* server = sSocketServer;
@@ -71,12 +34,24 @@ void StartTestServer()
 }
 int main()
 {
-	Component comp;
-	comp.Print();
 	SystemContainer* pc = new SystemContainer();
 	pc->OnUpdate(1);
+	LogFormat("\t\n");
 	pc->AddSystem(SystemCatalog::MOVEMENT);
 	pc->OnUpdate(2);
+	LogFormat("\t\n");
+	pc->AddSystem(SystemCatalog::STATUS);
+	pc->OnUpdate(3);
+	LogFormat("\t\n");
+	pc->SetPriority(SystemCatalog::STATUS, 2);
+	pc->OnUpdate(4);
+	LogFormat("\t\n");
+	pc->SetPriority(SystemCatalog::MOVEMENT, 5);
+	pc->OnUpdate(5);
+	LogFormat("\t\n");
+	pc->SetPriority(SystemCatalog::MOVEMENT, 0);
+	pc->OnUpdate(6);
+	LogFormat("\t\n");
 	safe_delete(pc);
 	DWORD start, stop;
 	start = GetTickCount();

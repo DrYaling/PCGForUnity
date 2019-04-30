@@ -8,9 +8,27 @@
 enum class SystemCatalog
 {
 	MOVEMENT = 0,
+	STATUS,
 };
 class SystemContainer;
-//template<class component>
+class ISystemInterface {
+	friend SystemContainer;
+public:
+	virtual void OnUpdate(int32_t time_diff) = 0;
+	ISystemInterface() {}
+	virtual ~ISystemInterface()
+	{
+		LogFormat("ISystemInterface::~ISystemInterface()");
+	}
+	virtual SystemCatalog GetCatalog() = 0;
+	int32_t GetPriority() { return m_nPriority; }
+	void SetEnabled(bool yes) { m_bEnable = yes; }
+	bool GetEnabled() { return m_bEnable; }
+protected:
+	int32_t m_nPriority;
+	bool m_bEnable;
+};
+template<class component = IComponent>
 class ISystem
 {
 	friend SystemContainer;
@@ -20,9 +38,7 @@ public:
 	{
 		LogFormat("ISystem::~ISystem()");
 	}
-	virtual void OnUpdate(int32_t time_diff) = 0;
-	virtual SystemCatalog GetCatalog() = 0;
-	IComponent* RegisterComponent(const IComponent& com)
+	component* RegisterComponent(const component& com)
 	{
 		m_aData.append(com);
 		return &m_aData[m_aData.size() - 1];
@@ -38,7 +54,7 @@ public:
 			}
 		}
 	}
-	void UnRegisterComponent(IComponent* comPtr)
+	void UnRegisterComponent(component* comPtr)
 	{
 		auto itr = m_aData.find(*comPtr);
 		if (itr != m_aData.end())
@@ -46,16 +62,11 @@ public:
 			m_aData.remove(itr);
 		}
 	}
-	int32_t GetPriority() { return m_nPriority; }
-	void SetEnabled(bool yes) { m_bEnable = yes; }
-	bool GetEnabled() { return m_bEnable; }
 	bool operator == (const ISystem& right) const
 	{
 		return this == &right;
 	}
 protected:
-	G3D::Array<IComponent> m_aData;
-	int32_t m_nPriority;
-	bool m_bEnable;
+	G3D::Array<component> m_aData;
 };
 #endif

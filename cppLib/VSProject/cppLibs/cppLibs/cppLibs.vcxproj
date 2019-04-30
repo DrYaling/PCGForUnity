@@ -91,7 +91,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../../code/Bridge;../../../code;../../../code/G3D/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Generator;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BUILDING_COREMODULE;_UNICODE;UNICODE;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
@@ -117,7 +117,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../../code/Bridge;../../../code;../../../code/G3D/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Generator;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BUILDING_COREMODULE;_UNICODE;UNICODE;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
@@ -142,7 +142,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Generator;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BUILDING_COREMODULE;_WINDLL;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
       <LanguageStandard>stdcpp14</LanguageStandard>
@@ -175,7 +175,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Tools;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Generator;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BUILDING_COREMODULE;_WINDLL;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
       <LanguageStandard>stdcpp14</LanguageStandard>
@@ -207,8 +207,14 @@ Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).pdb" "$(Solution
     <ClCompile Include="..\..\..\code\pch.c" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ecs\ecs.vcxproj">
+      <Project>{702436e0-def3-4dc6-8922-f9cb0d085588}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\g3dlite\g3dlite.vcxproj">
       <Project>{0033a2a2-8d2b-472c-bfbb-8326b06b7eaf}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Generator\generator.vcxproj">
+      <Project>{b1126bbc-9eae-4ea5-8bbe-161c904d43b1}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Logger\Logger\Logger.vcxproj">
       <Project>{35edf0d3-5175-4fdf-9c39-48894d61472c}</Project>
@@ -218,9 +224,6 @@ Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).pdb" "$(Solution
     </ProjectReference>
     <ProjectReference Include="..\Proto\Proto.vcxproj">
       <Project>{29103b86-3cf7-4010-bf7c-5bdaef308ccd}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Tools\Tools.vcxproj">
-      <Project>{b1126bbc-9eae-4ea5-8bbe-161c904d43b1}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
