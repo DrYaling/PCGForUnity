@@ -2,13 +2,16 @@
 #define Status_system_h
 #include "ISystem.h"
 #include "StatusComponent.h"
-//test code
-class StatusSystem :public ISystem<StatusComponent>, public ISystemInterface
+namespace ecs
 {
-public:
-	StatusSystem();
-	~StatusSystem();
-	void OnUpdate(int32_t time_diff) override;
-	SystemCatalog GetCatalog()override;
-};
+	//test code
+	class StatusSystem :public System<StatusComponent>, public ISystem
+	{
+	public:
+		StatusSystem();
+		~StatusSystem();
+		void OnUpdate(int32_t time_diff) override;
+		SystemCatalog GetCatalog()override;
+	};
+}
 #endif

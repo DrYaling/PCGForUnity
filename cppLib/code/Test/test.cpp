@@ -12,6 +12,7 @@
 #include "ECS/MovementComponent.h"
 #include "ECS/EntityDemo.h"
 using namespace generator;
+using namespace ecs;
 void StartTestServer()
 {
 	SocketServer* server = sSocketServer;

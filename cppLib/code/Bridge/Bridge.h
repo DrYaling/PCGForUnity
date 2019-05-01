@@ -38,18 +38,18 @@ EXPORT_API void STD_CALL HandleSetObject(int key, testObj value)
 }
 */
 
-EXPORT_API void STD_CALL RegisterLog(CPPLogCallback callback)
+EXPORT_API void STD_CALL RegisterLog(logger::CPPLogCallback callback)
 {
-	SetLogCallBack(0, callback);
+	logger::SetLogCallBack(0, callback);
 }
-EXPORT_API void STD_CALL RegisterLogWarning(CPPLogCallback callback)
+EXPORT_API void STD_CALL RegisterLogWarning(logger::CPPLogCallback callback)
 {
-	SetLogCallBack(1, callback);
+	logger::SetLogCallBack(1, callback);
 }
 
-EXPORT_API void STD_CALL RegisterLogError(CPPLogCallback callback)
+EXPORT_API void STD_CALL RegisterLogError(logger::CPPLogCallback callback)
 {
-	SetLogCallBack(2, callback);
+	logger::SetLogCallBack(2, callback);
 }
 EXPORT_API void STD_CALL Update(int time_diff)
 {
@@ -85,7 +85,7 @@ EXPORT_API void STD_CALL DestroyCPP()
 	LogFormat("DestroyCPP");
 	generator::Internal_ReleaseAllMeshed();
 	transformMap::ClearTransformMapTrees();
-	ClearLogger();
+	logger::ClearLogger();
 }
 /*
 

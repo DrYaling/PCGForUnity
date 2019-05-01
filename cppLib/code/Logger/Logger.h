@@ -26,12 +26,12 @@ enum LoggerType
 	LOGGER_ERROR = 2
 };
 #if LOG_SWITCH
-#define LogFormat(format, ...) LogContent(LoggerType::LOGGER_LOG,__FILE__, __LINE__,__FUNCTION__, format, __VA_ARGS__)
-#define Log(format) LogContent(LoggerType::LOGGER_LOG,__FILE__, __LINE__,__FUNCTION__,  format)
-#define LogWarningFormat(format, ...) LogContent(LoggerType::LOGGER_WARN,__FILE__, __LINE__,__FUNCTION__,  format, __VA_ARGS__)
-#define LogWarning(format) LogContent(LoggerType::LOGGER_WARN,  format)
-#define LogErrorFormat(format, ...) LogContent(LoggerType::LOGGER_ERROR,__FILE__, __LINE__,__FUNCTION__,  format, __VA_ARGS__)
-#define LogError(format) LogContent(LoggerType::LOGGER_ERROR,__FILE__, __LINE__,__FUNCTION__,  format)
+#define LogFormat(format, ...) logger::LogContent(LoggerType::LOGGER_LOG,__FILE__, __LINE__,__FUNCTION__, format, __VA_ARGS__)
+#define Log(format) logger::LogContent(LoggerType::LOGGER_LOG,__FILE__, __LINE__,__FUNCTION__,  format)
+#define LogWarningFormat(format, ...) logger::LogContent(LoggerType::LOGGER_WARN,__FILE__, __LINE__,__FUNCTION__,  format, __VA_ARGS__)
+#define LogWarning(format) logger::LogContent(LoggerType::LOGGER_WARN,  format)
+#define LogErrorFormat(format, ...) logger::LogContent(LoggerType::LOGGER_ERROR,__FILE__, __LINE__,__FUNCTION__,  format, __VA_ARGS__)
+#define LogError(format) logger::LogContent(LoggerType::LOGGER_ERROR,__FILE__, __LINE__,__FUNCTION__,  format)
 #else
 #define LogFormat(logType,format, ...) 
 #define Log(logType,format)
@@ -41,20 +41,22 @@ enum LoggerType
 #define LogError(logType,format) 
 #endif
 
-
-#ifdef __cplusplus
-extern "C"
+namespace logger
 {
+#ifdef __cplusplus
+	extern "C"
+	{
 #endif
-	typedef void(__stdcall *CPPLogCallback)(const char* log);
-	int LogContent(LoggerType eType,const char	* f, int line, const char* func, const char* format, ...);
-	void printStackTrace(void);
-	void ClearLogger(void);
-	void SetLogCallBack(int type, CPPLogCallback cb);
-	void ProfilerStart(const char* content);
-	void ProfilerEnd();
+		typedef void(__stdcall *CPPLogCallback)(const char* log);
+		int LogContent(LoggerType eType, const char	* f, int line, const char* func, const char* format, ...);
+		void printStackTrace(void);
+		void ClearLogger(void);
+		void SetLogCallBack(int type, CPPLogCallback cb);
+		void ProfilerStart(const char* content);
+		void ProfilerEnd();
 
 #ifdef __cplusplus
+	}
 }
 #endif
 

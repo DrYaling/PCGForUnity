@@ -24,9 +24,6 @@
     <ClInclude Include="..\..\..\code\ECS\MovementSystem.h">
       <Filter>源文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\ECS\PriorityList.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\code\ECS\SystemContainer.h">
       <Filter>源文件</Filter>
     </ClInclude>
@@ -43,6 +40,9 @@
       <Filter>源文件</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\code\ECS\EntityDemo.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\code\Utinities\PriorityList.h">
       <Filter>源文件</Filter>
     </ClInclude>
   </ItemGroup>
