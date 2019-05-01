@@ -1165,11 +1165,11 @@ public:
 
         // Initialize the tiny heap as a bunch of pointers into one
         // pre-allocated buffer.
-        tinyHeap = ::malloc(maxTinyBuffers * tinyBufferSize);
-        for (int i = 0; i < maxTinyBuffers; ++i) {
+        tinyHeap = ::malloc(maxMedBuffers * tinyBufferSize);
+        for (int i = 0; i < maxMedBuffers; ++i) {
             tinyPool[i] = (uint8*)tinyHeap + (tinyBufferSize * i);
         }
-        tinyPoolSize = maxTinyBuffers;
+        tinyPoolSize = maxMedBuffers;
 
 #if 0        ///---------------------------------- old mutex
 #       ifdef G3D_WINDOWS
