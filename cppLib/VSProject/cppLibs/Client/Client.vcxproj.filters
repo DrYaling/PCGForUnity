@@ -13,24 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="源文件\Time">
-      <UniqueIdentifier>{11bc3eed-375a-4be9-9463-8fe10888c280}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\code\game\Time\UpdateTime.cpp">
-      <Filter>源文件\Time</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\code\game\Time\GameTime.cpp">
-      <Filter>源文件\Time</Filter>
+    <ClCompile Include="..\..\..\code\client\Client.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\code\game\Time\UpdateTime.h">
-      <Filter>源文件\Time</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\code\game\Time\GameTime.h">
-      <Filter>源文件\Time</Filter>
+    <ClInclude Include="..\..\..\code\client\Client.h">
+      <Filter>源文件</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

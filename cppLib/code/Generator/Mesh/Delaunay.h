@@ -35,7 +35,7 @@ public:
 
 		float dx = maxX - minX;
 		float dy = maxY - minY;
-		float deltaMax = max(dx, dy);
+		float deltaMax = sd_max(dx, dy);
 		float midx = (minX + maxX) / 2.f;
 		float midy = (minY + maxY) / 2.f;
 

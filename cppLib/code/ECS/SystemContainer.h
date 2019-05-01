@@ -22,7 +22,7 @@ namespace ecs
 		~SystemContainer();
 		void SetGroup(SystemGroup group) { m_eGroup = group; }
 		SystemGroup GetGroup() { return m_eGroup; }
-		void Initilize();
+		void Initilize(SystemGroup group);
 		bool AddSystem(SystemCatalog catalog, int priority = 0);
 		void OnUpdate(int32_t time_diff);
 		template<class T>

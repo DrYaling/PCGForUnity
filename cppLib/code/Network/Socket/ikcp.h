@@ -116,17 +116,19 @@ typedef unsigned long long IUINT64;
 #define INLINE         __inline__
 #endif
 
-#elif (defined(_MSC_VER) || defined(__BORLANDC__) || defined(__WATCOMC__))
+#elif (defined(_MSC_VER) || defined(_MBCS) || defined(__BORLANDC__) || defined(__WATCOMC__))
 #define INLINE __inline
 #else
 #define INLINE 
 #endif
 #endif
+/*
 
 #if (!defined(__cplusplus)) && (!defined(inline))
 #define inline INLINE
 #endif
 
+*/
 
 //=====================================================================
 // QUEUE DEFINITION                                                  

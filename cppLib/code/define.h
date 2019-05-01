@@ -20,7 +20,7 @@
 #define EXTERN_C_END 
 #define EXTERN_C 
 #endif
-
+//#include <memory>
 #include <stdint.h>
 typedef int64_t int64;
 typedef int32_t int32;
@@ -34,27 +34,16 @@ typedef uint8_t uint8;
 #ifdef WIN32
 //#pragma comment(lib, " dbghelp.lib")
 #define sleep(x) Sleep(x)
-
-#ifndef NOMINMAX
-
-#ifndef max
-#define max(a,b)            (((a) > (b)) ? (a) : (b))
-#endif
-
-#ifndef min
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
-#endif
-
-#endif  /* NOMINMAX */
 #else
 #include <algorithm>
-#ifndef max
-#define max(a,b)            std::max(a,b)
 #endif
 
-#ifndef min
-#define min(a,b)            std::min(a,b)
+#ifndef sd_max
+#define sd_max(a,b)            (((a) > (b)) ? (a) : (b))
 #endif
+
+#ifndef sd_min
+#define sd_min(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
 
 #define STD_CALL __stdcall

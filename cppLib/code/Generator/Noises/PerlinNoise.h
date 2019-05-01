@@ -140,8 +140,8 @@ namespace PerlinNoise {
 		int Y = floorY & 255;                  // CONTAINS POINT.
 		x -= floorX;                                // FIND RELATIVE X,Y,Z
 		y -= floorY;                                // OF POINT IN CUBE.
-		float u = fade(min(x, 1.0f));          // COMPUTE FADE CURVES
-		float v = fade(min(y, 1.0f));          // FOR EACH OF X,Y,Z.
+		float u = fade(sd_min(x, 1.0f));          // COMPUTE FADE CURVES
+		float v = fade(sd_min(y, 1.0f));          // FOR EACH OF X,Y,Z.
 		int A = perm[X] + Y, AA = perm[A], AB = perm[A + 1],      // HASH COORDINATES OF
 			B = perm[X + 1] + Y, BA = perm[B], BB = perm[B + 1];      // THE 8 CUBE CORNERS,
 

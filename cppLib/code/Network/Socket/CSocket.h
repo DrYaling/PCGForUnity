@@ -111,6 +111,7 @@ protected:
 	SocketSyncMode m_eMode;
 	bool m_bConnected;
 	bool m_bIsServer;
+	bool m_bThreadExited;
 	
 };
 #endif

@@ -19,8 +19,9 @@ namespace ecs
 		}
 	}
 
-	void SystemContainer::Initilize()
+	void SystemContainer::Initilize(SystemGroup group)
 	{
+		SetGroup(group);
 	}
 
 	bool SystemContainer::AddSystem(SystemCatalog catalog, int priority)

@@ -4,8 +4,25 @@
 #include <time.h>
 #include "SocketTime.h"
 #include "CoreOpcodes.h"
+static SocketServer* m_pInstance = nullptr;
 const static int PACKET_HEADER_SIZE = IKCP_OVERHEAD_LEN + 4 + sizeof(PacketHeader);
 char accept_pack_data[PACKET_HEADER_SIZE - IKCP_OVERHEAD_LEN] = { 0 };
+SocketServer * SocketServer::GetInstance()
+{
+	if (nullptr == m_pInstance)
+	{
+		m_pInstance = new SocketServer(SocketType::SOCKET_UDP);
+	}
+	return m_pInstance;
+}
+void SocketServer::Destroy()
+{
+	if (nullptr != m_pInstance)
+	{
+		m_pInstance->Stop();
+		delete m_pInstance;
+	}
+}
 SocketServer::SocketServer(SocketType sock) :m_nMTU(512), m_pSendNotifier(nullptr), m_nServerId(0)
 {
 	m_pSocket = new	Socket(sock);
@@ -24,10 +41,9 @@ SocketServer::~SocketServer()
 {
 }
 
-KcpSession * SocketServer::CreateSession(IUINT32 conv, const SockAddr_t & addr)
+std::shared_ptr<KcpSession> SocketServer::CreateSession(IUINT32 conv, const SockAddr_t & addr)
 {
-	KcpSession* session = new KcpSession(conv, addr);
-
+	std::shared_ptr<KcpSession> session = std::make_shared<KcpSession>(conv, addr);
 	return session;
 }
 
@@ -64,21 +80,21 @@ bool SocketServer::SetAddress(const char * ip, unsigned short port)
 	return true;
 }
 
-void SocketServer::Update()
+void SocketServer::Update(uint32_t diff)
 {
 	for (auto aliveSession : m_mSessions)
 	{
-		KcpSession* session = aliveSession.second;
+		std::shared_ptr<KcpSession>& session = aliveSession.second;
 		if (session)
 		{
-			aliveSession.second->Update(10);
+			aliveSession.second->Update(diff);
 		}
 	}
 	//clear dead sessions
 	m_vClosingSessions.clear();
 	for (auto sSession  = m_mSleepSessions.begin();sSession != m_mSleepSessions.end();sSession++)
 	{
-		KcpSession* session = sSession->second;
+		std::shared_ptr<KcpSession>& session = sSession->second;
 		if (session)
 		{
 			sSession->second->Update(10);
@@ -132,7 +148,7 @@ void SocketServer::ReadHandler()
 	if (!m_pSocket->Connected())
 		return;
 	auto addr = m_pSocket->GetRecvSockAddr_t();
-	KcpSession* session = GetSessionByRemote(addr);
+	std::shared_ptr<KcpSession> session = GetSessionByRemote(addr);
 	//if cant find session,try create new session
 	if (nullptr == session)
 	{
@@ -141,6 +157,10 @@ void SocketServer::ReadHandler()
 		if (nullptr != session)
 		{
 			session->OnConnected();
+			if (m_cbAcceptHandle)
+			{
+				m_cbAcceptHandle(session, session->GetSessionId().conv);
+			}
 		}
 		return;
 	}
@@ -190,9 +210,7 @@ bool SocketServer::CloseSession(const SockAddr_t & client)
 	{
 		if (mc->second->GetSessionId().addr == client)
 		{
-			LogFormat("client %d ,ip :%s,%d is closed by server!", mc->first, GetSocketAddrStr(mc->second->GetSessionId().addr), mc->second->GetSessionId().addr.port);
-			PacketHeader header = { 0,S2C_DISCONNECT };
-			Send((const char*)&header, sizeof(header), mc->second->GetSessionId());
+			LogFormat("client %d ,ip :%s,%d is closed by Server!", mc->first, GetSocketAddrStr(mc->second->GetSessionId().addr), mc->second->GetSessionId().addr.port);
 			mc->second->OnDisconnected(true);
 			m_mSessions.erase(mc);
 			return true;
@@ -201,36 +219,32 @@ bool SocketServer::CloseSession(const SockAddr_t & client)
 	return false;
 }
 
-bool SocketServer::CloseSession(KcpSession * session, bool remove)
+bool SocketServer::CloseSession(uint32_t session, bool remove)
 {
 	for (auto mc = m_mSessions.begin(); mc != m_mSessions.end(); mc++)
 	{
-		if (mc->second == session)
+		if (mc->first == session)
 		{
-			LogFormat("client %d ,ip :%s,%d is closed by server!", mc->first, GetSocketAddrStr(mc->second->GetSessionId().addr), mc->second->GetSessionId().addr.port);
-			PacketHeader header = { 0,S2C_DISCONNECT };
-			//disconnect msg 
-			Send((const char*)&header, sizeof(header), mc->second->GetSessionId());
-			m_mSessions.erase(mc);
-			session->OnDisconnected(remove);
+			LogFormat("client %d ,ip :%s,%d is closed by Server!", mc->first, GetSocketAddrStr(mc->second->GetSessionId().addr), mc->second->GetSessionId().addr.port);
+			mc->second->OnDisconnected(remove);
 			if (!remove)
 			{
-				m_mSleepSessions.insert(std::make_pair(session->GetSessionId().conv, session));
+				m_mSleepSessions.insert(std::make_pair(session, mc->second));
 			}
+			m_mSessions.erase(mc);
 			return true;
 		}
 	}
-	session->OnDisconnected(remove);
 	return false;
 }
-std::map<IUINT32, KcpSession*>::iterator SocketServer::OnSessionDead(KcpSession * session)
+std::map<IUINT32, std::shared_ptr<KcpSession>>::iterator SocketServer::OnSessionDead(std::shared_ptr<KcpSession> session)
 {
 	for (auto mc = m_mSleepSessions.begin(); mc != m_mSleepSessions.end(); mc++)
 	{
 		if (mc->second == session)
 		{
 			LogFormat("client %d ,ip :%s,%d is dead !", mc->first, GetSocketAddrStr(mc->second->GetSessionId().addr), mc->second->GetSessionId().addr.port);
-			char buff[] = { "disconnected by server" };
+			char buff[] = { "disconnected by Server" };
 			Send(buff, sizeof(buff), mc->second->GetSessionId());
 			session->OnDisconnected(true);
 			return m_mSleepSessions.erase(mc);
@@ -238,7 +252,7 @@ std::map<IUINT32, KcpSession*>::iterator SocketServer::OnSessionDead(KcpSession 
 	}
 	return m_mSleepSessions.end();
 }
-KcpSession* SocketServer::ContainsRemote(const SockAddr_t & remote, IUINT32 conv)
+std::shared_ptr<KcpSession> SocketServer::ContainsRemote(const SockAddr_t & remote, IUINT32 conv)
 {
 	for (auto mc = m_mSessions.begin(); mc != m_mSessions.end(); mc++)
 	{
@@ -250,7 +264,7 @@ KcpSession* SocketServer::ContainsRemote(const SockAddr_t & remote, IUINT32 conv
 	return nullptr;
 }
 
-KcpSession * SocketServer::GetSessionByRemote(const SockAddr_t & remote)
+std::shared_ptr<KcpSession> SocketServer::GetSessionByRemote(const SockAddr_t & remote)
 {
 	for (auto mc = m_mSessions.begin(); mc != m_mSessions.end(); mc++)
 	{
@@ -284,9 +298,9 @@ bool SocketServer::AcceptPack(const uint8 * buff, int length)
 	return memcmp(buff, accept_pack_data, length) == 0;
 }
 
-KcpSession * SocketServer::OnAccept(const SockAddr_t& remote)
+std::shared_ptr<KcpSession> SocketServer::OnAccept(const SockAddr_t& remote)
 {
-	KcpSession* session = nullptr;
+	std::shared_ptr<KcpSession> session = nullptr;
 	//not valid pack
 	//a accept pack should allways simple as accept_pack_data,or its bad connection
 	IUINT32 conv = 0;

@@ -11,16 +11,18 @@
 #include "ECS/StatusComponent.h"
 #include "ECS/MovementComponent.h"
 #include "ECS/EntityDemo.h"
+#include "server/Server.h"
+#include <crtdbg.h> 
 using namespace generator;
 using namespace ecs;
 void StartTestServer()
 {
-	SocketServer* server = sSocketServer;
-	server->SetMTU(512);
-	server->SetAddress("127.0.0.1", 8081);
-	bool bret = server->StartUp();
+	SocketServer* Server = sSocketServer;
+	Server->SetMTU(512);
+	Server->SetAddress("127.0.0.1", 8081);
+	bool bret = Server->StartUp();
 	LogFormat("StartUp ret %d\n", bret);
-	//server->(true);
+	//Server->(true);
 	char buff[1024];
 	SocketTime.timeStampSinceStartUp = 0;
 	std::mutex _mtx;
@@ -31,14 +33,21 @@ void StartTestServer()
 		{
 			std::lock_guard<std::mutex> lck(_mtx);
 			//LogFormat("Socket time %d", SocketTime.timeStampSinceStartUp);
-			sSocketServer->Update();
+			sSocketServer->Update(10);
 		}
 	}
 	delete sSocketServer;
 }
+using namespace server;
+int ServerWorker()
+{
+	sServer->ShutDownAfter(6);
+	return sServer->MainLoop();
+}
 int main()
 {
 	SystemContainer* pc = new SystemContainer();
+	pc->Initilize(SystemGroup::SERVER_WORLD);
 	pc->OnUpdate(1);
 	LogFormat("\t\n");
 	pc->AddSystem(SystemCatalog::MOVEMENT);
@@ -102,13 +111,18 @@ int main()
 	stop = GetTickCount();
 	LogFormat("Diamond_Square total gen time %d ms", stop - start);*/
 	//while (1) sleep(1000);
-/*
-	sleep(3000);
+
+	//sleep(3000);
 	//LogFormat("Test.main");
-	std::thread thr(StartTestServer);
-	thr.detach();
+	/*std::thread thr(ServerWorker());
+	thr.detach();*/
+	auto ret = ServerWorker();
+	new int[20];
+	_CrtDumpMemoryLeaks();
+	LogFormat("ServerWorker ret %d", ret);
+	//return ret;
 	sleep(4000);
-*/
+
 	G3D::Vector3 p(0.1f, 0.f, 1.2f);
 	for (size_t i = 0; i < 3; i++)
 	{

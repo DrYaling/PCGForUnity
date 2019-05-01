@@ -7,45 +7,34 @@
 #include <condition_variable>    // std::condition_variable
 #include "WriteBufferQueue.h"
 #include "KcpSession.h"
+#include <memory>
 class ConditionNotifier;
 class SocketServer;
-static SocketServer* m_pInstance;
-#define sSocketServer SocketServer::GetInstance()
 #define Opcode_Accept_Cmd 0
+typedef std::function<void(std::shared_ptr<KcpSession>, uint32_t)> OnAcceptSessionHandle;
 class SocketServer {
 public:
-	static SocketServer* GetInstance() {
-		if (nullptr == m_pInstance)
-		{
-			m_pInstance = new SocketServer(SocketType::SOCKET_UDP);
-		}
-		return m_pInstance;
-	}
-	static void Destroy() {
-		if (nullptr != m_pInstance)
-		{
-			m_pInstance->Stop();
-			delete m_pInstance;
-		}
-	}
+	static SocketServer* GetInstance();
+	static void Destroy();
 	SocketServer(SocketType sock);
 	~SocketServer();
-	KcpSession* CreateSession(IUINT32 conv, const SockAddr_t& addr);
+	std::shared_ptr<KcpSession> CreateSession(IUINT32 conv, const SockAddr_t& addr);
 	bool StartUp();
 	bool Stop();
 	bool SetAddress(const char * ip, unsigned short port);
 	size_t GetClientCount() {
 		return m_mSessions.size();
 	}
-	void Update();
+	void Update(uint32_t diff);
 	int32 Send(const char* data, int32 dataSize, const socketSessionId& session);
 	int16 GetMTU() { return m_nMTU; }
 	void SetMTU(int16 mtu) { m_nMTU = mtu; }
 	bool CloseSession(const SockAddr_t& client);
-	bool CloseSession(KcpSession* session, bool remove = false);
-	std::map<IUINT32,KcpSession*>::iterator OnSessionDead(KcpSession* session);
+	bool CloseSession(uint32_t session, bool remove = false);
+	std::map<IUINT32, std::shared_ptr<KcpSession>>::iterator OnSessionDead(std::shared_ptr<KcpSession> session);
 	bool CheckCrc(const char* buff, int length);
 	int16 GetServerId() { return m_nServerId; }
+	void SetAcceptSessionHandle(OnAcceptSessionHandle handle) { m_cbAcceptHandle = handle; }
 protected:
 	void ReadHandlerInternal(int size, const char* buffer);
 	void ReadHandler();
@@ -54,23 +43,24 @@ protected:
 private:
 	SocketServer() {}
 	MessageBuffer& GetReadBuffer() { return m_readBuffer; }
-	KcpSession* ContainsRemote(const SockAddr_t& remote, IUINT32 conv);
-	KcpSession* GetSessionByRemote(const SockAddr_t& remote);
+	std::shared_ptr<KcpSession> ContainsRemote(const SockAddr_t& remote, IUINT32 conv);
+	std::shared_ptr<KcpSession> GetSessionByRemote(const SockAddr_t& remote);
 	//查找正在等待连接的session
 	MessageBuffer* GetWaitingConnectSession(const SockAddr_t& remote);
 	bool AcceptPack(const uint8* buff, int length);
-	KcpSession* OnAccept(const SockAddr_t& remote);
+	std::shared_ptr<KcpSession> OnAccept(const SockAddr_t& remote);
 private:
 	Socket * m_pSocket;
 	ConditionNotifier* m_pSendNotifier;
 	WriteBufferQueue m_writeQueue;
+	OnAcceptSessionHandle m_cbAcceptHandle;
 	/*MessageBuffer m_headerBuffer;
 	MessageBuffer m_packetBuffer;*/
 	MessageBuffer m_readBuffer;
 	std::mutex _sendLock;
-	std::map<IUINT32, KcpSession*> m_mSessions;
-	std::map<IUINT32, KcpSession*> m_mSleepSessions;
-	std::vector<std::map<IUINT32, KcpSession*>::iterator> m_vClosingSessions;
+	std::map<IUINT32, std::shared_ptr<KcpSession>> m_mSessions;
+	std::map<IUINT32, std::shared_ptr<KcpSession>> m_mSleepSessions;
+	std::vector<std::map<IUINT32, std::shared_ptr<KcpSession>>::iterator> m_vClosingSessions;
 	std::map<SockAddr_t, MessageBuffer> m_mWaitingForConnections;
 	int16 m_nClientConv;
 	int16 m_nMTU;
@@ -90,4 +80,5 @@ private:
 	ContionThreadRunner m_pRunner;
 	bool m_bRunning;
 };
+#define sSocketServer SocketServer::GetInstance()
 #endif // !SOCKET_SERVER_H

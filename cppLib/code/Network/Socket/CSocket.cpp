@@ -426,6 +426,7 @@ Socket::Socket(SocketType tp) :
 	m_bIsServer(false),
 	m_socketType(tp),
 	m_Socket(INVALIDSOCKHANDLE),
+	m_bThreadExited(true),
 	//m_pSendCallback(nullptr),
 	m_pRecvCallback(nullptr)
 {
@@ -455,20 +456,23 @@ void Socket::Reopen(bool bForceClose)
 	{
 		m_Socket = SocketOpen(m_socketType, AF_INET);
 	}
-	printf_s("Socket %d\n", m_Socket);
+	printf_s("Socket %lld\n", m_Socket);
 }
 void Socket::Close()
 {
 	m_bConnected = false;
 	ClearRecvBuffer();
 	SocketClose(m_Socket);
+	logger::ProfilerStart("close socket");
+	while (!m_bThreadExited);
+	logger::ProfilerEnd();
 }
 
 void Socket::Connect()
 {
 	if (m_bIsServer)
 	{
-		LogError("once socket is set to server,cant change it to client!");
+		LogError("once socket is set to Server,cant change it to client!");
 		return;
 	}
 	int ret = SocketConnect(m_Socket, &m_stAddr);
@@ -681,6 +685,7 @@ void Socket::SelectThread()
 	struct timeval mytime = { 3,0 };
 	std::vector<SocketHandle> m_vListeners;
 	m_vListeners.clear();
+	m_bThreadExited = false;
 	while (m_bConnected)
 	{
 		FD_ZERO(&ser_fdset);
@@ -785,7 +790,7 @@ void Socket::SelectThread()
 					int byte_num = recv(m_Socket, recv_buffer, RECV_BUFFER_SIZE, BLOCKREADWRITE);
 					if (byte_num > 0)
 					{
-						//LogFormat("message form server %d", byte_num);
+						//LogFormat("message form Server %d", byte_num);
 						if (nullptr != m_pRecvCallback)
 						{
 							m_pRecvCallback(byte_num, recv_buffer);
@@ -794,11 +799,11 @@ void Socket::SelectThread()
 					else if (byte_num < 0)
 					{
 						int socketError = GetLastSocketError();
-						LogFormat("recv from server error %d!", socketError);
+						LogFormat("recv from Server error %d!", socketError);
 						//connection is reset
 						if (10054 == socketError)
 						{
-							LogFormat("lost connection to server!\n");
+							LogFormat("lost connection to Server!\n");
 							//disconnected
 							Close();
 							OnDisconnected(m_Socket);
@@ -807,7 +812,7 @@ void Socket::SelectThread()
 					}
 					else  //cancel fdset and set fd=0
 					{
-						LogFormat("server closed!\n");
+						LogFormat("Server closed!\n");
 						Close();
 						OnDisconnected(m_Socket);
 						return;
@@ -876,4 +881,5 @@ void Socket::SelectThread()
 	{
 		delete[] recv_buffer;
 	}
+	m_bThreadExited = true;
 }

@@ -60,15 +60,16 @@ void KcpClient::Close()
 	m_bRecv = false;
 	m_bAlive = false;
 	m_pDataHandler = nullptr;
-	m_pResponce = nullptr;	
+	m_pResponce = nullptr;
 }
 
 void KcpClient::Send(char * buff, int length, bool immediately)
 {
-	if (m_nSessionStatus != SessionStatus::Connected)
+	if (!m_bAlive || m_nSessionStatus != SessionStatus::Connected)
 	{
 		return;
 	}
+	LogFormat("KcpClient %d send buff size %d", m_stSessionId.conv, length);
 	//sSocketServer->Send(buff, length, GetSessionId());
 	ikcp_send(m_pKcp, buff, length);
 	m_nLastSendTime = m_pKcp->current;
@@ -104,32 +105,36 @@ void KcpClient::OnReceive(const uint8 * buff, int length)
 	}
 }
 
-void KcpClient::Update(int32_t time)
+void KcpClient::Update(int32_t diff)
 {
 	if (!m_bAlive)
 	{
-		m_nTick += time;
 		if (m_nSessionStatus == SessionStatus::Connecting)
 		{
+			m_nTick += diff;
 			if (m_nTick >= reconnectInterval)
 			{
 				m_nTick = 0;
-				m_nReconnectTime ++ ;
-				if (m_nReconnectTime >= m_nConnectTimeOut/reconnectInterval)
+				m_nReconnectTime++;
+				if (m_nReconnectTime >= m_nConnectTimeOut / reconnectInterval)
 				{
 					OnConnectFailed();
 				}
 				else
 				{
-					LogFormat("reconnect %d",m_nReconnectTime);
+					LogFormat("reconnect %d", m_nReconnectTime);
 					Connect();
 				}
 			}
 		}
+		else
+		{
+			return;
+		}
 	}
 	else
 	{
-		m_nTick += time;
+		m_nTick += diff;
 		if (m_nTick > HEART_BEAT_INTERVAL)
 		{
 			m_nTick = 0;
@@ -139,7 +144,7 @@ void KcpClient::Update(int32_t time)
 			m_updateMtx.lock();
 			ikcp_update(m_pKcp, m_pKcp->current + 15);
 			m_updateMtx.unlock();
-			m_nNeedUpdateTime = ikcp_check(m_pKcp, time);
+			m_nNeedUpdateTime = ikcp_check(m_pKcp, diff);
 			m_bNeedUpdate = false;
 		}
 		else
@@ -153,7 +158,7 @@ void KcpClient::ReadHandlerInternal(int size, const char * buffer)
 {
 	if (size <= 0)
 	{
-		LogFormat("read data error from server %s", GetSocketAddrStr(m_stremote));
+		LogFormat("read data error from Server %s", GetSocketAddrStr(m_stremote));
 		return;
 	}
 	//m_readBuffer.WriteCompleted(size);
@@ -223,7 +228,7 @@ void KcpClient::ReadHandler()
 
 			if (m_headerBuffer.GetRemainingSpace() > 0)
 			{
-				// Couldn't receive the whole header this time.
+				// Couldn't receive the whole header this diff.
 				break;
 			}
 
@@ -243,7 +248,7 @@ void KcpClient::ReadHandler()
 
 			if (m_packetBuffer.GetRemainingSpace() > 0)
 			{
-				// Couldn't receive the whole data this time.
+				// Couldn't receive the whole data this diff.
 				break;
 			}
 		}
@@ -269,16 +274,16 @@ void KcpClient::OnDisconnected(bool immediately)
 	m_headerBuffer.Reset();
 	m_nSessionStatus = SessionStatus::Disconnected;
 	//m_pKcp->conv = 0;
-	LogFormat("Socket OnDisconnected from server %d", immediately);
+	LogFormat("KcpClient %d OnDisconnected from Server %d", m_stSessionId.conv, immediately);
 	OnResponse(ClientResponse::CR_DISCONNECTED);
 }
 
 void KcpClient::OnConnected(bool success)
 {
-	LogFormat("Socket Connect success %d", success);
+	LogFormat("KcpClient %d  Connect success %d", m_stSessionId.conv, success);
 	m_nSessionStatus = success ? SessionStatus::Connected : SessionStatus::Disconnected;
 	m_bAlive = m_nSessionStatus == SessionStatus::Connected;
-	OnResponse(success?ClientResponse::CR_CONNECT_SUCCESS:ClientResponse::CR_CONNECT_FAIL);
+	OnResponse(success ? ClientResponse::CR_CONNECT_SUCCESS : ClientResponse::CR_CONNECT_FAIL);
 }
 
 int KcpClient::fnWriteDgram(const char * buf, int len, ikcpcb * kcp, void * user)
@@ -299,7 +304,7 @@ void KcpClient::SendHeartBeat()
 {
 	PacketHeader head = { 0,C2S_HEARTBEAT };
 	Send((char*)&head, sizeof(head), true);
-	Log("KcpClient::SendHeartBeat()");
+	Log("KcpClient %d::SendHeartBeat()",m_stSessionId.conv);
 }
 
 void KcpClient::OnConnectFailed()
@@ -308,6 +313,7 @@ void KcpClient::OnConnectFailed()
 	m_packetBuffer.Reset();
 	m_headerBuffer.Reset();
 	m_nSessionStatus = SessionStatus::Disconnected;
+	m_bAlive = false;
 	LogFormat("OnConnectFail");
 	OnResponse(ClientResponse::CR_CONNECT_FAIL);
 }
