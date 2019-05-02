@@ -27,7 +27,7 @@ SocketServer::SocketServer(SocketType sock) :m_nMTU(512), m_pSendNotifier(nullpt
 {
 	m_pSocket = new	Socket(sock);
 	m_pSocket->SetSocketMode(SocketSyncMode::SOCKET_ASYNC);
-	LogFormat("Socket Server fd %d",m_pSocket->GetHandle());
+	//LogFormat("Socket Server fd %d",m_pSocket->GetHandle());
 	m_readBuffer.Resize(RECV_BUFFER_SIZE);
 	PacketHeader acptHeader;
 	acptHeader.Command = C2S_CONNECT;
@@ -197,7 +197,7 @@ bool SocketServer::SendDataHandler()
 		}
 		else
 		{
-			LogFormat("Socket Server Send fail %d",err.nresult);
+			//LogFormat("Socket Server Send fail %d",err.nresult);
 		}
 	}
 	return m_writeQueue.GetActiveSize() <= 0;

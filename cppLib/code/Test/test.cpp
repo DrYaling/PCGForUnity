@@ -74,12 +74,8 @@ void GenerateTest()
 	//while (1) sleep(1000);
 
 }
-int main()
+void ECS_Test()
 {
-	_CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
-	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
-//	new int[20];
 	SystemContainer* pc = new SystemContainer();
 	pc->Initilize(SystemGroup::SERVER_WORLD);
 	pc->OnUpdate(1);
@@ -117,13 +113,12 @@ int main()
 
 	safe_delete(pDemo);
 	safe_delete(pc);
-	DWORD start, stop;
-	start = GetTickCount();
-	
-	//sleep(3000);
-	//LogFormat("Test.main");
-	/*std::thread thr(ServerWorker());
-	thr.detach();*/
+}
+int main()
+{
+	_CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
+	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
 	auto ret = ServerWorker();
 	//new int[20];
 	_CrtDumpMemoryLeaks();

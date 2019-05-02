@@ -456,7 +456,7 @@ void Socket::Reopen(bool bForceClose)
 	{
 		m_Socket = SocketOpen(m_socketType, AF_INET);
 	}
-	printf_s("Socket %lld\n", m_Socket);
+	//printf_s("Socket %lld\n", m_Socket);
 }
 void Socket::Close()
 {
@@ -681,7 +681,7 @@ void Socket::SelectThread()
 	{
 		recv_buffer = new char[RECV_BUFFER_SIZE];
 	}
-	Log("RecvThread start");
+	//Log("RecvThread start");
 	struct timeval mytime = { 3,0 };
 	std::vector<SocketHandle> m_vListeners;
 	m_vListeners.clear();
