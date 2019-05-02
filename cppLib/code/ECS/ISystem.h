@@ -133,5 +133,11 @@ namespace ecs
 	private:
 		ComponentEventMap m_mEventMap;
 	};
+	class ComponentIDGenerator
+	{
+	public:
+		ComponentIDGenerator() = delete;
+		static uint32_t GetComponentID();
+	};
 }
 #endif

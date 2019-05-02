@@ -7,6 +7,7 @@ namespace ecs
 	{
 		MOVEMENT = 0,
 		STATUS,
+		INTERVAL_TIMER,
 	};
 	class IEntity;
 	class ISystem;
@@ -21,9 +22,9 @@ namespace ecs
 		explicit IComponent(int32_t id) :m_ID(id), flags(1) {}
 		explicit IComponent(const IComponent& copy) :m_ID(copy.m_ID), flags(copy.flags) {}
 		~IComponent() {}
-		uint32_t GetID() { return m_ID; }
-		bool IsDirty() { return flags & 0x1; }
-		ComponentCatalog GetCatalog()
+		inline uint32_t GetID() { return m_ID; }
+		inline bool IsDirty() { return flags & 0x1; }
+		inline ComponentCatalog GetCatalog()
 		{
 			return (ComponentCatalog)((flags >> 16) & 0x0000ffff);
 		}
@@ -33,15 +34,15 @@ namespace ecs
 		}
 		IComponent() = delete;
 	private:
-		void SetDirty(bool dirty)
+	protected:
+		inline void SetDirty(bool dirty)
 		{
 			if (dirty)
 				flags |= 1;
 			else
 				flags &= 0xffff0000;
 		}
-	protected:
-		void SetCatalog(ComponentCatalog catalog)
+		inline void SetCatalog(ComponentCatalog catalog)
 		{
 			flags |= ((uint16_t)catalog << 16) & 0xffff0000;
 		}

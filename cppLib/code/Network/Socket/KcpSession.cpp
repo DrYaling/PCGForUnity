@@ -70,8 +70,8 @@ int KcpSession::fnWriteDgram(const char *buf, int len, ikcpcb *kcp, void *user) 
 void KcpSession::SendHeartBeat()
 {
 	PacketHeader head = { 0,S2C_HEARTBEAT };
-	Send((char*)&head, sizeof(head), true);
-	Log("KcpSession::SendHeartBeat()");
+	Send((char*)&head, sizeof(head));
+	//Log("KcpSession::SendHeartBeat()");
 }
 
 void KcpSession::Send(char * buff, int length, bool immediately)
@@ -82,7 +82,7 @@ void KcpSession::Send(char * buff, int length, bool immediately)
 	if (immediately)
 	{
 		m_updateMtx.lock();
-		ikcp_update(m_pKcp, m_pKcp->current + m_pKcp->interval);
+		ikcp_update(m_pKcp, m_pKcp->current + 10);
 		m_updateMtx.unlock();
 	}
 	else
@@ -100,14 +100,14 @@ void KcpSession::OnReceive(const uint8 * buff, int length)
 	if ((conv & 0xffff) != sSocketServer->GetServerId())
 	{
 		//ignore erro pack
-		LogErrorFormat("error serverId %d", conv >> 16);
+		LogErrorFormat("error serverId %u,should be %u,conv %x", conv & 0xffff,sSocketServer->GetServerId(),conv);
 		sSocketServer->CloseSession(GetSessionId().conv, false);
 		return;
 	}
 	//error conv
 	if (GetSessionId().conv != conv)
 	{
-		LogErrorFormat("error conv %d-should be %d", conv, GetSessionId().conv);
+		LogErrorFormat("error conv %u-should be %u", conv, GetSessionId().conv);
 		sSocketServer->CloseSession(GetSessionId().conv, false);
 		return;
 	}
@@ -137,12 +137,6 @@ void KcpSession::Update(uint32_t diff)
 	}
 	else
 	{
-		m_nTick += diff;
-		if (m_nTick > HEART_BEAT_INTERVAL)
-		{
-			m_nTick = 0;
-			SendHeartBeat();
-		}
 		uint32_t current = m_pKcp->current + diff;
 		if (m_bNeedUpdate || current >= m_nNeedUpdateTime) {
 			m_updateMtx.lock();

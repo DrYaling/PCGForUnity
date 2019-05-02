@@ -65,11 +65,11 @@ void KcpClient::Close()
 
 void KcpClient::Send(char * buff, int length, bool immediately)
 {
-	if (!m_bAlive || m_nSessionStatus != SessionStatus::Connected)
+	if (m_nSessionStatus != SessionStatus::Connected && m_nSessionStatus != SessionStatus::Connecting)
 	{
 		return;
 	}
-	LogFormat("KcpClient %d send buff size %d", m_stSessionId.conv, length);
+	//LogFormat("KcpClient %d send buff size %d", m_stSessionId.conv, length);
 	//sSocketServer->Send(buff, length, GetSessionId());
 	ikcp_send(m_pKcp, buff, length);
 	m_nLastSendTime = m_pKcp->current;
@@ -116,13 +116,13 @@ void KcpClient::Update(int32_t diff)
 			{
 				m_nTick = 0;
 				m_nReconnectTime++;
-				if (m_nReconnectTime >= m_nConnectTimeOut / reconnectInterval)
+				if (m_nConnectTimeOut > 0 && m_nReconnectTime >= m_nConnectTimeOut / reconnectInterval)
 				{
 					OnConnectFailed();
 				}
 				else
 				{
-					LogFormat("reconnect %d", m_nReconnectTime);
+					//LogFormat("reconnect %d", m_nReconnectTime);
 					Connect();
 				}
 			}
@@ -177,6 +177,7 @@ ReadDataHandlerResult KcpClient::ReadDataHandler()
 		utils_decode32u((char*)m_packetBuffer.GetReadPointer(), &conv);
 		if (conv > 0)
 		{
+			LogFormat("KcpClient recv accept act conv %u", conv);
 			m_stSessionId = socketSessionId(conv, m_stremote);
 			m_pKcp->conv = conv;
 		}
@@ -280,7 +281,7 @@ void KcpClient::OnDisconnected(bool immediately)
 
 void KcpClient::OnConnected(bool success)
 {
-	LogFormat("KcpClient %d  Connect success %d", m_stSessionId.conv, success);
+	LogFormat("KcpClient %u  Connect success %d", m_stSessionId.conv, success);
 	m_nSessionStatus = success ? SessionStatus::Connected : SessionStatus::Disconnected;
 	m_bAlive = m_nSessionStatus == SessionStatus::Connected;
 	OnResponse(success ? ClientResponse::CR_CONNECT_SUCCESS : ClientResponse::CR_CONNECT_FAIL);
@@ -303,8 +304,8 @@ int KcpClient::fnWriteDgram(const char * buf, int len, ikcpcb * kcp, void * user
 void KcpClient::SendHeartBeat()
 {
 	PacketHeader head = { 0,C2S_HEARTBEAT };
-	Send((char*)&head, sizeof(head), true);
-	Log("KcpClient %d::SendHeartBeat()",m_stSessionId.conv);
+	Send((char*)&head, sizeof(head));
+	//LogFormat("KcpClient %u::SendHeartBeat()", m_stSessionId.conv);
 }
 
 void KcpClient::OnConnectFailed()

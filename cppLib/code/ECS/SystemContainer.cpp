@@ -3,6 +3,7 @@
 #include "MovementSystem.h"
 #include "StatusSystem.h"
 #include "Logger/leakHelper.h"
+#include "Sys_Timers.h"
 namespace ecs
 {
 	SystemContainer::SystemContainer() :
@@ -35,6 +36,7 @@ namespace ecs
 				return false;
 			}
 		}
+		std::lock_guard<std::mutex> lock(m_systemMtx);
 		bool ret = false;
 		switch (catalog)
 		{
@@ -56,15 +58,25 @@ namespace ecs
 					ret = true;
 				}
 				break;
+			case SystemCatalog::INTERVAL_TIMER:
+				{
+					system = new Sys_IntervalTimer();
+					system->m_nPriority = priority;
+					system->SetEnabled(true);
+					m_lSystem.add(dynamic_cast<ISystem*>(system), priority);
+					ret = true;
+				}
+				break;
 			default:
 				break;
 		}
+		LogFormat("SystemContainer system size %d", m_lSystem.size());
 		return ret;
 	}
 
 	void SystemContainer::OnUpdate(int32_t time_diff)
 	{
-		LogFormat("SystemContainer::OnUpdate %d ,system size %d", time_diff, m_lSystem.size());
+		std::lock_guard<std::mutex> lock(m_systemMtx);
 		for (auto itr = m_lSystem.begin(); itr != m_lSystem.end(); itr++)
 		{
 			if (itr->GetEnabled())

@@ -31,16 +31,18 @@ namespace server
 		SocketServer* pSocketServer = sSocketServer;
 		pSocketServer->SetMTU(512);
 		pSocketServer->SetAddress("127.0.0.1", 8081);
+		pSocketServer->SetServerId(0);
+		pSocketServer->SetAcceptSessionHandle([](std::shared_ptr<KcpSession> session, uint32_t id)->void
+		{
+			sWorld->AddSession(std::make_shared<WorldSession>(id, "", session));
+		});
 		bool bret = pSocketServer->StartUp();
 		if (!bret)
 		{
 			return -1;
 		}
-		sSocketServer->SetAcceptSessionHandle([](std::shared_ptr<KcpSession> session, uint32_t id)->void
-		{
-			sWorld->AddSession(std::make_shared<WorldSession>(id, "", session));
-		});
 		LogFormat("StartUp ret %d\n", bret);
+		time_t sessionLogTimer = GameTime::GetGameTime() + 15;
 		while (!IsStopped())
 		{
 			++m_worldLoopCounter;
@@ -51,7 +53,11 @@ namespace server
 			_UpdateGameTime();
 			pSocketServer->Update(diff);
 			sWorld->Update(diff);
-
+			if (GameTime::GetGameTime() >= sessionLogTimer)
+			{
+				sessionLogTimer = GameTime::GetGameTime() + 15;
+				LogFormat("Server alive sessions %d",sWorld->GetActiveSessionCount());
+			}
 			realPrevTime = realCurrTime;
 
 			uint32 executionTimeDiff = getMSTimeDiff(realCurrTime, getMSTime());

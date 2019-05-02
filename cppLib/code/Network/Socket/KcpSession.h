@@ -4,6 +4,7 @@
 #include "SocketConfig.h"
 #include <functional>
 #include <mutex>
+#include "CoreOpcodes.h"
 #include <memory>
 #define SESSION_KEEP_ALIVE_TIME 120000	//2mins
 //with no public,when use shared_from_this throw bad_weak_ptr exception
@@ -25,6 +26,8 @@ public:
 	bool IsConnecting() { return m_nSessionStatus == SessionStatus::Connecting; }
 	void Disconnect();
 	inline const socketSessionId& GetSessionId() { return m_stSessionId; }
+
+	void SendHeartBeat();
 public:
 	void SetPacketReceivedCallback(SocketDataReceiveHandler callback);
 	void SetConnectFinishedCallback(std::function<void(std::shared_ptr<KcpSession>)> callback);
@@ -37,7 +40,6 @@ private:
 	void OnConnected(IUINT32 conv,const SockAddr_t& addr);
 	void OnConnected();
 	static int fnWriteDgram(const char *buf, int len, ikcpcb *kcp, void *user);
-	void SendHeartBeat();
 private:
 	//std::function<void(std::shared_ptr<MessageBuffer>)> m_cbPacketReceived;
 	std::function<void(std::shared_ptr<KcpSession>)> m_cbConnectFinished;

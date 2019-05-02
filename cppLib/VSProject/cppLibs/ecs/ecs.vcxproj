@@ -28,12 +28,16 @@
     <ClInclude Include="..\..\..\code\ECS\StatusComponent.h" />
     <ClInclude Include="..\..\..\code\ECS\StatusSystem.h" />
     <ClInclude Include="..\..\..\code\ECS\SystemContainer.h" />
+    <ClInclude Include="..\..\..\code\ECS\Sys_Timers.h" />
+    <ClInclude Include="..\..\..\code\ECS\TimeComponents.h" />
     <ClInclude Include="..\..\..\code\Utinities\PriorityList.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\code\ECS\ISystem.cpp" />
     <ClCompile Include="..\..\..\code\ECS\MovementSystem.cpp" />
     <ClCompile Include="..\..\..\code\ECS\StatusSystem.cpp" />
     <ClCompile Include="..\..\..\code\ECS\SystemContainer.cpp" />
+    <ClCompile Include="..\..\..\code\ECS\Sys_Timers.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

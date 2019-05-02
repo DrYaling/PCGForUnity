@@ -8,7 +8,7 @@
 #include "Logger/leakHelper.h"
 namespace ecs
 {
-	class EntityDemo :IEntity
+	class EntityDemo :public IEntity
 	{
 	public:
 		EntityDemo();

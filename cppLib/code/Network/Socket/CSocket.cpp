@@ -456,7 +456,7 @@ void Socket::Reopen(bool bForceClose)
 	{
 		m_Socket = SocketOpen(m_socketType, AF_INET);
 	}
-	//printf_s("Socket %lld\n", m_Socket);
+	//LogFormat("Socket %lld", m_Socket);
 }
 void Socket::Close()
 {
@@ -480,12 +480,13 @@ void Socket::Connect()
 	m_bIsServer = false;
 	if (ret == 0 && !m_bConnected)
 	{
+		m_bConnected = true;
+		//m_bIsServer and m_bConnected should be set before thread start 
 		if (m_eMode == SocketSyncMode::SOCKET_ASYNC)
 		{
 			std::thread trecv(&Socket::SelectThread, this);
 			trecv.detach();
 		}
-		m_bConnected = true;
 	}
 }
 void Socket::Connect(const char* ip, int port)
@@ -645,17 +646,18 @@ void Socket::ClearRecvBuffer()
 int Socket::StartListen(int maxconn)
 {
 	int err = 0;
+	m_bIsServer = true;
 	if (m_socketType == SocketType::SOCKET_TCP)
 	{
 		err = SocketListen(m_Socket, maxconn);
 	}
 	if (err == 0 && !m_bConnected)
 	{
+		m_bConnected = true;
+		//m_bIsServer and m_bConnected should be set before thread start 
 		std::thread trecv(&Socket::SelectThread, this);
 		trecv.detach();
-		m_bConnected = true;
 	}
-	m_bIsServer = true;
 	return err;
 }
 
@@ -681,7 +683,6 @@ void Socket::SelectThread()
 	{
 		recv_buffer = new char[RECV_BUFFER_SIZE];
 	}
-	//Log("RecvThread start");
 	struct timeval mytime = { 3,0 };
 	std::vector<SocketHandle> m_vListeners;
 	m_vListeners.clear();
@@ -729,7 +730,7 @@ void Socket::SelectThread()
 			{
 				//do nothing
 			}*/
-			//LogFormat("select ret %d", ret);
+			//LogFormat("server %d select ret %d",IsServer(), ret);
 			//accept ÔÚacceptÏß³Ì
 			if (FD_ISSET(m_Socket, &ser_fdset))
 			{
@@ -786,8 +787,15 @@ void Socket::SelectThread()
 				else//client
 				{
 					memset(recv_buffer, 0, RECV_BUFFER_SIZE);
-
-					int byte_num = recv(m_Socket, recv_buffer, RECV_BUFFER_SIZE, BLOCKREADWRITE);
+					int byte_num = 0;
+					if (m_socketType == SocketType::SOCKET_TCP)
+					{
+						byte_num = recv(m_Socket, recv_buffer, RECV_BUFFER_SIZE, BLOCKREADWRITE);
+					}
+					else
+					{
+						byte_num = recvfrom(m_Socket, recv_buffer, RECV_BUFFER_SIZE, BLOCKREADWRITE, (sockaddr*)&m_stAddr, &sockaddr_Len);
+					}
 					if (byte_num > 0)
 					{
 						//LogFormat("message form Server %d", byte_num);
@@ -810,12 +818,13 @@ void Socket::SelectThread()
 							return;
 						}
 					}
-					else  //cancel fdset and set fd=0
+					else if(GetLastSocketError())  //cancel fdset and set fd=0
 					{
-						LogFormat("Server closed!\n");
+						LogErrorFormat("recvfrom Server error:%d", GetLastSocketError());
+						/*LogFormat("Server closed!\n");
 						Close();
 						OnDisconnected(m_Socket);
-						return;
+						return;*/
 					}
 				}
 			}

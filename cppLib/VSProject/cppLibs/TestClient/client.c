@@ -10,7 +10,7 @@
 int main()
 {
 	//sleep(100);
-	int client_count = 50;
+	int client_count = 10;
 	while (client_count--)
 	{
 		std::thread* thread = new std::thread([]()->void
@@ -19,7 +19,7 @@ int main()
 			SocketTime.timeStampSinceStartUp = 0;
 			client->SetAddress("127.0.0.1", 8081);
 			auto callback = [&client](int cmd, const uint8* buff, int size)->bool {
-				LogFormat("recv server msg cmd :%d,content:%s,msg size %d", cmd, buff, size);
+				LogFormat("client %u recv server msg cmd :%d,content:%s,msg size %d", client->GetClientId(), cmd, buff, size);
 				//socket.SetRecvCallback(nullptr);
 				return true;
 			};
@@ -38,6 +38,7 @@ int main()
 			});
 			t.detach();
 			client->SetReceiveCallBack(callback);
+			client->SetConnectTimeout(0);
 			client->Connect();
 			while (!client->IsConnected())
 			{
@@ -46,7 +47,7 @@ int main()
 			}
 			char buff[345] = { "9" };
 			char data[2550] = { 5 };
-			int i = 43;
+			int i = 3;
 			Log("connect to 127.0.0.1:8081 success");
 
 			while (i-- > 0)
@@ -68,6 +69,13 @@ int main()
 				client.Send(data, sizeof(header) + sizeof(buff) + 3, true);
 				LogFormat("send buff size %d", sizeof(header) + sizeof(buff) + 3);*/
 			}
+			LogFormat("client %u idle", client->GetClientId());
+			while (true)
+			{
+				sleep(100000);
+			}
+			LogFormat("client %u thread exit",client->GetClientId());
+
 		});
 	}
 	

@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <queue>
 #include "Utinities/LockedQueue.h"
+#include "ECS/SystemContainer.h"
 namespace server
 {
 	class World
@@ -46,6 +47,7 @@ namespace server
 		uint32 m_maxActiveSessionCount;
 		uint32 m_maxQueuedSessionCount;
 		uint32 m_PlayerCount;
+		ecs::SystemContainer* m_pEcs;
 
 	};
 #define sWorld World::GetInstance()

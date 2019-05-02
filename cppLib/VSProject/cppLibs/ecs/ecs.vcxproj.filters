@@ -45,6 +45,12 @@
     <ClInclude Include="..\..\..\code\Utinities\PriorityList.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\code\ECS\TimeComponents.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\code\ECS\Sys_Timers.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\ECS\MovementSystem.cpp">
@@ -54,6 +60,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\code\ECS\StatusSystem.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\ECS\Sys_Timers.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\ECS\ISystem.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

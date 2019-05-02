@@ -22,10 +22,14 @@ namespace server
 
 	World::World()
 	{
+		m_pEcs = new ecs::SystemContainer();
+		m_pEcs->Initilize(ecs::SystemGroup::SERVER_WORLD);
+		m_pEcs->AddSystem(ecs::SystemCatalog::INTERVAL_TIMER);
 	}
 
 	World::~World()
 	{
+		safe_delete(m_pEcs);
 	}
 
 	void World::Update(uint32_t diff)
@@ -40,6 +44,7 @@ namespace server
 		/// <li> Handle session updates when the timer has passed
 		//sWorldUpdateTime.RecordUpdateTimeReset();
 		UpdateSessions(diff);
+		m_pEcs->OnUpdate(diff);
 		//sWorldUpdateTime.RecordUpdateTimeDuration("UpdateSessions");
 	}
 	void World::UpdateSessions(uint32 diff)
@@ -59,7 +64,7 @@ namespace server
 
 			if (!pSession->Update(diff))    // As interval = 0
 			{
-				if (!RemoveQueuedPlayer(itr->second) && itr->second )
+				if (!RemoveQueuedPlayer(itr->second) && itr->second)
 					m_disconnects[itr->second->GetSessionId()] = GameTime::GetGameTime();
 				RemoveQueuedPlayer(pSession);
 				m_mSessions.erase(itr);
@@ -79,6 +84,8 @@ namespace server
 	void World::AddSession(std::shared_ptr<WorldSession> s)
 	{
 		addSessQueue.add(s);
+		//initilize ecs after lock queue unlocked,or may be fail in update of ecs system
+		s->Initilize(m_pEcs);
 	}
 	bool World::RemoveSession(uint32 id)
 	{
@@ -154,7 +161,7 @@ namespace server
 	}
 	void World::OnServerShutDown()
 	{
-		for (auto itr = m_mSessions.begin();itr != m_mSessions.end();itr++)
+		for (auto itr = m_mSessions.begin(); itr != m_mSessions.end(); itr++)
 		{
 			itr->second->KickPlayer();
 		}
@@ -182,8 +189,8 @@ namespace server
 	}
 	void World::UpdateMaxSessionCounters()
 	{
-		m_maxActiveSessionCount = max(m_maxActiveSessionCount, uint32(m_mSessions.size() - m_QueuedPlayer.size()));
-		m_maxQueuedSessionCount = max(m_maxQueuedSessionCount, uint32(m_QueuedPlayer.size()));
+		m_maxActiveSessionCount = sd_max(m_maxActiveSessionCount, uint32(m_mSessions.size() - m_QueuedPlayer.size()));
+		m_maxQueuedSessionCount = sd_max(m_maxQueuedSessionCount, uint32(m_QueuedPlayer.size()));
 	}
 	void World::AddSession_(std::shared_ptr<WorldSession> s)
 	{

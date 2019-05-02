@@ -34,7 +34,8 @@ public:
 	bool CloseSession(uint32_t session, bool remove = false);
 	std::map<IUINT32, std::shared_ptr<KcpSession>>::iterator OnSessionDead(std::shared_ptr<KcpSession> session);
 	bool CheckCrc(const char* buff, int length);
-	int16 GetServerId() { return m_nServerId; }
+	uint16_t GetServerId() { return m_nServerId; }
+	void SetServerId(uint16_t sid) { m_nServerId = sid; }
 	void SetAcceptSessionHandle(OnAcceptSessionHandle handle) { m_cbAcceptHandle = handle; }
 protected:
 	void ReadHandlerInternal(int size, const char* buffer);
@@ -65,12 +66,12 @@ private:
 	std::map<SockAddr_t, MessageBuffer> m_mWaitingForConnections;
 	int16 m_nClientConv;
 	int16 m_nMTU;
-	int16 m_nServerId;
+	uint16_t m_nServerId;
 };
 typedef std::function<bool(void)> ContionThreadRunner;
 class ConditionNotifier {
 public:
-	ConditionNotifier(ContionThreadRunner runner) :m_pRunner(runner), m_bRunning(true) , m_bExited(true){}
+	ConditionNotifier(ContionThreadRunner runner) :m_pRunner(runner), m_bRunning(true), m_bExited(true) {}
 	void Start();
 	void Notify();
 	void Exit();

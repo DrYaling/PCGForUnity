@@ -15,11 +15,11 @@
 #include "Logger/leakHelper.h"
 using namespace generator;
 using namespace ecs;
-void StartTestServer()
+int StartTestServer()
 {
 	SocketServer* Server = sSocketServer;
 	Server->SetMTU(512);
-	Server->SetAddress("127.0.0.1", 8081);
+	Server->SetAddress(/*"127.0.0.1"*/nullptr, 8081);
 	bool bret = Server->StartUp();
 	LogFormat("StartUp ret %d\n", bret);
 	//Server->(true);
@@ -37,11 +37,12 @@ void StartTestServer()
 		}
 	}
 	delete sSocketServer;
+	return 0;
 }
 using namespace server;
 int ServerWorker()
 {
-	sServer->ShutDownAfter(6);
+	//sServer->ShutDownAfter(46);
 	return sServer->MainLoop();
 }
 void GenerateTest()

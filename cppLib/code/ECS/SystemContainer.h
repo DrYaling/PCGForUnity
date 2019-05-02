@@ -3,6 +3,7 @@
 #include "define.h"
 #include "ISystem.h"
 #include "Utinities/PriorityList.h"
+#include <mutex>
 namespace ecs
 {
 	enum class SystemGroup
@@ -35,6 +36,7 @@ namespace ecs
 			auto pSys = GetSystem<T>(catalog);
 			if (pSys)
 			{
+				std::lock_guard<std::mutex> lock(m_systemMtx);
 				pSys->RegisterComponentChangeEvent(event_call, componentId);
 			}
 		}
@@ -74,6 +76,7 @@ namespace ecs
 	private:
 		priorityList<ISystem> m_lSystem;
 		SystemGroup m_eGroup;
+		std::mutex m_systemMtx;
 	};
 
 	template<class T>
@@ -86,6 +89,7 @@ namespace ecs
 				System<T>* sys = dynamic_cast<System<T>*>(itr.ptr());
 				if (sys)
 				{
+					std::lock_guard<std::mutex> lock(m_systemMtx);
 					return sys->RegisterComponent(com);
 				}
 			}

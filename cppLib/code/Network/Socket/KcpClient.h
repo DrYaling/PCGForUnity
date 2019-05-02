@@ -26,6 +26,7 @@ public:
 	bool IsConnecting() { return m_nSessionStatus == SessionStatus::Connecting; }
 	bool IsConnected() { return m_nSessionStatus == SessionStatus::Connected; }
 	void SetConnectTimeout(int16 timeout) { m_nConnectTimeOut = timeout; }
+	uint32_t  GetClientId() { return m_stSessionId.conv; }
 public:
 	void SetReceiveCallBack(SocketDataReceiveHandler cb) { m_pDataHandler = cb; }
 	void SetResponseCallBack(ClientRespanceCallBack cb) { m_pResponce = cb; }

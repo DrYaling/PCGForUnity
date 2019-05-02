@@ -6,10 +6,12 @@
 #include <atomic>
 #include <memory>
 #include "Network/Socket/MessageBuffer.h"
+#include "ECS/IEntity.h"
+#include "ECS/TimeComponents.h"
 namespace server
 {
 	//with no public,when use shared_from_this throw bad_weak_ptr exception
-	class WorldSession :public std::enable_shared_from_this<WorldSession>
+	class WorldSession :public std::enable_shared_from_this<WorldSession>, public ecs::IEntity
 	{
 	public:
 		WorldSession(uint32 id, std::string&& name, std::shared_ptr<KcpSession> sock);
@@ -30,6 +32,11 @@ namespace server
 		{
 			return m_nTimeOutTime < GameTime::GetGameTime() && !m_bInQueue;
 		}
+	public:
+		//ecs
+
+		virtual void Initilize(ecs::SystemContainer* pContainer);
+		virtual void OnComponentChangeEvent(ecs::IComponent* com, uint32_t comId, ecs::ComponentCatalog catalog);
 	private:
 		bool OnReceivePacket(int, uint8*, int);
 	private:
@@ -37,7 +44,10 @@ namespace server
 		uint32_t m_nSessionId;
 		std::atomic<time_t> m_nTimeOutTime;
 		bool m_bInQueue;
-
+		ecs::IntervalTimer* m_pTimer;
+		uint32_t m_nTimerId;
+		ecs::IntervalTimer* m_pHeatBeatTimer;
+		uint32_t m_nHeartBeatTimerId;
 	};
 }
 #endif
