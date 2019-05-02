@@ -98,7 +98,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
     <PostBuildEvent>
-      <Command>Copy "$(SolutionDir)$(Configuration)\$(ProjectName).dll" "$(SolutionDir)../../../Project\Assets\Plugins\x86/$(ProjectName).dll"</Command>
+      <Command>Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(SolutionDir)../../../Project\Assets\Plugins/$(ProjectName).dll"</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>
@@ -124,7 +124,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
     <PostBuildEvent>
-      <Command>Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(SolutionDir)../../../Project\Assets\Plugins\x86_x64/$(ProjectName).dll"</Command>
+      <Command>Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(SolutionDir)../../../Project\Assets\Plugins/$(ProjectName).dll"</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>
@@ -157,7 +157,7 @@
       <GenerateMapFile>true</GenerateMapFile>
     </Link>
     <PostBuildEvent>
-      <Command>Copy "$(SolutionDir)$(Configuration)\$(ProjectName).dll" "$(SolutionDir)../../../Project\Assets\Plugins\x86/$(ProjectName).dll"</Command>
+      <Command>Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(SolutionDir)../../../Project\Assets\Plugins/$(ProjectName).dll"</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>
@@ -190,8 +190,7 @@
       <GenerateMapFile>true</GenerateMapFile>
     </Link>
     <PostBuildEvent>
-      <Command>Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(SolutionDir)../../../Project\Assets\Plugins/$(ProjectName).dll"
-Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).pdb" "$(SolutionDir)../../../Project\Assets\Plugins/$(ProjectName).pdb"</Command>
+      <Command>Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(SolutionDir)../../../Project\Assets\Plugins/$(ProjectName).dll"</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>

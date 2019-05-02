@@ -12,7 +12,7 @@
 #include "ECS/MovementComponent.h"
 #include "ECS/EntityDemo.h"
 #include "server/Server.h"
-#include <crtdbg.h> 
+#include "Logger/leakHelper.h"
 using namespace generator;
 using namespace ecs;
 void StartTestServer()
@@ -46,6 +46,10 @@ int ServerWorker()
 }
 int main()
 {
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
+	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
+//	new int[20];
 	SystemContainer* pc = new SystemContainer();
 	pc->Initilize(SystemGroup::SERVER_WORLD);
 	pc->OnUpdate(1);
@@ -117,10 +121,10 @@ int main()
 	/*std::thread thr(ServerWorker());
 	thr.detach();*/
 	auto ret = ServerWorker();
-	new int[20];
+	//new int[20];
 	_CrtDumpMemoryLeaks();
 	LogFormat("ServerWorker ret %d", ret);
-	//return ret;
+	return ret;
 	sleep(4000);
 
 	G3D::Vector3 p(0.1f, 0.f, 1.2f);

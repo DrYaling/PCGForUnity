@@ -113,7 +113,7 @@ void Subprocess::Start(const string& program, SearchMode search_mode) {
   }
 
   // CreateProcess() mutates its second parameter.  WTF?
-  char* name_copy = strdup(program.c_str());
+  char* name_copy = _strdup(program.c_str());
 
   // Create the process.
   PROCESS_INFORMATION process_info;
@@ -171,7 +171,7 @@ bool Subprocess::Communicate(const Message& input, Message* output,
     DWORD wait_result =
         WaitForMultipleObjects(handle_count, handles, FALSE, INFINITE);
 
-    HANDLE signaled_handle;
+    HANDLE signaled_handle = nullptr;
     if (wait_result >= WAIT_OBJECT_0 &&
         wait_result < WAIT_OBJECT_0 + handle_count) {
       signaled_handle = handles[wait_result - WAIT_OBJECT_0];

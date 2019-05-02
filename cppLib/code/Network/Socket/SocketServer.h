@@ -8,6 +8,7 @@
 #include "WriteBufferQueue.h"
 #include "KcpSession.h"
 #include <memory>
+#include <atomic>
 class ConditionNotifier;
 class SocketServer;
 #define Opcode_Accept_Cmd 0
@@ -69,7 +70,7 @@ private:
 typedef std::function<bool(void)> ContionThreadRunner;
 class ConditionNotifier {
 public:
-	ConditionNotifier(ContionThreadRunner runner) :m_pRunner(runner), m_bRunning(true) {}
+	ConditionNotifier(ContionThreadRunner runner) :m_pRunner(runner), m_bRunning(true) , m_bExited(true){}
 	void Start();
 	void Notify();
 	void Exit();
@@ -78,7 +79,8 @@ private:
 	std::mutex m_mtx;
 	std::condition_variable m_condition;
 	ContionThreadRunner m_pRunner;
-	bool m_bRunning;
+	std::atomic_bool m_bRunning;
+	std::atomic_bool m_bExited;
 };
 #define sSocketServer SocketServer::GetInstance()
 #endif // !SOCKET_SERVER_H

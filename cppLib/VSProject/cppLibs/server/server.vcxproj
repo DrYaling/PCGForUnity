@@ -69,7 +69,10 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ReferencePath>$(SolutionDir)../;$(ReferencePath)</ReferencePath>
+    <LibraryPath>$(SolutionDir)../../code/vld/lib/Win64;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -93,7 +96,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/dep;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/dep;$(SolutionDir)../../code/server;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
@@ -104,7 +107,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/dep;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/dep;$(SolutionDir)../../code/server;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
@@ -117,7 +120,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/dep;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/dep;$(SolutionDir)../../code/server;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>

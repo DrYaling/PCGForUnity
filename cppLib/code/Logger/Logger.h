@@ -11,7 +11,7 @@
 //#define LOG_TYPE_AS_TITLE
 #define LOG_SWITCH 1
 //#define LOG_TRACE
-#ifdef WIN32
+#ifdef _WIN32
 #include <Windows.h>
 #include "DbgHelp.h"
 #else

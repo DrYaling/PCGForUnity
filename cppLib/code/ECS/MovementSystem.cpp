@@ -1,5 +1,6 @@
 #include "MovementSystem.h"
 
+#include "Logger/leakHelper.h"
 namespace ecs
 {
 	MovementSystem::MovementSystem()

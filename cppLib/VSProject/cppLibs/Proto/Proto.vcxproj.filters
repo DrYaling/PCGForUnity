@@ -24,9 +24,6 @@
     <ClCompile Include="..\..\..\code\dep\google\protobuf\io\coded_stream.cc">
       <Filter>libprotobuf</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\dep\google\protobuf\compiler\command_line_interface.cc">
-      <Filter>libprotobuf</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\code\dep\google\protobuf\stubs\common.cc">
       <Filter>libprotobuf</Filter>
     </ClCompile>

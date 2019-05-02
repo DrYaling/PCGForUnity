@@ -28,7 +28,6 @@ namespace server
 	{
 		uint32 realCurrTime = 0;
 		uint32 realPrevTime = getMSTime();
-
 		SocketServer* pSocketServer = sSocketServer;
 		pSocketServer->SetMTU(512);
 		pSocketServer->SetAddress("127.0.0.1", 8081);

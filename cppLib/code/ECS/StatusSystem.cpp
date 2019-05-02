@@ -1,4 +1,5 @@
 #include "StatusSystem.h"
+#include "Logger/leakHelper.h"
 
 namespace ecs
 {

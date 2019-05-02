@@ -88,9 +88,9 @@ public:
 	the first iterator, pre-increment (++i) the iterator to get to
 	the next value.  Use dereference (*i) to access the element.
 	*/
-	typedef iterator& Iterator;
+	typedef iterator Iterator;
 	/** C++ STL style const iterator in same style as Iterator. */
-	typedef const iterator& ConstIterator;
+	typedef const iterator ConstIterator;
 
 	/** stl porting compatibility helper */
 	typedef ConstIterator const_iterator;

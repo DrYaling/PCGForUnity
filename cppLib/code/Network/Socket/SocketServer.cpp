@@ -371,15 +371,20 @@ std::shared_ptr<KcpSession> SocketServer::OnAccept(const SockAddr_t& remote)
 
 void ConditionNotifier::Run()
 {
+	m_bExited = false;
 	std::unique_lock <std::mutex> lck(m_mtx);
-	while (m_bRunning)
+	while (m_bRunning.load(std::memory_order_relaxed))
 	{
 		{
-			if (nullptr != m_pRunner)
+			if (m_pRunner)
 			{
 				if (m_pRunner())
 				{
 					m_condition.wait(lck);
+					if (!m_bRunning.load(std::memory_order_relaxed))
+					{
+						break;
+					}
 					//Âú×ãÌõ¼þ,ÐÝÃß
 				}
 			}
@@ -390,6 +395,7 @@ void ConditionNotifier::Run()
 			}
 		}
 	}
+	m_bExited = true;
 }
 
 void ConditionNotifier::Start()
@@ -407,7 +413,8 @@ void ConditionNotifier::Notify()
 
 void ConditionNotifier::Exit()
 {
-	m_pRunner = nullptr;
-	m_bRunning = false;
+	m_bRunning.store(false, std::memory_order_release);
 	Notify();
+	while (!m_bExited) sleep(1);
+	m_pRunner = nullptr;
 }

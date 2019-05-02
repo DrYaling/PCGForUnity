@@ -5,6 +5,7 @@
 #include "IEntity.h"
 #include "SystemContainer.h"
 #include <map>
+#include "Logger/leakHelper.h"
 namespace ecs
 {
 	class EntityDemo :IEntity

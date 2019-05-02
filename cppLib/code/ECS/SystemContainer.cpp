@@ -2,6 +2,7 @@
 #include "Logger/Logger.h"
 #include "MovementSystem.h"
 #include "StatusSystem.h"
+#include "Logger/leakHelper.h"
 namespace ecs
 {
 	SystemContainer::SystemContainer() :

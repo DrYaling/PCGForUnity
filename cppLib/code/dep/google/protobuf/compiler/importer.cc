@@ -374,7 +374,7 @@ DiskSourceTree::DiskFileToVirtualFile(
   for (int i = 0; i < mapping_index; i++) {
     if (ApplyMapping(*virtual_file, mappings_[i].virtual_path,
                      mappings_[i].disk_path, shadowing_disk_file)) {
-      if (access(shadowing_disk_file->c_str(), F_OK) >= 0) {
+      if (_access(shadowing_disk_file->c_str(), F_OK) >= 0) {
         // File exists.
         return SHADOWED;
       }
@@ -443,7 +443,7 @@ io::ZeroCopyInputStream* DiskSourceTree::OpenDiskFile(
     const string& filename) {
   int file_descriptor;
   do {
-    file_descriptor = open(filename.c_str(), O_RDONLY);
+    file_descriptor = _open(filename.c_str(), O_RDONLY);
   } while (file_descriptor < 0 && errno == EINTR);
   if (file_descriptor >= 0) {
     io::FileInputStream* result = new io::FileInputStream(file_descriptor);
