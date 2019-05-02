@@ -44,9 +44,39 @@ int ServerWorker()
 	sServer->ShutDownAfter(6);
 	return sServer->MainLoop();
 }
+void GenerateTest()
+{
+	/*auto p = Vector3();
+	p.x = 2370;
+	p.y = 5428;
+	p.z = 7562;
+	MountainGen gen = MountainGen(std::move(p), 4);
+	gen.Start();*/
+	/*Diamond_Square ds(2, 1, 40.0f);
+	ds.SetProcessHandler([](int32_t process)->void {
+		LogFormat("progress %d", process);
+	});
+	float h[4] = { 10,100,50,41 };
+	ds.Start(h);
+	/ *while (!ds.IsFinished())
+	{
+		sleep(100);
+	}
+	LogFormat("Diamond_Square finished");* /
+	stop = GetTickCount();
+	LogFormat("Diamond_Square caculate time %d ms", stop - start);
+	std::vector<Vector3> v3[3];
+	std::vector<Vector3> normals[3];
+	std::vector<int32_t> idx[3];
+	ds.GenerateTerrian(idx, v3, normals, 10);
+	stop = GetTickCount();
+	LogFormat("Diamond_Square total gen time %d ms", stop - start);*/
+	//while (1) sleep(1000);
+
+}
 int main()
 {
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
 	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
 //	new int[20];
@@ -89,33 +119,7 @@ int main()
 	safe_delete(pc);
 	DWORD start, stop;
 	start = GetTickCount();
-	/*auto p = Vector3();
-	p.x = 2370;
-	p.y = 5428;
-	p.z = 7562;
-	MountainGen gen = MountainGen(std::move(p), 4);
-	gen.Start();*/
-	/*Diamond_Square ds(2, 1, 40.0f);
-	ds.SetProcessHandler([](int32_t process)->void {
-		LogFormat("progress %d", process);
-	});
-	float h[4] = { 10,100,50,41 };
-	ds.Start(h);
-	/ *while (!ds.IsFinished())
-	{
-		sleep(100);
-	}
-	LogFormat("Diamond_Square finished");* /
-	stop = GetTickCount();
-	LogFormat("Diamond_Square caculate time %d ms", stop - start);
-	std::vector<Vector3> v3[3];
-	std::vector<Vector3> normals[3];
-	std::vector<int32_t> idx[3];
-	ds.GenerateTerrian(idx, v3, normals, 10);
-	stop = GetTickCount();
-	LogFormat("Diamond_Square total gen time %d ms", stop - start);*/
-	//while (1) sleep(1000);
-
+	
 	//sleep(3000);
 	//LogFormat("Test.main");
 	/*std::thread thr(ServerWorker());
@@ -124,28 +128,7 @@ int main()
 	//new int[20];
 	_CrtDumpMemoryLeaks();
 	LogFormat("ServerWorker ret %d", ret);
+	char c = 0;
+	scanf("%c",&c);
 	return ret;
-	sleep(4000);
-
-	G3D::Vector3 p(0.1f, 0.f, 1.2f);
-	for (size_t i = 0; i < 3; i++)
-	{
-		//LogFormat("%d", (uint32&)p[i]);
-	}
-	std::vector<int> list;
-	list.resize(100);
-	list.clear();
-	//LogFormat("list size %d,%d", list.size(), list.capacity());
-	{
-		std::vector<int> tmp = list;
-		tmp.swap(list);
-	}
-	//LogFormat("list size %d,%d", list.size(), list.capacity());
-	while (true)
-	{
-		sleep(1000);
-	}
-	char c;
-	std::cin >> c;
-	return 0;
 }
