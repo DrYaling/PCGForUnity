@@ -69,7 +69,12 @@ void KcpClient::Send(char * buff, int length, bool immediately)
 	{
 		return;
 	}
-	//LogFormat("KcpClient %d send buff size %d", m_stSessionId.conv, length);
+	uint32_t cmd = 0;
+	utils_decode32u(buff + 4, &cmd);
+	if (cmd != C2S_HEARTBEAT)
+	{
+		//LogFormat("KcpClient %d send buff size %d", m_stSessionId.conv, length);
+	}
 	//sSocketServer->Send(buff, length, GetSessionId());
 	ikcp_send(m_pKcp, buff, length);
 	m_nLastSendTime = m_pKcp->current;
@@ -101,7 +106,7 @@ void KcpClient::OnReceive(const uint8 * buff, int length)
 	}
 	else if (recv_size == -3)
 	{
-		LogErrorFormat("OnReceive size %d", recv_size);
+		//LogErrorFormat("OnReceive size %d", recv_size);
 	}
 }
 
@@ -140,11 +145,12 @@ void KcpClient::Update(int32_t diff)
 			m_nTick = 0;
 			SendHeartBeat();
 		}
-		if (m_bNeedUpdate || m_pKcp->current + 15 >= m_nNeedUpdateTime) {
+		uint32_t current = m_pKcp->current + diff;
+		if (m_bNeedUpdate || current >= m_nNeedUpdateTime) {
 			m_updateMtx.lock();
-			ikcp_update(m_pKcp, m_pKcp->current + 15);
+			ikcp_update(m_pKcp, current);
 			m_updateMtx.unlock();
-			m_nNeedUpdateTime = ikcp_check(m_pKcp, diff);
+			m_nNeedUpdateTime = ikcp_check(m_pKcp, current);
 			m_bNeedUpdate = false;
 		}
 		else
@@ -177,7 +183,7 @@ ReadDataHandlerResult KcpClient::ReadDataHandler()
 		utils_decode32u((char*)m_packetBuffer.GetReadPointer(), &conv);
 		if (conv > 0)
 		{
-			LogFormat("KcpClient recv accept act conv %u", conv);
+			//LogFormat("KcpClient recv accept act conv %u", conv);
 			m_stSessionId = socketSessionId(conv, m_stremote);
 			m_pKcp->conv = conv;
 		}
@@ -187,6 +193,10 @@ ReadDataHandlerResult KcpClient::ReadDataHandler()
 	else if (header->Command == S2C_DISCONNECT)
 	{
 		OnDisconnected(true);
+		return ReadDataHandlerResult::Ok;
+	}
+	else if (header->Command == S2C_HEARTBEAT)
+	{
 		return ReadDataHandlerResult::Ok;
 	}
 	//LogFormat("UdpSocket read remote cmd %d,data size %d,%s", header->Command, header->Size, m_packetBuffer.GetReadPointer());

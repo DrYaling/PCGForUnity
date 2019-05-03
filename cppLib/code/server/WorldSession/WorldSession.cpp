@@ -24,7 +24,12 @@ namespace server
 		{
 			m_pContainer->UnRegisterComponent(m_pTimer->GetID(), SystemCatalog::INTERVAL_TIMER);
 		}
+		if (m_pContainer && m_pHeatBeatTimer)
+		{
+			m_pContainer->UnRegisterComponent(m_pHeatBeatTimer->GetID(), SystemCatalog::INTERVAL_TIMER);
+		}
 		m_pTimer = nullptr;
+		m_pHeatBeatTimer = nullptr;
 		m_pContainer = nullptr;
 	}
 
@@ -85,7 +90,7 @@ namespace server
 	}
 	void WorldSession::OnComponentChangeEvent(ecs::IComponent * com, uint32_t comId, ecs::ComponentCatalog catalog)
 	{
-		LogFormat("OnComponentChangeEvent %d,%d",com,comId);
+		//LogFormat("OnComponentChangeEvent %d,%d",com,comId);
 		if (catalog == ComponentCatalog::INTERVAL_TIMER)
 		{
 			if (comId == m_nTimerId)
@@ -108,7 +113,6 @@ namespace server
 	}
 	bool WorldSession::OnReceivePacket(int cmd, uint8* buffer, int size)
 	{
-		LogFormat("WorldSession %d data handler %d: %d", GetSessionId(), cmd, size);
 		switch (cmd)
 		{
 			case  C2S_HEARTBEAT:
@@ -117,6 +121,7 @@ namespace server
 				}
 				break;
 			default:
+				//LogFormat("WorldSession %d data handler %d: %d", GetSessionId(), cmd, size);
 				break;
 		}
 		return true;

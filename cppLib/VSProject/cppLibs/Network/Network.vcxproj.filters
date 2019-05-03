@@ -51,9 +51,6 @@
     <ClInclude Include="..\..\..\code\Network\crcUtil.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Ultinities\Timer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\code\Utinities\LockedQueue.h">
       <Filter>头文件</Filter>
     </ClInclude>

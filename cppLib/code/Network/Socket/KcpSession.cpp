@@ -6,7 +6,7 @@
 #include "SocketTime.h"
 KcpSession::KcpSession(IUINT32 conv, const SockAddr_t& addr) :m_stSessionId(conv, addr), m_bNeedUpdate(false), m_bAlive(true), m_readBuffer(RECV_BUFFER_SIZE), m_headerBuffer(sizeof(PacketHeader))
 {
-	LogFormat("KcpSession Session Addr %d", m_stSessionId.addr.port);
+	//LogFormat("KcpSession Session Addr %d", m_stSessionId.addr.port);
 	m_pKcp = ikcp_create(conv, this);
 	ikcp_setmtu(m_pKcp, sSocketServer->GetMTU());
 	ikcp_nodelay(m_pKcp, 1, 5, 1, 1);
@@ -125,7 +125,7 @@ void KcpSession::OnReceive(const uint8 * buff, int length)
 	}
 	else if (recv_size == -3)
 	{
-		LogErrorFormat("OnReceive size %d", recv_size);
+		//LogErrorFormat("OnReceive size %d", recv_size);
 	}
 }
 
@@ -164,7 +164,7 @@ void KcpSession::Update(uint32_t diff)
 			}
 			else if (recv_size == -3)
 			{
-				LogErrorFormat("OnReceive size %d", recv_size);
+				//LogErrorFormat("OnReceive size %d", recv_size);
 			}
 		}
 	}

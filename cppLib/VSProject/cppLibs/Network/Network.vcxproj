@@ -147,7 +147,6 @@
     <ClInclude Include="..\..\..\code\Network\Socket\SocketTime.h" />
     <ClInclude Include="..\..\..\code\Network\Socket\WriteBufferQueue.h" />
     <ClInclude Include="..\..\..\code\Network\TimeSpan.h" />
-    <ClInclude Include="..\..\..\code\Ultinities\Timer.h" />
     <ClInclude Include="..\..\..\code\Utinities\LockedQueue.h" />
     <ClInclude Include="..\..\..\code\Utinities\MPSCQueue.h" />
     <ClInclude Include="..\..\..\code\Utinities\ProcessPriority.h" />
