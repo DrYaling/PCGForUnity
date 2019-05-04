@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class test : MonoBehaviour
 {
     //MeshGenerator mg = new MeshGenerator();
-    SkyDram.Terrian terrian;
+    SkyDream.Terrain terrian;
     [SerializeField]
     Button lod0;
     [SerializeField]
@@ -51,7 +51,7 @@ public class test : MonoBehaviour
         yield return new WaitForSeconds(1);
         Bridge.Init();
         DateTime dt = DateTime.Now;
-        terrian = new SkyDram.Terrian();
+        terrian = new SkyDream.Terrain();
         terrian.Init();
         Application.targetFrameRate = 60;
     }
@@ -68,7 +68,6 @@ public class test : MonoBehaviour
         Debug.LogFormat("OnApplicationQuit");
         if (null != terrian)
         {
-            terrian.Release();
             terrian = null;
         }
         Bridge.Destroy();

@@ -1,29 +1,33 @@
 ﻿using System.Collections.Generic;
 public static class UnityCppBindings
 {
-    static Dictionary<int, SkyDram.TerrainPiece> _meshDic = new Dictionary<int, SkyDram.TerrainPiece>();
-    public static void RegistBinding(int instanceId, SkyDram.TerrainPiece obj)
+    static Dictionary<uint, SkyDream.TerrainPiece> _terrainDic = new Dictionary<uint, SkyDream.TerrainPiece>();
+    public static void RegistBinding(uint instanceId, SkyDream.TerrainPiece obj)
     {
-        if (!_meshDic.ContainsKey(instanceId))
-            _meshDic.Add(instanceId, obj);
+        if (!_terrainDic.ContainsKey(instanceId))
+            _terrainDic.Add(instanceId, obj);
         else
             UnityEngine.Debug.LogErrorFormat("mesh {0} already binded", instanceId);
     }
-    public static void UnResistBinding(int instanceId)
+    public static void UnResistBinding(uint instanceId)
     {
-        if (_meshDic.ContainsKey(instanceId))
+        if (_terrainDic.ContainsKey(instanceId))
         {
-            _meshDic.Remove(instanceId);
+            _terrainDic.Remove(instanceId);
         }
         else
         {
             UnityEngine.Debug.LogErrorFormat("mesh {0} was not binded", instanceId);
         }
     }
-    public static SkyDram.TerrainPiece GetMesh(int instanceId)
+    public static SkyDream.TerrainPiece GetTerrain(uint instanceId)
     {
-        if (_meshDic.ContainsKey(instanceId))
-            return _meshDic[instanceId];
+        if (_terrainDic.ContainsKey(instanceId))
+            return _terrainDic[instanceId];
         return null;
+    }
+    public static void Clear()
+    {
+        _terrainDic.Clear();
     }
 }

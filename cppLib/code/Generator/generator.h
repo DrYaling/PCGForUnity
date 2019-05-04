@@ -152,12 +152,6 @@ typedef void(__stdcall * GeneratorNotifier)(int32_t target, int32_t type, int32_
 #define mesh_arg_h4 9
 #define mesh_arg_useuv 10
 
-/*
-#define neighborPositionLeft 0
-#define neighborPositionBottom 1
-#define neighborPositionRight 2
-#define neighborPositionTop 3
-#define neighborPositionAll 4*/
 
 enum class NeighborType
 {
@@ -206,6 +200,23 @@ namespace generator
 		float dy = targetY - y;
 		return std::sqrt(dx*dx + dy * dy);
 	}
+	struct  MapGeneratorData
+	{
+		int32_t seed;
+		int32_t H;
+		int32_t I;
+		uint32_t worldMapSize;//map count at each world map edge
+		uint32_t singleMapSize;
+		uint32_t splatWidth;
+		uint32_t splatCount;
+		//first terrain param
+		int32_t height0;
+		int32_t height1;
+		int32_t height2;
+		int32_t height3;
+
+	};
 }
-// typedef geography* pGeography;
+
+
 #endif

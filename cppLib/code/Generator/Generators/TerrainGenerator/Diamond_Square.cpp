@@ -6,19 +6,14 @@ namespace generator
 {
 	static G3D::Vector3 vector3_zero(0, 0, 0);
 	using namespace G3D;
-	Diamond_Square::Diamond_Square(int32_t seed, int32_t I, float H, /*std::vector<float>&*/float* heightMap, void* owner) :
-		m_nI(I),
-		m_nH(H / 100.0f),
+	Diamond_Square::Diamond_Square() :
+		m_nI(0),
+		m_nH(0),
 		m_bIsFinished(false),
 		m_bEdgeExtended(false),
-		m_pOwner(owner),
-		m_vHeightMap(heightMap)
+		m_vHeightMap(nullptr),
+		m_bInitilized(false)
 	{
-		setRandomSeed(seed);
-		m_nSize = std::pow(2, 2 * I) + 1;
-		m_nMax = m_nSize - 1;
-		m_nheightMapSize = m_nSize * m_nSize;
-
 		//LogFormat("mesh count %d,nSize %d", meshCount, m_nSize);
 	}
 
@@ -26,6 +21,19 @@ namespace generator
 	{
 		m_cbProcessHandler = nullptr;
 		m_vHeightMap = nullptr;
+	}
+	void Diamond_Square::Initilize(uint32_t owner, int32_t seed, int32_t I, float H, float * heightMap)
+	{
+		m_nI = I;
+		m_nH = H / 100.0f;
+		m_bIsFinished = false;
+		m_bEdgeExtended = false;
+		m_vHeightMap = heightMap;
+		setRandomSeed(seed);
+		m_nSize = std::pow(2, 2 * I) + 1;
+		m_nMax = m_nSize - 1;
+		m_nheightMapSize = m_nSize * m_nSize;
+		m_bInitilized = true;
 	}
 	void Diamond_Square::Start(const float * corner, const int32_t size, int32_t mapWidth, std::function<void(void)> cb)
 	{
@@ -44,7 +52,7 @@ namespace generator
 		m_fDeltaSize = mapWidth / (float)m_nSize;
 		if (m_fDeltaSize < 0.001f)
 		{
-			m_fDeltaSize = -0.01f;
+			m_fDeltaSize = 0.01f;
 		}
 		auto itr = m_mExtendedMap.find(0);
 		auto end = m_mExtendedMap.end();
@@ -80,6 +88,7 @@ namespace generator
 			itr = m_mExtendedMap.erase(itr);
 		}
 		release_map(m_mExtendedMap);
+		m_bInitilized = false;
 	}
 
 	void Diamond_Square::WorkThread(std::function<void(void)> cb)
@@ -163,10 +172,10 @@ namespace generator
 		//so nigher x = 0 or x = max or y = 0 or y = max,but wont apear same time
 		if (x - size < 0)
 		{
-			p[1] = GetHeight(x, y - size);// m_vHeightMap[m_nSize * (y - size)];
-			p[2] = GetHeight(size, y);// m_vHeightMap[m_nSize*y + size];
-			p[3] = GetHeight(x, y + size);// m_vHeightMap[m_nSize*(y + size)];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x - size, y, NeighborType::neighborPositionLeft, p[4], m_pOwner))
+			p[1] = GetHeight(x, y - size);// m_aHeightMap[m_nSize * (y - size)];
+			p[2] = GetHeight(size, y);// m_aHeightMap[m_nSize*y + size];
+			p[3] = GetHeight(x, y + size);// m_aHeightMap[m_nSize*(y + size)];
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x - size, y, NeighborType::neighborPositionLeft, m_Owner, p[4]))
 			{
 				p[0] = p[4];
 			}
@@ -177,10 +186,10 @@ namespace generator
 		}
 		else if (x + size > m_nMax)
 		{
-			p[0] = GetHeight(x - size, y);// m_vHeightMap[x - size + m_nSize * y];
-			p[1] = GetHeight(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
-			p[2] = p[3] = GetHeight(x, y + size);// m_vHeightMap[x + m_nSize * (y + size)];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x + size, y, NeighborType::neighborPositionRight, p[4], m_pOwner))
+			p[0] = GetHeight(x - size, y);// m_aHeightMap[x - size + m_nSize * y];
+			p[1] = GetHeight(x, y - size);//m_aHeightMap[x + m_nSize * (y - size)];
+			p[2] = p[3] = GetHeight(x, y + size);// m_aHeightMap[x + m_nSize * (y + size)];
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x + size, y, NeighborType::neighborPositionRight, m_Owner, p[4]))
 			{
 				p[2] = p[4];
 			}
@@ -197,10 +206,10 @@ namespace generator
 		}
 		else if (y - size < 0)
 		{
-			p[0] = GetHeight(x - size, 0);// m_vHeightMap[x - size];
-			p[2] = GetHeight(x + size, 0);// m_vHeightMap[x + size];
-			p[3] = GetHeight(x, size);// m_vHeightMap[x + m_nSize * size];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, NeighborType::neighborPositionBottom, p[4], m_pOwner))
+			p[0] = GetHeight(x - size, 0);// m_aHeightMap[x - size];
+			p[2] = GetHeight(x + size, 0);// m_aHeightMap[x + size];
+			p[3] = GetHeight(x, size);// m_aHeightMap[x + m_nSize * size];
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, NeighborType::neighborPositionBottom, m_Owner, p[4]))
 			{
 				p[1] = p[4];
 			}
@@ -216,10 +225,10 @@ namespace generator
 		}
 		else if (y + size > m_nMax)
 		{
-			p[0] = GetHeight(x - size, y);// m_vHeightMap[x - size + m_nSize * y];
-			p[1] = GetHeight(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
-			p[2] = GetHeight(x + size, y);//m_vHeightMap[x + size + m_nSize * y];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, NeighborType::neighborPositionRight, p[4], m_pOwner))
+			p[0] = GetHeight(x - size, y);// m_aHeightMap[x - size + m_nSize * y];
+			p[1] = GetHeight(x, y - size);//m_aHeightMap[x + m_nSize * (y - size)];
+			p[2] = GetHeight(x + size, y);//m_aHeightMap[x + size + m_nSize * y];
+			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, NeighborType::neighborPositionRight, m_Owner, p[4]))
 			{
 				p[3] = p[4];
 			}
@@ -230,10 +239,10 @@ namespace generator
 		}
 		else
 		{
-			p[0] = GetHeight(x - size, y);//m_vHeightMap[x - size + m_nSize * y];
-			p[1] = GetHeight(x, y - size);//m_vHeightMap[x + m_nSize * (y - size)];
-			p[2] = GetHeight(x + size, y);//m_vHeightMap[x + size + m_nSize * y];
-			p[3] = GetHeight(x, y + size);//m_vHeightMap[x + m_nSize * (y + size)];
+			p[0] = GetHeight(x - size, y);//m_aHeightMap[x - size + m_nSize * y];
+			p[1] = GetHeight(x, y - size);//m_aHeightMap[x + m_nSize * (y - size)];
+			p[2] = GetHeight(x + size, y);//m_aHeightMap[x + size + m_nSize * y];
+			p[3] = GetHeight(x, y + size);//m_aHeightMap[x + m_nSize * (y + size)];
 		}
 		p[4] = (p[0] + p[1] + p[2] + p[3]) / 4.0f;
 		SetHeight(x, y, p[4] + h * p[4]);
@@ -265,7 +274,7 @@ namespace generator
 			GetHeight(x + size, y + size)
 			) / 4.0f;
 		SetHeight(x, y, p + h * p);
-		//LogFormat("Square x %d,y %d,p %f,h %f,r %f", x, y, height, h, m_vHeightMap[x + m_nSize * y]);
+		//LogFormat("Square x %d,y %d,p %f,h %f,r %f", x, y, height, h, m_aHeightMap[x + m_nSize * y]);
 	}
 
 	inline float Diamond_Square::Randomize(float h)
@@ -332,41 +341,41 @@ namespace generator
 		int xmin, xmax, ymin, ymax;
 		switch (position)
 		{
-		case neighborPositionLeft:
-		case  neighborPositionRight:
-		{
-			int meshCount = GetMeshTheoreticalCount();
-			int vertexPerMesh = m_nMax / meshCount;
-			int upBound = (mesh + 1)*vertexPerMesh;
-			if (upBound > m_nMax)
-			{
-				upBound = m_nMax;
-			}
-			int start = mesh * vertexPerMesh;
-			ymin = start;
-			ymax = upBound;
-			if (position == neighborPositionRight)
-			{
-				xmin = xmax = m_nMax;
-			}
-			else
-			{
-				xmin = xmax = 0;
-			}
-		}
-		break;
-		case neighborPositionBottom:
-			xmin = 0;
-			xmax = m_nMax;
-			ymin = ymax = 0;
-			break;
-		case  neighborPositionTop:
-			xmin = 0;
-			xmax = m_nMax;
-			ymin = ymax = m_nMax;
-			break;
-		default:
-			break;
+			case neighborPositionLeft:
+			case  neighborPositionRight:
+				{
+					int meshCount = GetMeshTheoreticalCount();
+					int vertexPerMesh = m_nMax / meshCount;
+					int upBound = (mesh + 1)*vertexPerMesh;
+					if (upBound > m_nMax)
+					{
+						upBound = m_nMax;
+					}
+					int start = mesh * vertexPerMesh;
+					ymin = start;
+					ymax = upBound;
+					if (position == neighborPositionRight)
+					{
+						xmin = xmax = m_nMax;
+					}
+					else
+					{
+						xmin = xmax = 0;
+					}
+				}
+				break;
+			case neighborPositionBottom:
+				xmin = 0;
+				xmax = m_nMax;
+				ymin = ymax = 0;
+				break;
+			case  neighborPositionTop:
+				xmin = 0;
+				xmax = m_nMax;
+				ymin = ymax = m_nMax;
+				break;
+			default:
+				break;
 		}
 		int offset = 0;
 		//因为每一个mesh的起始y坐标是上一个mesh的终点y坐标，所以后面个mesh在减掉offset的时候需要多加一个m_nSize，否则会有一个m_nSize的差值
@@ -399,9 +408,9 @@ namespace generator
 				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[2], p - pNeibor[3]);
 				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[3], p - pNeibor[0]);
 				pN[indexSize] = unityMesh::normalize(m_stNormalBuffer);
+				}
 			}
-		}
 		//LogWarningFormat("at mesh %d,recaculate normal size %d,indexSize %d", mesh, size, indexSize);
-	}
+		}
 #endif
-}
+	}

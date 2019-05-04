@@ -19,6 +19,9 @@
     <Filter Include="源文件\WorldSession">
       <UniqueIdentifier>{31bca592-d650-4f26-b7eb-67e667a17ec8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\Map">
+      <UniqueIdentifier>{efefa0d8-cf79-4809-bc4b-98a8db041d35}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\code\server\Server.h">
@@ -30,6 +33,12 @@
     <ClInclude Include="..\..\..\code\server\WorldSession\WorldSession.h">
       <Filter>源文件\WorldSession</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\code\server\Map\MapManager.h">
+      <Filter>源文件\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\code\server\Map\Map.h">
+      <Filter>源文件\Map</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\server\Server.cpp">
@@ -40,6 +49,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\code\server\WorldSession\WorldSession.cpp">
       <Filter>源文件\WorldSession</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\server\Map\MapManager.cpp">
+      <Filter>源文件\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\server\Map\Map.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

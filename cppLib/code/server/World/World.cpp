@@ -3,6 +3,7 @@
 #include "Logger/Logger.h"
 #include "Server.h"
 #include "game/Time/UpdateTime.h"
+#include "Map/MapManager.h"
 namespace server
 {
 	static World* instance = nullptr;
@@ -45,6 +46,7 @@ namespace server
 		//sWorldUpdateTime.RecordUpdateTimeReset();
 		UpdateSessions(diff);
 		m_pEcs->OnUpdate(diff);
+		sMapMgr->Update(diff);
 		//sWorldUpdateTime.RecordUpdateTimeDuration("UpdateSessions");
 	}
 	void World::UpdateSessions(uint32 diff)

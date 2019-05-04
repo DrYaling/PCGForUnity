@@ -10,15 +10,15 @@ struct testObj {
 	int value;
 	float fvalue;
 };
-namespace transformMap 
+namespace transformMap
 {
-	const char* pEngineDir;
-	typedef std::function<void(int)> std_int_setter;
+	/*typedef std::function<void(int)> std_int_setter;
 	typedef std::function<void(testObj)> std_obj_setter;
 	std::map<int, std::vector<std_int_setter>> map_01;
-	std::map<int, std::vector<std_obj_setter>> map_02;
-
-	void SetValue(int value)
+	std::map<int, std::vector<std_obj_setter>> map_02;*/
+	void Initilize(std::string dir);
+	std::string GetEngineDir();
+	/*void SetValue(int value)
 	{
 		//LogFormat("SetValue %d", value);
 	}
@@ -35,17 +35,17 @@ namespace transformMap
 		void Init() {
 
 		}
-	};
-	testClassObject* test = new testClassObject();
-	void ClearTransformMapTrees()
-	{
-		map_01.clear();
-		map_02.clear();
-	}
-	void InitTransformMap(const char* engineDir)
-	{
-		pEngineDir = engineDir;
-		map_01.clear();
+	};*/
+	//testClassObject* test = new testClassObject();
+	void ClearTransformMapTrees();
+	/*{
+		//map_01.clear();
+		//map_02.clear();
+	}*/
+	void InitTransformMap(const char* engineDir);
+	/*{
+		Initilize(engineDir);
+		/ *map_01.clear();
 		map_02.clear();
 		std::vector<std_int_setter> vSetter;
 		vSetter.clear();
@@ -59,10 +59,10 @@ namespace transformMap
 		oSetter.clear();
 		std_obj_setter funco = std::bind(SetObjectValue, std::placeholders::_1);
 		oSetter.push_back(funco);
-		map_02.insert(std::pair<int, std::vector<std_obj_setter>>(0, oSetter));
-	}
-	void TransformMapHandleSetter(int key, int value)
-	{
+		map_02.insert(std::pair<int, std::vector<std_obj_setter>>(0, oSetter));* /
+	}*/
+	void TransformMapHandleSetter(int key, int value);
+	/*{
 		auto val = map_01.find(key);
 		if (val != map_01.end())
 		{
@@ -71,9 +71,9 @@ namespace transformMap
 				func(value);
 			}
 		}
-	}
-	void TransformMapHandleSetter(int key, testObj value)
-	{
+	}*/
+	void TransformMapHandleSetter(int key, testObj value);
+	/*{
 		auto val = map_02.find(key);
 		if (val != map_02.end())
 		{
@@ -82,6 +82,6 @@ namespace transformMap
 				func(value);
 			}
 		}
-	}
+	}*/
 }
 #endif

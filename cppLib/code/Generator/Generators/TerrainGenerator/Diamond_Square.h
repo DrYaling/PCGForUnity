@@ -6,8 +6,7 @@
 namespace generator
 {
 #define BLUR_SIZE 2
-	//typedef std::function<bool(int32_t /*x*/, int32_t /*y*/, NeighborType /*neighbor*/, float& /*h*/, void*/*owner*/)> GetNeighborVertice;
-	typedef bool(__fastcall *GetNeighborVertice)(int32_t /*x*/, int32_t /*y*/, NeighborType /*neighbor*/, float& /*h*/, void* /*owner*/);
+	typedef bool(__fastcall *GetNeighborHeightCallBack)(int32_t /*x*/, int32_t /*y*/, NeighborType /*neighbor*/, uint32_t, float& /*h*/ /*owner*/);
 	/************************************************************************/
 	/*							菱形-正方形生成地形                         */
 	/*				点的序号为 x=0-x = max 为0-max,y轴向上递增				*/
@@ -15,32 +14,23 @@ namespace generator
 	class Diamond_Square :public TerrianGenerator
 	{
 	public:
-		Diamond_Square(int32_t seed, int32_t I, float H, /*std::vector<float>&*/float* heightMap, void* owner);
+		Diamond_Square();
 		virtual ~Diamond_Square();
+		void Initilize(uint32_t owner, int32_t seed, int32_t I, float H, float* heightMap);
 		void SetProcessHandler(std::function<void(int32_t)> handler) { m_cbProcessHandler = handler; }
 		//平滑边沿，使之可以和其他地图拼接
-		inline void SetPulse(int32_t x, int32_t y, const G3D::Vector3& point, bool insertMap)
+		inline void SetPulse(int32_t x, int32_t y, float height)
 		{
-			m_bEdgeExtended = true;
-			//SetExtendedPoint(x, y, point);
-			if (insertMap && x >= 0 && x < m_nSize && y >= 0 && y < m_nSize)
-			{
-				int key = GetHeightMapIndex(x, y);
-				m_mExtendedMap.insert(std::make_pair(key, point.y));
-			}
-		}
-		inline void SetPulse(int32_t x, int32_t y, float fx, float fy, float fz, bool insertMap)
-		{
-			m_bEdgeExtended = true;
 			//SetExtendedPoint(x, y, fx, fy, fz);
-			if (insertMap && x >= 0 && x < m_nSize && y >= 0 && y < m_nSize)
+			if (x >= 0 && x < m_nSize && y >= 0 && y < m_nSize)
 			{
+				m_bEdgeExtended = true;
 				int key = GetHeightMapIndex(x, y);
-				m_mExtendedMap.insert(std::make_pair(key, fy));
+				m_mExtendedMap.insert(std::make_pair(key, height));
 			}
 		}
-		void Start(const float* corner, const int32_t size = 4,int32_t mapWidth = 10, std::function<void(void)> cb = nullptr);
-		void SetGetVerticeCallBack(GetNeighborVertice cb) { m_cbGetNeighborVertice = cb; }
+		void Start(const float* corner, const int32_t size = 4, int32_t mapWidth = 10, std::function<void(void)> cb = nullptr);
+		void SetGetVerticeCallBack(GetNeighborHeightCallBack cb) { m_cbGetNeighborVertice = cb; }
 		inline float GetHeight(int x, int y) {
 			generator_clamp(x, 0, m_nMax);
 			generator_clamp(y, 0, m_nMax);
@@ -86,23 +76,23 @@ namespace generator
 		void Smooth(int32_t x, int32_t y)
 		{
 			float h = 0.0F;
-			h += GetHeight(x, y) ;
-			h += GetHeight(x + 1, y) ;
-			h += GetHeight(x - 1, y) ;
+			h += GetHeight(x, y);
+			h += GetHeight(x + 1, y);
+			h += GetHeight(x - 1, y);
 			h += GetHeight(x + 1, y + 1)  * 0.75F;
 			h += GetHeight(x - 1, y + 1)  * 0.75F;
 			h += GetHeight(x + 1, y - 1)  * 0.75F;
 			h += GetHeight(x - 1, y - 1)  * 0.75F;
-			h += GetHeight(x, y + 1) ;
-			h += GetHeight(x, y - 1) ;
+			h += GetHeight(x, y + 1);
+			h += GetHeight(x, y - 1);
 			h /= 8.0F;
 			SetHeight(x, y, h);
 		}
 	private:
-		void* m_pOwner;
+		uint32_t m_Owner;
 		float* m_vHeightMap;
 		int32_t m_nheightMapSize;
-		GetNeighborVertice m_cbGetNeighborVertice;
+		GetNeighborHeightCallBack m_cbGetNeighborVertice;
 		std::function<void(int32_t)> m_cbProcessHandler;
 		std::map<int32_t, float> m_mExtendedMap;
 		int32_t m_nSize;//总数 2^(2*i)+1
@@ -112,6 +102,7 @@ namespace generator
 		float m_fDeltaSize;
 		bool m_bIsFinished;
 		bool m_bEdgeExtended;
+		bool m_bInitilized;
 	};
 
 }

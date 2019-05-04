@@ -153,11 +153,15 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\code\server\Map\Map.h" />
+    <ClInclude Include="..\..\..\code\server\Map\MapManager.h" />
     <ClInclude Include="..\..\..\code\server\Server.h" />
     <ClInclude Include="..\..\..\code\server\WorldSession\WorldSession.h" />
     <ClInclude Include="..\..\..\code\server\World\World.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\code\server\Map\Map.cpp" />
+    <ClCompile Include="..\..\..\code\server\Map\MapManager.cpp" />
     <ClCompile Include="..\..\..\code\server\Server.cpp" />
     <ClCompile Include="..\..\..\code\server\WorldSession\WorldSession.cpp" />
     <ClCompile Include="..\..\..\code\server\World\World.cpp" />

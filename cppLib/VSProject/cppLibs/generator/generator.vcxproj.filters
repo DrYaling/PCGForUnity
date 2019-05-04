@@ -34,6 +34,9 @@
     <Filter Include="源文件\Terrain\Painter">
       <UniqueIdentifier>{78158984-1b0d-4e9d-8c8a-c24fc2a58ccf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\MapGenerator">
+      <UniqueIdentifier>{15a0836f-ed43-490e-9a8a-8d1208e1668d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\code\Generator\Mesh\UnityMesh.h">
@@ -99,6 +102,9 @@
     <ClInclude Include="..\..\..\code\Generator\Terrain\Painter\Painter.h">
       <Filter>源文件\Terrain\Painter</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\code\Generator\MapGenerator\MapGenerator.h">
+      <Filter>源文件\MapGenerator</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\Generator\Mesh\UnityMesh.cpp">
@@ -127,6 +133,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\code\Generator\Terrain\Painter\Painter.cpp">
       <Filter>源文件\Terrain\Painter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\Generator\MapGenerator\MapGenerator.cpp">
+      <Filter>源文件\MapGenerator</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,3 +1,4 @@
+#if false
 #ifndef MAP_GENERATOR_H
 #define MAP_GENERATOR_H
 #include "G3D/Vector3.h"
@@ -17,4 +18,5 @@ void Internal_InitTerrainPainter(int32_t instanceId, float * alphaMap, int32_t s
 void Internal_ReleaseAllMeshed();
 NS_GNRT_END
 
+#endif
 #endif

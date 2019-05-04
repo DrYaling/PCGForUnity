@@ -131,12 +131,13 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
- <ItemGroup>
+  <ItemGroup>
     <ClInclude Include="..\..\..\code\Generator\generator.h" />
     <ClInclude Include="..\..\..\code\Generator\Generators\TerrainGenerator.h" />
     <ClInclude Include="..\..\..\code\Generator\Generators\Plants\Plants.h" />
     <ClInclude Include="..\..\..\code\Generator\Generators\TerrainGenerator\Diamond_Square.h" />
     <ClInclude Include="..\..\..\code\Generator\Generators\TerrainGenerator\Mountain.h" />
+    <ClInclude Include="..\..\..\code\Generator\MapGenerator\MapGenerator.h" />
     <ClInclude Include="..\..\..\code\Generator\Mesh\Delaunay.h" />
     <ClInclude Include="..\..\..\code\Generator\Mesh\Edge.h" />
     <ClInclude Include="..\..\..\code\Generator\Mesh\Mesh.h" />
@@ -158,6 +159,7 @@
     <ClCompile Include="..\..\..\code\Generator\Generators\TerrainGenerator.cpp" />
     <ClCompile Include="..\..\..\code\Generator\Generators\TerrainGenerator\Diamond_Square.cpp" />
     <ClCompile Include="..\..\..\code\Generator\Generators\TerrainGenerator\Mountain.cpp" />
+    <ClCompile Include="..\..\..\code\Generator\MapGenerator\MapGenerator.cpp" />
     <ClCompile Include="..\..\..\code\Generator\Mesh\UnityMesh.cpp" />
     <ClCompile Include="..\..\..\code\Generator\Terrain\Painter\AutomaticPainter.cpp" />
     <ClCompile Include="..\..\..\code\Generator\Terrain\Painter\Painter.cpp" />

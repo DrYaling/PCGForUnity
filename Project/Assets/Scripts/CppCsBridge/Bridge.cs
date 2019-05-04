@@ -47,6 +47,7 @@ public class Bridge
     private static int mainThreadId;
     public static void Init()
     {
+        Debug.LogFormat("1");
         mainThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
         UnityEngine.Profiling.Profiler.BeginSample("CppEngine Initilize");
         RegisterLog(CSLog);

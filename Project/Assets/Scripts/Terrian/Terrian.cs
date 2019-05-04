@@ -1,9 +1,17 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
+using System.Runtime.InteropServices;
 using System.Threading;
-namespace SkyDram
+using UnityEngine;
+namespace SkyDream
 {
-    static class TerrainConst
+    internal enum TerrainNeighbor
+    {
+        neighborPositionLeft = 0,
+        neighborPositionBottom = 1,
+        neighborPositionRight = 2,
+        neighborPositionTop = 3,
+    }
+    internal static class TerrainConst
     {
         public const float MaxTerrainHeight = 1000;
         public const int maxVerticesPerMesh = 65000;
@@ -15,10 +23,6 @@ namespace SkyDram
         public const float lod_1_Distance = 30f;/*meters*/
         public const float lod_2_Distance = 60f;/*meters*/
         public const float lod_3_Distance = 90f;/*meters*/
-        public const int neighborPositionLeft = 0;
-        public const int neighborPositionBottom = 1;
-        public const int neighborPositionRight = 2;
-        public const int neighborPositionTop = 3;
         /* public const int mesh_arg_seed = 0;
          public const int mesh_arg_lod = 1;
          public const int mesh_arg_I = 2;
@@ -32,64 +36,122 @@ namespace SkyDram
          public const int mesh_arg_useuv = 10;*/
 
     }
-    class Terrian
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct MapGeneratorData
     {
-        Dictionary<int, SkyDram.TerrainPiece> m_mapTerrains = new Dictionary<int, TerrainPiece>();
+        public int seed;
+        public int H;
+        public int I;
+        ///map count at each world map edge
+        public uint worldMapSize;
+        public uint singleMapSize;
+        public uint splatWidth;
+        public uint splatCount;
+        //first terrain param
+        public int height0;
+        public int height1;
+        public int height2;
+        public int height3;
+
+    };
+
+    internal class Terrain
+    {
+        private const int mapSize = 100;
+#if UNITY_IOS
+    private const string dllName = "__Internal";
+#else
+        private const string dllName = "cppLibs";
+#endif
+        public delegate bool TerrainGenerationCallBack(uint terrain, uint width, Vector4 location);
+
+        /// <summary>
+        /// initilize map generator
+        /// </summary>
+        /// <param name="data"></param>
+        [DllImport(dllName)]
+        private static extern void WorldMapBindings_InitilizeWorldMap(MapGeneratorData data);
+        /// <summary>
+        /// stop generate
+        /// </summary>
+        [DllImport(dllName)]
+        private static extern void WorldMapBindings_StopGeneration();
+        /// <summary>
+        /// destroy generator
+        /// </summary>
+        [DllImport(dllName)]
+        private static extern void WorldMapBindings_Destroy();
+        /// <summary>
+        /// set callback (when map generate success)
+        /// </summary>
+        /// <param name="cb"></param>
+        [DllImport(dllName)]
+        private static extern void WorldMapBindings_SetGenerateCallBack(TerrainGenerationCallBack cb);
+        [DllImport(dllName)]
+        private static extern uint WorldMapBindings_GetNeighbor(uint who, int dir);
+        [DllImport(dllName)]
+        private static extern void WorldMapBindings_UpdateInMainThread(int diff);
+        [DllImport(dllName)]
+        private static extern void WorldMapBindings_WorkThreadRunner();
+
+        private Dictionary<int, SkyDream.TerrainPiece> m_mapTerrains = new Dictionary<int, TerrainPiece>();
+        public static int maxLod = 3;
+        private Thread workThread;
         public void Init()
         {
-            Thread t = new Thread(new ThreadStart(() => {
-            }));
-            int size = 5;
-            int lod = 3;
-            var terrain0 = new TerrainPiece(size, lod);
-            var terrain1 = new TerrainPiece(size, lod);
-            var terrain2 = new TerrainPiece(size, lod);
-            var terrain3 = new TerrainPiece(size, lod);
-            /**/
-            /*
-             *      mesh0   mesh1
-             *      mesh2   mesh3
-             */
-            /**/
-            m_mapTerrains.Add(terrain0.instaneId, terrain0);
-            m_mapTerrains.Add(terrain1.instaneId, terrain1);
-            m_mapTerrains.Add(terrain2.instaneId, terrain2);
-            m_mapTerrains.Add(terrain3.instaneId, terrain3);
-            int mapSize = terrain0.GetSize();
-            terrain0.Load();
+            Debug.LogFormat("1");
+            MapGeneratorData data = new MapGeneratorData()
+            {
+                seed = Random.Range(0, 100),
+                H = 30,
+                I = 5,
+                singleMapSize = 0,
+                worldMapSize = 8,
+                splatWidth = 512,
+                splatCount = 2,
+                height0 = 500,
+                height1 = 300,
+                height2 = 200,
+                height3 = 240
+            };
+            Debug.LogFormat("2");
+            WorldMapBindings_InitilizeWorldMap(data);
+            Debug.LogFormat("3");
+            WorldMapBindings_SetGenerateCallBack(OnMapGenerateSuccess);
+            /*ThreadStart start = new ThreadStart(Runner);
+            workThread = new Thread(start);
+            workThread.Start();*/
+            //WorldMapBindings_WorkThreadRunner();
+            Runner();
+        }
 
-            terrain1.SetNeighbor(terrain0, TerrainConst.neighborPositionLeft);
-            terrain1.Load();
-            terrain1.SetPosition(new Vector3(mapSize, 0, 0));
+        private bool _runner_exited = false;
 
-            terrain2.SetNeighbor(terrain0, TerrainConst.neighborPositionTop);
-            terrain2.Load();
-            terrain2.SetPosition(new Vector3(0, 0, -mapSize));
-
-            terrain3.SetNeighbor(terrain1, TerrainConst.neighborPositionTop);
-            terrain3.SetNeighbor(terrain2, TerrainConst.neighborPositionLeft);
-            terrain3.Load();
-            terrain3.SetPosition(new Vector3(mapSize, 0, -mapSize));
-
-            terrain0.SetNeighbor(terrain1, TerrainConst.neighborPositionRight);
-            terrain0.SetNeighbor(terrain2, TerrainConst.neighborPositionBottom);
-            terrain1.SetNeighbor(terrain3, TerrainConst.neighborPositionBottom);
-            terrain2.SetNeighbor(terrain3, TerrainConst.neighborPositionRight);
+        private void Runner()
+        {
+            _runner_exited = false;
+            WorldMapBindings_WorkThreadRunner();
+            Debug.LogFormat("WorldMapBindings_WorkThreadRunner exit");
+            _runner_exited = true;
+            WorldMapBindings_Destroy();
+        }
+        ~Terrain()
+        {
+            WorldMapBindings_StopGeneration();
+        }
+        private static bool OnMapGenerateSuccess(uint terrain, uint width, Vector4 location)
+        {
+            Debug.LogFormat("4");
+            var terr = UnityCppBindings.GetTerrain(terrain);
+            if (null != terr)
+            {
+                return terr.TerrainInitilizer(width, location);
+            }
+            return false;
         }
         public void Update(int time_diff)
         {
-            foreach (var mesh in m_mapTerrains)
-            {
-                mesh.Value.Update(time_diff);
-            }
-        }
-        public void Release()
-        {
-            /*foreach (var mesh in m_mapMeshes)
-            {
-                mesh.Value.Release();
-            }*/
-            m_mapTerrains.Clear();
+            //WorldMapBindings_UpdateInMainThread(time_diff);
         }
     }
 }

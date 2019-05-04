@@ -25,5 +25,8 @@
     <ClCompile Include="..\..\..\code\pch.c">
       <Filter>头文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\code\Map\TransformMap.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

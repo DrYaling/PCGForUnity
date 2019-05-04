@@ -203,6 +203,7 @@
     <ClInclude Include="..\..\..\code\Map\TransformMap.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\code\Map\TransformMap.cpp" />
     <ClCompile Include="..\..\..\code\pch.c" />
   </ItemGroup>
   <ItemGroup>

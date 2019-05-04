@@ -45,34 +45,9 @@ int ServerWorker()
 	//sServer->ShutDownAfter(46);
 	return sServer->MainLoop();
 }
+#include "Bridge/MeshBindings.h"
 void GenerateTest()
 {
-	/*auto p = Vector3();
-	p.x = 2370;
-	p.y = 5428;
-	p.z = 7562;
-	MountainGen gen = MountainGen(std::move(p), 4);
-	gen.Start();*/
-	/*Diamond_Square ds(2, 1, 40.0f);
-	ds.SetProcessHandler([](int32_t process)->void {
-		LogFormat("progress %d", process);
-	});
-	float h[4] = { 10,100,50,41 };
-	ds.Start(h);
-	/ *while (!ds.IsFinished())
-	{
-		sleep(100);
-	}
-	LogFormat("Diamond_Square finished");* /
-	stop = GetTickCount();
-	LogFormat("Diamond_Square caculate time %d ms", stop - start);
-	std::vector<Vector3> v3[3];
-	std::vector<Vector3> normals[3];
-	std::vector<int32_t> idx[3];
-	ds.GenerateTerrian(idx, v3, normals, 10);
-	stop = GetTickCount();
-	LogFormat("Diamond_Square total gen time %d ms", stop - start);*/
-	//while (1) sleep(1000);
 
 }
 void ECS_Test()

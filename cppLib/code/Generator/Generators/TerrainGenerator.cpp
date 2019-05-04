@@ -1,6 +1,9 @@
+#if  false
+
 #include "TerrainGenerator.h"
 #include "Logger/Logger.h"
 #include "Terrain/Terrain.h"
+#include "MapGenerator/MapGenerator.h"
 using namespace generator;
 static std::map<int32_t, Terrain*> mTerrianBindings;
 
@@ -114,3 +117,4 @@ void Internal_ReleaseAllMeshed()
 	}
 }
 NS_GNRT_END
+#endif
