@@ -99,14 +99,13 @@ namespace SkyDream
         private Thread workThread;
         public void Init()
         {
-            Debug.LogFormat("1");
             MapGeneratorData data = new MapGeneratorData()
             {
                 seed = Random.Range(0, 100),
                 H = 30,
                 I = 5,
                 singleMapSize = 0,
-                worldMapSize = 8,
+                worldMapSize = 2,
                 splatWidth = 512,
                 splatCount = 2,
                 height0 = 500,
@@ -114,15 +113,13 @@ namespace SkyDream
                 height2 = 200,
                 height3 = 240
             };
-            Debug.LogFormat("2");
             WorldMapBindings_InitilizeWorldMap(data);
-            Debug.LogFormat("3");
             WorldMapBindings_SetGenerateCallBack(OnMapGenerateSuccess);
-            /*ThreadStart start = new ThreadStart(Runner);
+            ThreadStart start = new ThreadStart(Runner);
             workThread = new Thread(start);
-            workThread.Start();*/
+            workThread.Start();
             //WorldMapBindings_WorkThreadRunner();
-            Runner();
+            //Runner();
         }
 
         private bool _runner_exited = false;
@@ -133,7 +130,7 @@ namespace SkyDream
             WorldMapBindings_WorkThreadRunner();
             Debug.LogFormat("WorldMapBindings_WorkThreadRunner exit");
             _runner_exited = true;
-            WorldMapBindings_Destroy();
+            //WorldMapBindings_Destroy();
         }
         ~Terrain()
         {
@@ -141,17 +138,21 @@ namespace SkyDream
         }
         private static bool OnMapGenerateSuccess(uint terrain, uint width, Vector4 location)
         {
-            Debug.LogFormat("4");
+            Debug.LogFormat("OnMapGenerateSuccess {0} {1}", terrain, location);
             var terr = UnityCppBindings.GetTerrain(terrain);
             if (null != terr)
             {
+                return false;
+            }
+            else
+            {
+                terr = new TerrainPiece(terrain,(int)width);
                 return terr.TerrainInitilizer(width, location);
             }
-            return false;
         }
         public void Update(int time_diff)
         {
-            //WorldMapBindings_UpdateInMainThread(time_diff);
+            WorldMapBindings_UpdateInMainThread(time_diff);
         }
     }
 }

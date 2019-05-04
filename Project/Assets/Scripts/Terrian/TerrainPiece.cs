@@ -43,8 +43,9 @@ namespace SkyDream
         private TerrainData terrainData;
 
         private TerrainPiece() { }
-        public unsafe TerrainPiece(int heightMapWidth)
+        public unsafe TerrainPiece(uint ins,int heightMapWidth)
         {
+            terrainInstance = ins;
             UnityCppBindings.RegistBinding(terrainInstance, this);
             _heightMap = new float[heightMapWidth, heightMapWidth];
             _splatMap = new float[splatMapSize, splatMapSize, splatCount];

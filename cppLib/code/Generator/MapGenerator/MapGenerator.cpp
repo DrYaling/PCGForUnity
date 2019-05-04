@@ -20,6 +20,7 @@ namespace generator
 	{
 		m_mTerrainData.clear();
 		m_pGenerator = new Diamond_Square();
+		m_pGenerator->SetGetNeighborHeightCallBack(MapGenerator::GetNeighborHeight);
 		m_pPainter = new AutomaticPainter();
 	}
 
@@ -40,6 +41,7 @@ namespace generator
 		m_worldMapHeightMap = new float[data.singleMapSize*data.singleMapSize / 10000];//world map is 100 sizes smaller than single map size
 		m_aHeightMap = new float[data.singleMapSize*data.singleMapSize];
 		m_aSplatMap = new float[data.splatWidth*data.splatWidth*data.splatCount];
+		LogFormat("MapGenerator::Init mapwidth %d,total map count %d,worldmapSize %d", m_stData.singleMapSize, m_nTotalMapCount, m_stData.worldMapSize);
 	}
 
 	MapGenerator * MapGenerator::GetInstance()
@@ -149,15 +151,15 @@ namespace generator
 		{
 			//sleep(10);
 			uint32_t current = InitilizeNext();
-			if (current > 0)
+			if (current > 0 && current < m_nTotalMapCount)
 			{
 				Generate(current);
 			}
-			else if (current > 2)
+			//UpdateInMainThread(0);
+			if (current >= m_nTotalMapCount)
 			{
-				m_bRun = false;
+				return;
 			}
-			UpdateInMainThread(0);
 			while (!m_finishQueue.empty())
 			{
 				sleep(100);//hold on while finish queue is empty

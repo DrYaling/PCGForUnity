@@ -6,7 +6,7 @@
 namespace generator
 {
 #define BLUR_SIZE 2
-	typedef bool(__fastcall *GetNeighborHeightCallBack)(int32_t /*x*/, int32_t /*y*/, NeighborType /*neighbor*/, uint32_t, float& /*h*/ /*owner*/);
+	typedef bool(__fastcall *GetNeighborHeightCallBack)(int32_t /*x*/, int32_t /*y*/, NeighborType /*neighbor*/, uint32_t/**/, float&/*height*/);
 	/************************************************************************/
 	/*							菱形-正方形生成地形                         */
 	/*				点的序号为 x=0-x = max 为0-max,y轴向上递增				*/
@@ -30,7 +30,7 @@ namespace generator
 			}
 		}
 		void Start(const float* corner, const int32_t size = 4, int32_t mapWidth = 10, std::function<void(void)> cb = nullptr);
-		void SetGetVerticeCallBack(GetNeighborHeightCallBack cb) { m_cbGetNeighborVertice = cb; }
+		void SetGetNeighborHeightCallBack(GetNeighborHeightCallBack cb) { m_cbGetNeighborVertice = cb; }
 		inline float GetHeight(int x, int y) {
 			generator_clamp(x, 0, m_nMax);
 			generator_clamp(y, 0, m_nMax);

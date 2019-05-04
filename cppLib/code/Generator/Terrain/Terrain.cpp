@@ -108,7 +108,7 @@ namespace generator {
 		{
 			case NeighborType::neighborPositionLeft:
 				m_pLeftNeighbor = neighbor;
-				if (neighbor && neighbor->m_pRightNeighbor != nullptr && neighbor->m_pRightNeighbor != shared_from_this())
+				if (neighbor && neighbor->m_pLeftNeighbor != nullptr && neighbor->m_pLeftNeighbor != shared_from_this())
 				{
 					LogErrorFormat("fail to set neighbor ,left neighbor's right neighbor is not self");
 					m_pLeftNeighbor = nullptr;
@@ -117,7 +117,7 @@ namespace generator {
 				break;
 			case  NeighborType::neighborPositionRight:
 				m_pRightNeighbor = neighbor;
-				if (neighbor && neighbor->m_pLeftNeighbor != nullptr && neighbor->m_pLeftNeighbor != shared_from_this())
+				if (neighbor && neighbor->m_pRightNeighbor != nullptr && neighbor->m_pRightNeighbor != shared_from_this())
 				{
 					LogErrorFormat("fail to set neighbor ,right neighbor's left neighbor is not self");
 					m_pRightNeighbor = nullptr;
@@ -126,7 +126,7 @@ namespace generator {
 				break;
 			case NeighborType::neighborPositionBottom:
 				m_pBottomNeighbor = neighbor;
-				if (neighbor && neighbor->m_pTopNeighbor != nullptr && neighbor->m_pTopNeighbor != shared_from_this())
+				if (neighbor && neighbor->m_pBottomNeighbor != nullptr && neighbor->m_pBottomNeighbor != shared_from_this())
 				{
 					LogErrorFormat("fail to set neighbor ,bottom neighbor's top neighbor is not self");
 					m_pBottomNeighbor = nullptr;
@@ -135,7 +135,7 @@ namespace generator {
 				break;
 			case  NeighborType::neighborPositionTop:
 				m_pTopNeighbor = neighbor;
-				if (neighbor && neighbor->m_pBottomNeighbor != nullptr && neighbor->m_pBottomNeighbor != shared_from_this())
+				if (neighbor && neighbor->m_pTopNeighbor != nullptr && neighbor->m_pTopNeighbor != shared_from_this())
 				{
 					LogErrorFormat("fail to set neighbor ,top neighbor's bottom neighbor is not self");
 					m_pTopNeighbor = nullptr;

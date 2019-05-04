@@ -70,7 +70,7 @@ public class Bridge
             //return;
         }
 #endif
-        DestroyCPP();
+        //DestroyCPP();
         //System.Runtime.InteropServices.
     }
     public static void CSUpdate(int time_diff)
