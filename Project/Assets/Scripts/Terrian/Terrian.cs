@@ -115,9 +115,9 @@ namespace SkyDream
             };
             WorldMapBindings_InitilizeWorldMap(data);
             WorldMapBindings_SetGenerateCallBack(OnMapGenerateSuccess);
-            ThreadStart start = new ThreadStart(Runner);
+            /*ThreadStart start = new ThreadStart(Runner);
             workThread = new Thread(start);
-            workThread.Start();
+            workThread.Start();*/
             //WorldMapBindings_WorkThreadRunner();
             //Runner();
         }
@@ -135,6 +135,9 @@ namespace SkyDream
         ~Terrain()
         {
             WorldMapBindings_StopGeneration();
+            Debug.LogFormat("WorldMapBindings_StopGeneration");
+            WorldMapBindings_Destroy();
+            Debug.LogFormat("WorldMapBindings_Destroy");
         }
         private static bool OnMapGenerateSuccess(uint terrain, uint width, Vector4 location)
         {
