@@ -2,6 +2,7 @@
 #include "SocketTime.h"
 #include "CoreOpcodes.h"
 #include "Logger/Logger.h"
+#define CLIENT_TIMEOUT_MS 18*1000
 KcpClient::KcpClient(int16 sid) :
 	m_nServerId(sid),
 	m_bRecv(false),
@@ -51,6 +52,7 @@ void KcpClient::Connect()
 	//Send(accept_pack_data, sizeof(accept_pack_data), true);
 	//ikcp_send(m_pKcp, accept_pack_data, sizeof(accept_pack_data));
 	//ikcp_update(m_pKcp, m_pKcp->current);
+	std::lock_guard<std::mutex> lock(m_kcpMtx);
 	fnWriteDgram(accept_pack_data, 12, m_pKcp, this);
 	m_nSessionStatus = SessionStatus::Connecting;
 }
@@ -75,25 +77,33 @@ void KcpClient::Send(char * buff, int length, bool immediately)
 	{
 		//LogFormat("KcpClient %d send buff size %d", m_stSessionId.conv, length);
 	}
+	//logger::ProfilerStart("send");
+	std::lock_guard<std::mutex> lock(m_kcpMtx);
 	//sSocketServer->Send(buff, length, GetSessionId());
 	ikcp_send(m_pKcp, buff, length);
 	m_nLastSendTime = m_pKcp->current;
 	if (immediately)
 	{
-		m_updateMtx.lock();
-		ikcp_update(m_pKcp, m_pKcp->current + 10);
-		m_updateMtx.unlock();
+		ikcp_update(m_pKcp, m_pKcp->current + m_pKcp->interval);
 	}
 	else
 	{
 		m_bNeedUpdate = true;
 	}
+	//logger::ProfilerEnd(5);
 }
 
 void KcpClient::OnReceive(const uint8 * buff, int length)
 {
-	int bytes = ikcp_input(m_pKcp, (char*)buff, length);
-	int recv_size = ikcp_recv(m_pKcp, (char*)m_readBuffer.GetWritePointer(), m_readBuffer.GetRemainingSpace());
+	int bytes = 0;
+	int recv_size = 0;
+	{
+		//logger::ProfilerStart("OnReceive");
+		std::lock_guard<std::mutex> lock(m_kcpMtx);
+		bytes = ikcp_input(m_pKcp, (char*)buff, length);
+		recv_size = ikcp_recv(m_pKcp, (char*)m_readBuffer.GetWritePointer(), m_readBuffer.GetRemainingSpace());
+		//logger::ProfilerEnd(5);
+	}
 	//LogFormat("KcpClient recvsize %d", recv_size);
 	if (recv_size > 0)
 	{
@@ -140,6 +150,12 @@ void KcpClient::Update(int32_t diff)
 	else
 	{
 		m_nTick += diff;
+		m_nTimeOutTick += diff;
+		if (m_nTimeOutTick >= CLIENT_TIMEOUT_MS)
+		{
+			Close();
+			return;
+		}
 		if (m_nTick > HEART_BEAT_INTERVAL)
 		{
 			m_nTick = 0;
@@ -147,9 +163,8 @@ void KcpClient::Update(int32_t diff)
 		}
 		uint32_t current = m_pKcp->current + diff;
 		if (m_bNeedUpdate || current >= m_nNeedUpdateTime) {
-			m_updateMtx.lock();
+			std::lock_guard<std::mutex> lock(m_kcpMtx);
 			ikcp_update(m_pKcp, current);
-			m_updateMtx.unlock();
 			m_nNeedUpdateTime = ikcp_check(m_pKcp, current);
 			m_bNeedUpdate = false;
 		}
@@ -197,7 +212,13 @@ ReadDataHandlerResult KcpClient::ReadDataHandler()
 	}
 	else if (header->Command == S2C_HEARTBEAT)
 	{
+		m_nTimeOutTick = 0;
 		return ReadDataHandlerResult::Ok;
+	}
+	else if (header->Command == S2C_CRITICAL_ERROR)
+	{
+		LogErrorFormat("client %d recv critical error from server",GetClientId());
+		return ReadDataHandlerResult::Error;
 	}
 	//LogFormat("UdpSocket read remote cmd %d,data size %d,%s", header->Command, header->Size, m_packetBuffer.GetReadPointer());
 	if (nullptr != m_pDataHandler)
@@ -284,6 +305,7 @@ void KcpClient::OnDisconnected(bool immediately)
 	m_packetBuffer.Reset();
 	m_headerBuffer.Reset();
 	m_nSessionStatus = SessionStatus::Disconnected;
+	m_pSocket->Close();
 	//m_pKcp->conv = 0;
 	LogFormat("KcpClient %d OnDisconnected from Server %d", m_stSessionId.conv, immediately);
 	OnResponse(ClientResponse::CR_DISCONNECTED);
@@ -291,7 +313,7 @@ void KcpClient::OnDisconnected(bool immediately)
 
 void KcpClient::OnConnected(bool success)
 {
-	LogFormat("KcpClient %u  Connect success %d", m_stSessionId.conv, success);
+	//LogFormat("KcpClient %u  Connect success %d", m_stSessionId.conv, success);
 	m_nSessionStatus = success ? SessionStatus::Connected : SessionStatus::Disconnected;
 	m_bAlive = m_nSessionStatus == SessionStatus::Connected;
 	OnResponse(success ? ClientResponse::CR_CONNECT_SUCCESS : ClientResponse::CR_CONNECT_FAIL);

@@ -6,6 +6,7 @@
 #define S2C_DISCONNECT 1
 #define C2S_HEARTBEAT 2
 #define S2C_HEARTBEAT 2
+#define S2C_CRITICAL_ERROR 3
 
 #define HEART_BEAT_INTERVAL 6000
 #endif

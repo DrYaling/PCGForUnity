@@ -82,37 +82,33 @@ bool SocketServer::SetAddress(const char * ip, unsigned short port)
 
 void SocketServer::Update(uint32_t diff)
 {
-	for (auto aliveSession : m_mSessions)
 	{
-		std::shared_ptr<KcpSession>& session = aliveSession.second;
-		if (session)
+		std::lock_guard<std::mutex>lock(_sessionLock);
+		for (auto aliveSession : m_mSessions)
 		{
-			aliveSession.second->Update(diff);
+			std::shared_ptr<KcpSession>& session = aliveSession.second;
+			if (session)
+			{
+				aliveSession.second->Update(diff);
+			}
 		}
 	}
-	//clear dead sessions
-	m_vClosingSessions.clear();
-	for (auto sSession  = m_mSleepSessions.begin();sSession != m_mSleepSessions.end();sSession++)
+	for (auto sSession  = m_mSleepSessions.begin();sSession != m_mSleepSessions.end();)
 	{
 		std::shared_ptr<KcpSession>& session = sSession->second;
 		if (session)
 		{
-			sSession->second->Update(10);
+			sSession->second->Update(diff);
 			if (sSession->second->IsDead())
 			{
-				m_vClosingSessions.push_back(sSession);
+				sSession = m_mSleepSessions.erase(sSession);
+			}
+			else
+			{
+				sSession++;
 			}
 		}
 	}
-	/*if (m_vClosingSessions.size()>0)
-	{
-		for (auto itr :m_vClosingSessions)
-		{
-			OnSessionDead(itr->second);
-			m_mSleepSessions.erase(itr);
-		}
-		m_vClosingSessions.clear();
-	}*/
 }
 
 int32 SocketServer::Send(const char * data, int32 dataSize, const socketSessionId& session)
@@ -149,6 +145,18 @@ void SocketServer::ReadHandler()
 		return;
 	auto addr = m_pSocket->GetRecvSockAddr_t();
 	std::shared_ptr<KcpSession> session = GetSessionByRemote(addr);
+	/*if (session == nullptr)
+	{
+		session = GetSleepSessionByRemote(addr);
+		if (session)
+		{
+			session->OnConnected();
+			if (m_cbAcceptHandle)
+			{
+				m_cbAcceptHandle(session, session->GetSessionId().conv);
+			}
+		}
+	}*/
 	//if cant find session,try create new session
 	if (nullptr == session)
 	{
@@ -206,6 +214,7 @@ bool SocketServer::SendDataHandler()
 
 bool SocketServer::CloseSession(const SockAddr_t & client)
 {
+	std::lock_guard<std::mutex> lock(_sessionLock);
 	for (auto mc = m_mSessions.begin(); mc != m_mSessions.end(); mc++)
 	{
 		if (mc->second->GetSessionId().addr == client)
@@ -221,6 +230,7 @@ bool SocketServer::CloseSession(const SockAddr_t & client)
 
 bool SocketServer::CloseSession(uint32_t session, bool remove)
 {
+	std::lock_guard<std::mutex> lock(_sessionLock);
 	for (auto mc = m_mSessions.begin(); mc != m_mSessions.end(); mc++)
 	{
 		if (mc->first == session)
@@ -254,6 +264,7 @@ std::map<IUINT32, std::shared_ptr<KcpSession>>::iterator SocketServer::OnSession
 }
 std::shared_ptr<KcpSession> SocketServer::ContainsRemote(const SockAddr_t & remote, IUINT32 conv)
 {
+	std::lock_guard<std::mutex> lock(_sessionLock);
 	for (auto mc = m_mSessions.begin(); mc != m_mSessions.end(); mc++)
 	{
 		if (mc->second->GetSessionId().addr == remote && mc->second->GetSessionId().conv == conv)
@@ -266,7 +277,20 @@ std::shared_ptr<KcpSession> SocketServer::ContainsRemote(const SockAddr_t & remo
 
 std::shared_ptr<KcpSession> SocketServer::GetSessionByRemote(const SockAddr_t & remote)
 {
+	std::lock_guard<std::mutex> lock(_sessionLock);
 	for (auto mc = m_mSessions.begin(); mc != m_mSessions.end(); mc++)
+	{
+		if (mc->second->GetSessionId().addr == remote)
+		{
+			return mc->second;
+		}
+	}
+	return nullptr;
+}
+
+std::shared_ptr<KcpSession> SocketServer::GetSleepSessionByRemote(const SockAddr_t & remote)
+{
+	for (auto mc = m_mSleepSessions.begin(); mc != m_mSleepSessions.end(); mc++)
 	{
 		if (mc->second->GetSessionId().addr == remote)
 		{
@@ -331,6 +355,7 @@ std::shared_ptr<KcpSession> SocketServer::OnAccept(const SockAddr_t& remote)
 			}
 			conv = IUINT32(GetNewConv() << 16) + GetServerId();
 			session = CreateSession(conv, remote);
+			std::lock_guard<std::mutex> lock(_sessionLock);
 			m_mSessions.insert(std::make_pair(conv, session));
 			return session;
 		}
@@ -363,6 +388,7 @@ std::shared_ptr<KcpSession> SocketServer::OnAccept(const SockAddr_t& remote)
 			}
 			conv = IUINT32(GetNewConv() << 16) + GetServerId();
 			session = CreateSession(conv, remote);
+			std::lock_guard<std::mutex> lock(_sessionLock);
 			m_mSessions.insert(std::make_pair(conv, session));
 		}
 	}

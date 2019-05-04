@@ -53,7 +53,7 @@ namespace logger
 		void ClearLogger(void);
 		void SetLogCallBack(int type, CPPLogCallback cb);
 		void ProfilerStart(const char* content);
-		void ProfilerEnd();
+		void ProfilerEnd(uint32_t minDiff = 0);
 
 #ifdef __cplusplus
 	}

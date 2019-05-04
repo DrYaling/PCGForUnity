@@ -22,12 +22,15 @@ namespace server
 		m_pSocket->Close();
 		if (m_pContainer && m_pTimer)
 		{
+			m_pContainer->UnRegisterComponentChangeEvent<ecs::IntervalTimer>(m_pTimer->GetID(), ecs::SystemCatalog::INTERVAL_TIMER);
 			m_pContainer->UnRegisterComponent(m_pTimer->GetID(), SystemCatalog::INTERVAL_TIMER);
 		}
 		if (m_pContainer && m_pHeatBeatTimer)
 		{
+			m_pContainer->UnRegisterComponentChangeEvent<ecs::IntervalTimer>(m_pHeatBeatTimer->GetID(), ecs::SystemCatalog::INTERVAL_TIMER);
 			m_pContainer->UnRegisterComponent(m_pHeatBeatTimer->GetID(), SystemCatalog::INTERVAL_TIMER);
 		}
+
 		m_pTimer = nullptr;
 		m_pHeatBeatTimer = nullptr;
 		m_pContainer = nullptr;
@@ -57,7 +60,13 @@ namespace server
 			LogFormat("session %d time out,remove", GetSessionId());
 			return false;
 		}
-
+		//lost connection
+		if (!m_pSocket->IsAlive())
+		{
+			m_pSocket->Close();
+			LogFormat("session %d lost connection,remove", GetSessionId());
+			return false;
+		}
 		if (m_pTimer)
 		{
 			if (!m_pTimer->Passed())
@@ -101,7 +110,7 @@ namespace server
 					m_pTimer->interval = WORLD_SESSION_UPDATE_INTERVAL;
 				}
 			}
-			else if(comId == m_nHeartBeatTimerId)
+			else if (comId == m_nHeartBeatTimerId)
 			{
 				m_pHeatBeatTimer = static_cast<IntervalTimer*>(com);
 				if (m_pHeatBeatTimer)

@@ -84,8 +84,6 @@ namespace server
 	void World::AddSession(std::shared_ptr<WorldSession> s)
 	{
 		addSessQueue.add(s);
-		//initilize ecs after lock queue unlocked,or may be fail in update of ecs system
-		s->Initilize(m_pEcs);
 	}
 	bool World::RemoveSession(uint32 id)
 	{
@@ -212,10 +210,13 @@ namespace server
 
 			if (old != m_mSessions.end())
 			{
+				old->second->KickPlayer();
 			}
 		}
 
 		m_mSessions[s->GetSessionId()] = s;
+		//initilize ecs after lock queue unlocked,or may be fail in update of ecs system
+		s->Initilize(m_pEcs);
 
 		uint32 Sessions = GetActiveAndQueuedSessionCount();
 		uint32 pLimit = GetPlayerAmountLimit();

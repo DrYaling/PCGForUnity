@@ -5,6 +5,7 @@
 #include "game/Time/GameTime.h"
 #include "Network/Socket/SocketServer.h"
 #include "Logger/Logger.h"
+#include "game\Time\UpdateTime.h"
 namespace server
 {
 	static std::atomic<uint32> m_worldLoopCounter;
@@ -42,7 +43,7 @@ namespace server
 			return -1;
 		}
 		LogFormat("StartUp ret %d\n", bret);
-		time_t sessionLogTimer = GameTime::GetGameTime() + 15;
+		sWorldUpdateTime.SetRecordUpdateTimeInterval(15000);
 		while (!IsStopped())
 		{
 			++m_worldLoopCounter;
@@ -53,11 +54,8 @@ namespace server
 			_UpdateGameTime();
 			pSocketServer->Update(diff);
 			sWorld->Update(diff);
-			if (GameTime::GetGameTime() >= sessionLogTimer)
-			{
-				sessionLogTimer = GameTime::GetGameTime() + 15;
-				LogFormat("Server alive sessions %d",sWorld->GetActiveSessionCount());
-			}
+			sWorldUpdateTime.UpdateWithDiff(diff);
+			sWorldUpdateTime.RecordUpdateTime(GameTime::GetGameTimeMS(), diff, sWorld->GetActiveSessionCount());
 			realPrevTime = realCurrTime;
 
 			uint32 executionTimeDiff = getMSTimeDiff(realCurrTime, getMSTime());

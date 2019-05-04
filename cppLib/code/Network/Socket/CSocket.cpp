@@ -786,6 +786,7 @@ void Socket::SelectThread()
 				}
 				else//client
 				{
+					//logger::ProfilerStart("client udp read");
 					memset(recv_buffer, 0, RECV_BUFFER_SIZE);
 					int byte_num = 0;
 					if (m_socketType == SocketType::SOCKET_TCP)
@@ -815,6 +816,7 @@ void Socket::SelectThread()
 							//disconnected
 							Close();
 							OnDisconnected(m_Socket);
+							//logger::ProfilerEnd(3);
 							return;
 						}
 					}
@@ -826,6 +828,7 @@ void Socket::SelectThread()
 						OnDisconnected(m_Socket);
 						return;*/
 					}
+					//logger::ProfilerEnd(3);
 				}
 			}
 			if (IsServer() && m_socketType != SocketType::SOCKET_UDP)//tcp Á¬½Ó

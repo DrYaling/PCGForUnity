@@ -35,6 +35,7 @@ KcpSession::KcpSession(const KcpSession&& kcp)
 }*/
 KcpSession::~KcpSession()
 {
+	LogFormat("kcp session %u released", GetSessionId().conv);
 	Close();
 	ikcp_release(m_pKcp);
 	m_pKcp = nullptr;
@@ -77,13 +78,12 @@ void KcpSession::SendHeartBeat()
 void KcpSession::Send(char * buff, int length, bool immediately)
 {
 	//sSocketServer->Send(buff, length, GetSessionId());
+	std::lock_guard<std::mutex> lock(m_kcpMtx);
 	ikcp_send(m_pKcp, buff, length);
 	m_nLastSendTime = m_pKcp->current;
 	if (immediately)
 	{
-		m_updateMtx.lock();
-		ikcp_update(m_pKcp, m_pKcp->current + 10);
-		m_updateMtx.unlock();
+		ikcp_update(m_pKcp, m_pKcp->current + m_pKcp->interval);
 	}
 	else
 	{
@@ -100,7 +100,11 @@ void KcpSession::OnReceive(const uint8 * buff, int length)
 	if ((conv & 0xffff) != sSocketServer->GetServerId())
 	{
 		//ignore erro pack
-		LogErrorFormat("error serverId %u,should be %u,conv %x", conv & 0xffff,sSocketServer->GetServerId(),conv);
+		LogErrorFormat("error serverId %u,should be %u,conv %x", conv & 0xffff, sSocketServer->GetServerId(), conv);
+		PacketHeader head;
+		head.Command = S2C_CRITICAL_ERROR;
+		head.Size = 0;
+		Send((char*)&head,sizeof(head),true);
 		sSocketServer->CloseSession(GetSessionId().conv, false);
 		return;
 	}
@@ -111,8 +115,13 @@ void KcpSession::OnReceive(const uint8 * buff, int length)
 		sSocketServer->CloseSession(GetSessionId().conv, false);
 		return;
 	}
-	int bytes = ikcp_input(m_pKcp, (char*)buff, length);
-	int recv_size = ikcp_recv(m_pKcp, (char*)m_readBuffer.GetWritePointer(), m_readBuffer.GetRemainingSpace());
+	int bytes = 0;
+	int recv_size = 0;
+	{
+		std::lock_guard<std::mutex> lock(m_kcpMtx);
+		bytes = ikcp_input(m_pKcp, (char*)buff, length);
+		recv_size = ikcp_recv(m_pKcp, (char*)m_readBuffer.GetWritePointer(), m_readBuffer.GetRemainingSpace());
+	}
 	if (recv_size > 0)
 	{
 		if (!sSocketServer->CheckCrc((const char*)m_packetBuffer.GetReadPointer(), m_packetBuffer.GetActiveSize()))
@@ -139,9 +148,8 @@ void KcpSession::Update(uint32_t diff)
 	{
 		uint32_t current = m_pKcp->current + diff;
 		if (m_bNeedUpdate || current >= m_nNeedUpdateTime) {
-			m_updateMtx.lock();
+			std::lock_guard<std::mutex> lock(m_kcpMtx);
 			ikcp_update(m_pKcp, current);
-			m_updateMtx.unlock();
 			m_nNeedUpdateTime = ikcp_check(m_pKcp, current);
 			m_bNeedUpdate = false;
 		}
@@ -149,9 +157,18 @@ void KcpSession::Update(uint32_t diff)
 		{
 
 		}
-		if (ikcp_peeksize(m_pKcp) > 0)
+		int peeksize = 0;
 		{
-			int recv_size = ikcp_recv(m_pKcp, (char*)m_readBuffer.GetReadPointer(), m_readBuffer.GetActiveSize());
+			std::lock_guard<std::mutex> lock(m_kcpMtx);
+			peeksize = ikcp_peeksize(m_pKcp);
+		}
+		if (peeksize > 0)
+		{
+			int recv_size = 0;
+			{
+				std::lock_guard<std::mutex> lock(m_kcpMtx);
+				recv_size = ikcp_recv(m_pKcp, (char*)m_readBuffer.GetReadPointer(), m_readBuffer.GetActiveSize());
+			}
 			if (recv_size > 0)
 			{
 				if (!sSocketServer->CheckCrc((const char*)m_packetBuffer.GetReadPointer(), m_packetBuffer.GetActiveSize()))
@@ -254,7 +271,6 @@ void KcpSession::OnDisconnected(bool immediately)
 	}
 	if (immediately)
 	{
-		delete this;
 		return;
 	}
 	else
@@ -271,6 +287,7 @@ void KcpSession::OnConnected(IUINT32 conv, const SockAddr_t& addr)
 {
 	m_stSessionId = socketSessionId(conv, addr);
 	m_bAlive = true;
+	std::lock_guard<std::mutex> lock(m_kcpMtx);
 	if (m_pKcp)
 		ikcp_release(m_pKcp);
 	m_pKcp = ikcp_create(conv, this);

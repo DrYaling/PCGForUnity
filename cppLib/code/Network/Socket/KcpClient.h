@@ -4,6 +4,7 @@
 #include "SocketConfig.h"
 #include "CSocket.h"
 #include <mutex>
+#include <atomic>
 enum ClientResponse
 {
 	CR_CONNECT_SUCCESS = 0,
@@ -21,7 +22,7 @@ public:
 	void Close();
 	void Send(char* buff, int length, bool immediately = false);
 	void Update(int32_t time);
-	bool IsAlive() { return m_nSessionStatus == SessionStatus::Connected; }
+	bool IsAlive() { return m_bAlive; }
 	bool IsClosed() { return m_nSessionStatus == SessionStatus::Disconnected; }
 	bool IsConnecting() { return m_nSessionStatus == SessionStatus::Connecting; }
 	bool IsConnected() { return m_nSessionStatus == SessionStatus::Connected; }
@@ -64,7 +65,8 @@ private:
 	int16 m_nConnectTimeOut;
 	int16 m_nReconnectTime;
 	const static int16 reconnectInterval = 1000;
-	std::mutex m_updateMtx;
+	std::mutex m_kcpMtx;
+	std::atomic<uint32> m_nTimeOutTick;
 
 };
 #endif

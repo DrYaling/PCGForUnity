@@ -47,6 +47,7 @@ private:
 	MessageBuffer& GetReadBuffer() { return m_readBuffer; }
 	std::shared_ptr<KcpSession> ContainsRemote(const SockAddr_t& remote, IUINT32 conv);
 	std::shared_ptr<KcpSession> GetSessionByRemote(const SockAddr_t& remote);
+	std::shared_ptr<KcpSession> GetSleepSessionByRemote(const SockAddr_t& remote);
 	//查找正在等待连接的session
 	MessageBuffer* GetWaitingConnectSession(const SockAddr_t& remote);
 	bool AcceptPack(const uint8* buff, int length);
@@ -60,9 +61,9 @@ private:
 	MessageBuffer m_packetBuffer;*/
 	MessageBuffer m_readBuffer;
 	std::mutex _sendLock;
+	std::mutex _sessionLock;
 	std::map<IUINT32, std::shared_ptr<KcpSession>> m_mSessions;
 	std::map<IUINT32, std::shared_ptr<KcpSession>> m_mSleepSessions;
-	std::vector<std::map<IUINT32, std::shared_ptr<KcpSession>>::iterator> m_vClosingSessions;
 	std::map<SockAddr_t, MessageBuffer> m_mWaitingForConnections;
 	int16 m_nClientConv;
 	int16 m_nMTU;

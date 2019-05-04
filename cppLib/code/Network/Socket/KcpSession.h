@@ -6,7 +6,7 @@
 #include <mutex>
 #include "CoreOpcodes.h"
 #include <memory>
-#define SESSION_KEEP_ALIVE_TIME 120000	//2mins
+#define SESSION_KEEP_ALIVE_TIME 6000	//6s
 //with no public,when use shared_from_this throw bad_weak_ptr exception
 class KcpSession:public std::enable_shared_from_this<KcpSession>
 {
@@ -21,7 +21,7 @@ public:
 	void OnReceive(const uint8* buff, int length);
 	void Update(uint32_t time);
 	bool IsDead() { return !m_bAlive && m_nTick >= SESSION_KEEP_ALIVE_TIME; }
-	bool IsAlive() { return m_nSessionStatus == SessionStatus::Connected; }
+	bool IsAlive() { return m_bAlive; }
 	bool IsClosed() { return m_nSessionStatus == SessionStatus::Disconnected; }
 	bool IsConnecting() { return m_nSessionStatus == SessionStatus::Connecting; }
 	void Disconnect();
@@ -58,7 +58,7 @@ private:
 	uint64 m_nNeedUpdateTime;
 	bool m_bNeedUpdate;
 	bool m_bAlive;
-	std::mutex m_updateMtx;
+	std::mutex m_kcpMtx;
 };
 
 #endif

@@ -89,7 +89,8 @@ namespace logger
 	}
 #if WIN32
 	DWORD start, stop;
-	const char* profilerContent;
+#include <string.h>
+	static std::string profilerContent;
 #endif
 	void ProfilerStart(const char * content)
 	{
@@ -98,16 +99,19 @@ namespace logger
 		profilerContent = content;
 #endif
 	}
-	void ProfilerEnd()
+	void ProfilerEnd(uint32_t minDiff)
 	{
 #if WIN32
 		stop = GetTickCount();
-		if (!profilerContent)
+		if (profilerContent.size() <=0)
 		{
 			profilerContent = "";
 		}
-		LogFormat("%s cost time %d ms", profilerContent, stop - start);
-		profilerContent = nullptr;
+		if (stop - start >= minDiff)
+		{
+			LogFormat("%s cost time %d ms", profilerContent.c_str(), stop - start);
+		}
+		profilerContent.resize(0);
 #endif
 	}
 	int LogContent(LoggerType eType, const char	* fp, int line, const char* func, const char* format, ...)
