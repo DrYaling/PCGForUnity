@@ -10,6 +10,7 @@
 #include <memory>
 #include "Utinities/LockedQueue.h"
 #include "G3D/Vector4.h"
+#include <atomic>
 namespace generator
 {
 	typedef bool(__stdcall *TerrainGenerationCallBack)(uint32_t terrainId, uint32_t terrainWidth, G3D::Vector4 locate);
@@ -63,9 +64,11 @@ namespace generator
 		std::mutex m_generatorMtx;
 		std::thread* m_pThreadRunner;
 		MapGeneratorData m_stData;
-		bool m_bRun;
+		std::atomic<bool> m_bRun;
+		std::atomic<bool> m_bThreadExited;
 		uint32_t m_nTotalMapCount;
 		std::string m_sSaveDirectory;
+
 	};
 #define sMapGenerator MapGenerator::GetInstance()
 }

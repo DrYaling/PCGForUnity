@@ -16,7 +16,8 @@ namespace generator
 		m_pPainter(nullptr),
 		m_pWorldMap(nullptr),
 		m_pThreadRunner(nullptr),
-		m_bRun(false)
+		m_bRun(false),
+		m_bThreadExited(true)
 	{
 		m_mTerrainData.clear();
 		m_pGenerator = new Diamond_Square();
@@ -72,9 +73,14 @@ namespace generator
 		if (m_pThreadRunner)
 		{
 			m_bRun = false;
-			m_pThreadRunner->join();
+			while (!m_bThreadExited)
+			{
+				sleep(1);
+			}
+			//m_pThreadRunner->join();
 			safe_delete(m_pThreadRunner);
 		}
+		LogFormat("MapGenerator WorkThread exited");
 	}
 
 	void MapGenerator::UpdateInMainThread(int32_t diff)
@@ -147,6 +153,7 @@ namespace generator
 		m_bRun = true;
 		GenWorldMap();
 		Generate(0xffffffff);
+		m_bThreadExited = false;
 		while (m_bRun)
 		{
 			//sleep(10);
@@ -158,13 +165,17 @@ namespace generator
 			//UpdateInMainThread(0);
 			if (current >= m_nTotalMapCount)
 			{
+				m_bRun = false;
+				m_bThreadExited = true;
 				return;
 			}
 			while (!m_finishQueue.empty())
 			{
-				sleep(100);//hold on while finish queue is empty
+				sleep(1);//hold on while finish queue is empty
 			}
 		}
+		m_bRun = false;
+		m_bThreadExited = true;
 	}
 	uint32 MapGenerator::InitilizeNext()
 	{

@@ -68,6 +68,7 @@ public class test : MonoBehaviour
         Debug.LogFormat("OnApplicationQuit");
         if (null != terrian)
         {
+            terrian.Destroy();
             terrian = null;
         }
         Bridge.Destroy();

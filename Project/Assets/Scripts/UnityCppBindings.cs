@@ -17,7 +17,7 @@ public static class UnityCppBindings
         }
         else
         {
-            UnityEngine.Debug.LogErrorFormat("mesh {0} was not binded", instanceId);
+            //UnityEngine.Debug.LogErrorFormat("mesh {0} was not binded", instanceId);
         }
     }
     public static SkyDream.TerrainPiece GetTerrain(uint instanceId)

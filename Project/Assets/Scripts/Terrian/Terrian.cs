@@ -134,10 +134,6 @@ namespace SkyDream
         }
         ~Terrain()
         {
-            WorldMapBindings_StopGeneration();
-            Debug.LogFormat("WorldMapBindings_StopGeneration");
-            WorldMapBindings_Destroy();
-            Debug.LogFormat("WorldMapBindings_Destroy");
         }
         private static bool OnMapGenerateSuccess(uint terrain, uint width, Vector4 location)
         {
@@ -156,6 +152,15 @@ namespace SkyDream
         public void Update(int time_diff)
         {
             WorldMapBindings_UpdateInMainThread(time_diff);
+        }
+        public void Destroy()
+        {
+            Debug.LogFormat("WorldMapBindings_StopGeneration");
+            WorldMapBindings_StopGeneration();
+            Debug.LogFormat("WorldMapBindings_Destroy");
+            WorldMapBindings_Destroy();
+            UnityCppBindings.Clear();
+            Debug.LogFormat("over");
         }
     }
 }

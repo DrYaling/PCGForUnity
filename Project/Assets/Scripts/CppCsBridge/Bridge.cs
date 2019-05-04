@@ -8,7 +8,7 @@ public class Bridge
     {
         ~BridgeRunner()
         {
-            DestroyCPP();
+            //DestroyCPP();
         }
     }
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
