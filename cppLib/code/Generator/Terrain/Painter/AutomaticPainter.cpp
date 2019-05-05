@@ -20,6 +20,7 @@ namespace generator
 			LogError("height map or alpha0 map error!");
 			return;
 		}
+		LogFormat("AutomaticPainter::Init");
 		if (m_pPainter)
 		{
 			m_pPainter->Init(alphaMap, alphaSizeXY, splatCount);
@@ -33,17 +34,17 @@ namespace generator
 	{
 		switch (type)
 		{
-		case generator::PainterType::SplatPainter:
-			if (!m_pPainter || dynamic_cast<SplatPainter*>(m_pPainter) == nullptr)
-			{
-				safe_delete(m_pPainter);
-				m_pPainter = new SplatPainter();
-			}
-			break;
-		case generator::PainterType::DetailPainter:
-			break;
-		default:
-			break;
+			case generator::PainterType::SplatPainter:
+				if (!m_pPainter || dynamic_cast<SplatPainter*>(m_pPainter) == nullptr)
+				{
+					safe_delete(m_pPainter);
+					m_pPainter = new SplatPainter();
+				}
+				break;
+			case generator::PainterType::DetailPainter:
+				break;
+			default:
+				break;
 		}
 	}
 	void AutomaticPainter::DrawDetail()
@@ -143,15 +144,15 @@ namespace generator
 			float alpha0 = painter->GetAlpha(x, y, 0);
 			bool alpha0_chance = true;
 			int neighborCnt = 0;
-			for (int32_t x0 = -brushSize;x0<= brushSize;x0+=brushSize)
+			for (int32_t x0 = -brushSize; x0 <= brushSize; x0 += brushSize)
 			{
-				for (int32_t y0 = -brushSize;y0<= brushSize;y0 += brushSize)
+				for (int32_t y0 = -brushSize; y0 <= brushSize; y0 += brushSize)
 				{
 					if (x == x0 && y == y0)
 					{
 						continue;
 					}
-					if (painter->GetAlpha(x, y, 0)>0.5f)
+					if (painter->GetAlpha(x, y, 0) > 0.5f)
 					{
 						neighborCnt++;
 					}

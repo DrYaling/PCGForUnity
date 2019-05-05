@@ -29,8 +29,9 @@ namespace generator
 				m_mExtendedMap.insert(std::make_pair(key, height));
 			}
 		}
+		void Reset();
 		void Start(const float* corner, const int32_t size = 4, int32_t mapWidth = 10, std::function<void(void)> cb = nullptr);
-		void SetGetNeighborHeightCallBack(GetNeighborHeightCallBack cb) { m_cbGetNeighborVertice = cb; }
+		void SetGetNeighborHeightCallBack(GetNeighborHeightCallBack cb) { m_cbGetNeighborHeight = cb; }
 		inline float GetHeight(int x, int y) {
 			generator_clamp(x, 0, m_nMax);
 			generator_clamp(y, 0, m_nMax);
@@ -92,7 +93,7 @@ namespace generator
 		uint32_t m_Owner;
 		float* m_vHeightMap;
 		int32_t m_nheightMapSize;
-		GetNeighborHeightCallBack m_cbGetNeighborVertice;
+		GetNeighborHeightCallBack m_cbGetNeighborHeight;
 		std::function<void(int32_t)> m_cbProcessHandler;
 		std::map<int32_t, float> m_mExtendedMap;
 		int32_t m_nSize;//×ÜÊý 2^(2*i)+1

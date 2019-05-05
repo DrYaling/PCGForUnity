@@ -19,6 +19,7 @@ namespace generator
 	}
 	void PainterBrush::Initilize(BrushStyle style, int32_t size)
 	{
+		LogFormat("PainterBrush::Init");
 		m_vStrength.resize(size*size);
 		m_nSize = size;
 		m_nMax = size - 1;
@@ -28,34 +29,36 @@ namespace generator
 			return;
 		}
 		memset(m_vStrength.data(), 1, sizeof(float)*m_vStrength.size());
+		LogFormat("PainterBrush::Init end ");
 		return;
 		switch (style)
 		{
-		case generator::BrushStyle::Circle_ful:
-		case generator::BrushStyle::Square_full:
-			memset(m_vStrength.data(), 1, sizeof(float)*m_vStrength.size());
-			break;
-		case generator::BrushStyle::Circle_middle:
-		case generator::BrushStyle::Square_middle:
-		{
-			float minStrength = 0.0f;
-			float middle = size / 2;
-			float radius = size * 0.5f;
-			for (int32_t y = 0; y < size; y++)
-			{
-				for (int32_t x = 0; x < size; x++)
+			case generator::BrushStyle::Circle_ful:
+			case generator::BrushStyle::Square_full:
+				memset(m_vStrength.data(), 1, sizeof(float)*m_vStrength.size());
+				break;
+			case generator::BrushStyle::Circle_middle:
+			case generator::BrushStyle::Square_middle:
 				{
-					float distance = GetDistance2D(x, y, middle, middle);
-					float value = (radius - distance) / radius;
-					value = value <= minStrength ? minStrength : value;
-					m_vStrength[y*size + x] = value;
-					//LogFormat("Brush Strength %f",value);
+					float minStrength = 0.0f;
+					float middle = size / 2;
+					float radius = size * 0.5f;
+					for (int32_t y = 0; y < size; y++)
+					{
+						for (int32_t x = 0; x < size; x++)
+						{
+							float distance = GetDistance2D(x, y, middle, middle);
+							float value = (radius - distance) / radius;
+							value = value <= minStrength ? minStrength : value;
+							m_vStrength[y*size + x] = value;
+							//LogFormat("Brush Strength %f",value);
+						}
+					}
 				}
-			}
+				break;
+			default:
+				break;
 		}
-		break;
-		default:
-			break;
-		}
+		LogFormat("PainterBrush::Init end ");
 	}
 }

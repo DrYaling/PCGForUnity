@@ -45,20 +45,22 @@ namespace generator
 		void WorkThread();
 		uint32 InitilizeNext();
 		void Generate(uint32);
-		static inline bool GetNeighborHeight(int32_t x, int32_t y, NeighborType neighbor, uint32_t neighborID, float & p);
-		void InitHeightMapBaseOnNeighbor(NeighborType position);
+		static inline bool GetNeighborHeight(int32_t x, int32_t y, NeighborType neighbor, uint32_t owner, float & p);
+		void InitHeightMapBaseOnNeighbor(NeighborType position, std::shared_ptr<Terrain>);
 		uint32_t GetNeighborID(NeighborType dir, uint32_t who);
 		bool LoadFromNative(uint32_t terr);
 	private:
 		std::map<uint32_t, std::shared_ptr<Terrain>> m_mTerrainData;
 		LockedQueue<uint32_t> m_finishQueue;
-		Terrain* m_pWorldMap;
+		std::shared_ptr<Terrain> m_pWorldMap;
 		std::shared_ptr<Terrain> m_pCurrentMap;
 		Diamond_Square* m_pGenerator;
 		AutomaticPainter* m_pPainter;
 		float* m_worldMapHeightMap;
 		float* m_aHeightMap;
 		float* m_aSplatMap;
+		float* m_aHeightMapCopy;
+		float* m_aSplatMapCopy;
 		TerrainGenerationCallBack m_cbTerrainGenFinish;
 		uint32_t m_nCurrentTerrain;
 		std::mutex m_generatorMtx;

@@ -35,6 +35,12 @@ namespace generator
 		m_nheightMapSize = m_nSize * m_nSize;
 		m_bInitilized = true;
 	}
+	void Diamond_Square::Reset()
+	{
+		m_bIsFinished = false;
+		m_bEdgeExtended = false;
+		m_mExtendedMap.clear();
+	}
 	void Diamond_Square::Start(const float * corner, const int32_t size, int32_t mapWidth, std::function<void(void)> cb)
 	{
 		m_bIsFinished = false;
@@ -77,7 +83,7 @@ namespace generator
 			SetHeight(m_nMax, m_nMax, itr->second);
 		//std::thread t(std::bind(&Diamond_Square::WorkThread, this,cb));
 		//t.detach();
-		//LogFormat("Diamond_Square Start,H %f,I %d,maxSize %d,meshCount %d", m_nH, m_nI, m_nSize, meshCount);
+		LogFormat("Diamond_Square Start,H %f,I %d,maxSize %d,extend %d", m_nH, m_nI, m_nSize, m_bEdgeExtended);
 		WorkThread(cb);
 	}
 
@@ -172,10 +178,11 @@ namespace generator
 		//so nigher x = 0 or x = max or y = 0 or y = max,but wont apear same time
 		if (x - size < 0)
 		{
+			//LogFormat("Diamond %d,%d,%d", x, y, m_cbGetNeighborHeight);
 			p[1] = GetHeight(x, y - size);// m_aHeightMap[m_nSize * (y - size)];
 			p[2] = GetHeight(size, y);// m_aHeightMap[m_nSize*y + size];
 			p[3] = GetHeight(x, y + size);// m_aHeightMap[m_nSize*(y + size)];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x - size, y, NeighborType::neighborPositionLeft, m_Owner, p[4]))
+			if (m_bEdgeExtended && m_cbGetNeighborHeight(x - size, y, NeighborType::neighborPositionLeft, m_Owner, p[4]))
 			{
 				p[0] = p[4];
 			}
@@ -189,7 +196,7 @@ namespace generator
 			p[0] = GetHeight(x - size, y);// m_aHeightMap[x - size + m_nSize * y];
 			p[1] = GetHeight(x, y - size);//m_aHeightMap[x + m_nSize * (y - size)];
 			p[2] = p[3] = GetHeight(x, y + size);// m_aHeightMap[x + m_nSize * (y + size)];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x + size, y, NeighborType::neighborPositionRight, m_Owner, p[4]))
+			if (m_bEdgeExtended && m_cbGetNeighborHeight(x + size, y, NeighborType::neighborPositionRight, m_Owner, p[4]))
 			{
 				p[2] = p[4];
 			}
@@ -209,7 +216,7 @@ namespace generator
 			p[0] = GetHeight(x - size, 0);// m_aHeightMap[x - size];
 			p[2] = GetHeight(x + size, 0);// m_aHeightMap[x + size];
 			p[3] = GetHeight(x, size);// m_aHeightMap[x + m_nSize * size];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, NeighborType::neighborPositionBottom, m_Owner, p[4]))
+			if (m_bEdgeExtended && m_cbGetNeighborHeight(x, y - size, NeighborType::neighborPositionBottom, m_Owner, p[4]))
 			{
 				p[1] = p[4];
 			}
@@ -228,7 +235,7 @@ namespace generator
 			p[0] = GetHeight(x - size, y);// m_aHeightMap[x - size + m_nSize * y];
 			p[1] = GetHeight(x, y - size);//m_aHeightMap[x + m_nSize * (y - size)];
 			p[2] = GetHeight(x + size, y);//m_aHeightMap[x + size + m_nSize * y];
-			if (m_bEdgeExtended && m_cbGetNeighborVertice(x, y - size, NeighborType::neighborPositionRight, m_Owner, p[4]))
+			if (m_bEdgeExtended && m_cbGetNeighborHeight(x, y - size, NeighborType::neighborPositionRight, m_Owner, p[4]))
 			{
 				p[3] = p[4];
 			}
@@ -408,9 +415,9 @@ namespace generator
 				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[2], p - pNeibor[3]);
 				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[3], p - pNeibor[0]);
 				pN[indexSize] = unityMesh::normalize(m_stNormalBuffer);
-				}
 			}
-		//LogWarningFormat("at mesh %d,recaculate normal size %d,indexSize %d", mesh, size, indexSize);
 		}
-#endif
+		//LogWarningFormat("at mesh %d,recaculate normal size %d,indexSize %d", mesh, size, indexSize);
 	}
+#endif
+}

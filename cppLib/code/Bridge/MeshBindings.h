@@ -34,6 +34,10 @@ EXPORT_API uint32_t	 STD_CALL WorldMapBindings_GetNeighbor(uint32_t who, int32_t
 	{
 		return ptr->GetNeighbor((NeighborType)dir);
 	}
+	else
+	{
+		return 0;
+	}
 }
 EXPORT_API void	 STD_CALL WorldMapBindings_InitTerrain(uint32_t who, float* heightMap, int32_t heightMapSize, float* splatMap, int32_t splatWidth, int32_t splatCount)
 {

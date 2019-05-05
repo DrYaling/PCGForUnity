@@ -8,4 +8,6 @@
 
 #if !defined(_MSC_VER)
 #define HAVE_PTHREAD
+#else//if _DEBUG
+//#define _SCL_SECURE_NO_WARNINGS 1
 #endif

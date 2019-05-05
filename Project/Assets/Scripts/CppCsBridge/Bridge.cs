@@ -8,7 +8,7 @@ public class Bridge
     {
         ~BridgeRunner()
         {
-            //DestroyCPP();
+            DestroyCPP();
         }
     }
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
@@ -70,7 +70,7 @@ public class Bridge
             //return;
         }
 #endif
-        //DestroyCPP();
+        DestroyCPP();
         //System.Runtime.InteropServices.
     }
     public static void CSUpdate(int time_diff)

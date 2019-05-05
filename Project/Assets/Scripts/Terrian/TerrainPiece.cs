@@ -43,7 +43,7 @@ namespace SkyDream
         private TerrainData terrainData;
 
         private TerrainPiece() { }
-        public unsafe TerrainPiece(uint ins,int heightMapWidth)
+        public unsafe TerrainPiece(uint ins, int heightMapWidth)
         {
             terrainInstance = ins;
             UnityCppBindings.RegistBinding(terrainInstance, this);
@@ -110,11 +110,11 @@ namespace SkyDream
         public unsafe bool TerrainInitilizer(uint width, Vector4 location)
         {
             _mapWidth = location.w;
+            Debug.LogFormat("TerrainInitilizer wdith {0},location {1}", width, location);
             fixed (float* ptr_height = _heightMap)
             {
                 fixed (float* ptr_splat = _splatMap)
                 {
-                    Debug.LogFormat("6");
                     WorldMapBindings_InitTerrain(instaneId, ptr_height, _heightMap.GetLength(0),
                         ptr_splat, _splatMap.GetLength(0), _splatMap.GetLength(2));
                 }
@@ -162,8 +162,9 @@ namespace SkyDream
         {
             for (TerrainNeighbor n = TerrainNeighbor.neighborPositionLeft; n < TerrainNeighbor.neighborPositionTop; n++)
             {
-                Debug.LogFormat("7 "+n.ToString());
+                Debug.LogFormat("terrain {0}  get neighbor {1}", instaneId, n);
                 uint terr = WorldMapBindings_GetNeighbor(instaneId, (int)n);
+                Debug.LogFormat("terrain {0} neighbor {1} is {2}", instaneId, n, terr);
                 var t = UnityCppBindings.GetTerrain(terr);
                 SetNeighbor(t, n);
             }

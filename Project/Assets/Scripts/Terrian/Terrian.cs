@@ -102,8 +102,8 @@ namespace SkyDream
             MapGeneratorData data = new MapGeneratorData()
             {
                 seed = Random.Range(0, 100),
-                H = 30,
-                I = 5,
+                H = 10,
+                I = 2,
                 singleMapSize = 0,
                 worldMapSize = 2,
                 splatWidth = 512,

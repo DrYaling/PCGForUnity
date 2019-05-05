@@ -3,17 +3,41 @@
 using namespace G3D;
 namespace generator {
 
-	Terrain::Terrain(uint32_t ins, int nSize) :
+	Terrain::Terrain(uint32_t ins, uint32_t I) :
 		m_pTopNeighbor(nullptr),
 		m_pRightNeighbor(nullptr),
 		m_pLeftNeighbor(nullptr),
 		m_pBottomNeighbor(nullptr),
 		m_nInstanceId(ins),
+		m_aHeightMap(nullptr),
+		m_aSplatMap(nullptr),
+		m_nI(I),
 		m_nSize(0)
 	{
+		switch (I)
+		{
+			case 1:
+				m_nRealWidth = 16;
+				break;
+			case 2:
+				m_nRealWidth = 32;
+				break;
+			case 3:
+				m_nRealWidth = 64;
+				break;
+			case 4:
+				m_nRealWidth = 128;
+				break;
+			case 5:
+				m_nRealWidth = 512;
+				break;
+			default:
+				LogErrorFormat("Error MapSize %d not supported", I);
+				return;
+		}
 	}
 
-	Terrain::Terrain(const Terrain & t)
+	/*Terrain::Terrain(const Terrain & t)
 	{
 		m_aHeightMap = t.m_aHeightMap;
 		m_aSplatMap = t.m_aSplatMap;
@@ -27,13 +51,14 @@ namespace generator {
 		m_aSplatMap = t.m_aSplatMap;
 		m_nInstanceId = t.m_nInstanceId;
 		m_nSize = t.m_nSize;
-	}
+	}*/
 
 	Terrain::~Terrain()
 	{
 	}
 	uint32_t Terrain::GetNeighbor(NeighborType neighbor)
 	{
+		//LogFormat("get %d neighbor of %d", neighbor, m_nInstanceId);
 		switch (neighbor)
 		{
 			case NeighborType::neighborPositionLeft:
@@ -65,7 +90,7 @@ namespace generator {
 		}
 		return 0;
 	}
-	void Terrain::Init(uint32_t I, float* heightMap, int32_t heightMapSize, float* splatMap, int32_t splatSize, int32_t splatCount)
+	void Terrain::Init(float* heightMap, int32_t heightMapSize, float* splatMap, int32_t splatSize, int32_t splatCount)
 	{
 		if (!heightMap)
 		{
@@ -75,40 +100,19 @@ namespace generator {
 		m_aHeightMap = heightMap;
 		m_nSize = heightMapSize;
 		m_aSplatMap = splatMap;
-		m_aSplatMap = splatMap;
 		m_nSplatWidth = splatSize;
 		m_nSplatCount = splatCount;
-		switch (I)
-		{
-			case 1:
-				m_nRealWidth = 16;
-				break;
-			case 2:
-				m_nRealWidth = 32;
-				break;
-			case 3:
-				m_nRealWidth = 64;
-				break;
-			case 4:
-				m_nRealWidth = 128;
-				break;
-			case 5:
-				m_nRealWidth = 512;
-				break;
-			default:
-				LogErrorFormat("Error MapSize %d not supported", I);
-				return;
-		}
+		LogFormat("terrain %d real size %d", m_nInstanceId, m_nRealWidth);
 	}
 
 	void Terrain::InitNeighbor(NeighborType edge, std::shared_ptr<Terrain> neighbor)
 	{
-		//LogFormat("InitNeighbor %d,neighbor %d", edge, neighbor->m_nInstanceId);
+		LogFormat("terrain %d InitNeighbor %d,neighbor %d", m_nInstanceId, edge, neighbor->m_nInstanceId);
 		switch (edge)
 		{
 			case NeighborType::neighborPositionLeft:
 				m_pLeftNeighbor = neighbor;
-				if (neighbor && neighbor->m_pLeftNeighbor != nullptr && neighbor->m_pLeftNeighbor != shared_from_this())
+				if (neighbor && neighbor->m_pRightNeighbor != nullptr && neighbor->m_pRightNeighbor != shared_from_this())
 				{
 					LogErrorFormat("fail to set neighbor ,left neighbor's right neighbor is not self");
 					m_pLeftNeighbor = nullptr;
@@ -117,7 +121,7 @@ namespace generator {
 				break;
 			case  NeighborType::neighborPositionRight:
 				m_pRightNeighbor = neighbor;
-				if (neighbor && neighbor->m_pRightNeighbor != nullptr && neighbor->m_pRightNeighbor != shared_from_this())
+				if (neighbor && neighbor->m_pLeftNeighbor != nullptr && neighbor->m_pLeftNeighbor != shared_from_this())
 				{
 					LogErrorFormat("fail to set neighbor ,right neighbor's left neighbor is not self");
 					m_pRightNeighbor = nullptr;
@@ -126,7 +130,7 @@ namespace generator {
 				break;
 			case NeighborType::neighborPositionBottom:
 				m_pBottomNeighbor = neighbor;
-				if (neighbor && neighbor->m_pBottomNeighbor != nullptr && neighbor->m_pBottomNeighbor != shared_from_this())
+				if (neighbor && neighbor->m_pTopNeighbor != nullptr && neighbor->m_pTopNeighbor != shared_from_this())
 				{
 					LogErrorFormat("fail to set neighbor ,bottom neighbor's top neighbor is not self");
 					m_pBottomNeighbor = nullptr;
@@ -135,7 +139,7 @@ namespace generator {
 				break;
 			case  NeighborType::neighborPositionTop:
 				m_pTopNeighbor = neighbor;
-				if (neighbor && neighbor->m_pTopNeighbor != nullptr && neighbor->m_pTopNeighbor != shared_from_this())
+				if (neighbor && neighbor->m_pBottomNeighbor != nullptr && neighbor->m_pBottomNeighbor != shared_from_this())
 				{
 					LogErrorFormat("fail to set neighbor ,top neighbor's bottom neighbor is not self");
 					m_pTopNeighbor = nullptr;
@@ -148,6 +152,7 @@ namespace generator {
 	}
 	bool Terrain::GetNeighborHeight(int32_t x, int32_t y, NeighborType neighbor, float & p)
 	{
+		LogFormat("terrain %d GetNeighborHeight %d", m_nInstanceId, neighbor);
 		switch (neighbor)
 		{
 			case NeighborType::neighborPositionLeft:

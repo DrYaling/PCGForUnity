@@ -97,7 +97,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/dep/;$(SolutionDir)../../code/dep/G3D/include</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_MBCS;WIN32; _WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>-D_SCL_SECURE_NO_WARNINGS;_MBCS;WIN32; _WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
       <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
@@ -125,7 +125,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)../../code/;$(SolutionDir)../../code/dep/;$(SolutionDir)../../code/dep/G3D/include</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <PreprocessorDefinitions>_MBCS;WIN32; _WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>-D_SCL_SECURE_NO_WARNINGS;_MBCS;WIN32; _WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
       <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>

@@ -10,9 +10,10 @@ class Terrain :public std::enable_shared_from_this<Terrain>
 {
 	friend class MapGenerator;
 public:
-	Terrain(uint32_t ins,int);
-	Terrain(const Terrain& t);
-	Terrain(const Terrain&& t);
+	Terrain() = delete;
+	Terrain(uint32_t ins, uint32_t I);
+	Terrain(const Terrain& t) = delete;
+	Terrain(const Terrain&& t) = delete;
 	~Terrain();
 	void InitNeighbor(NeighborType edge, std::shared_ptr<Terrain> mesh);
 	float GetHeight(int32_t x, int32_t y)
@@ -24,9 +25,10 @@ public:
 	int32_t GetSplatCount() { return m_nSplatCount; }
 	int32_t GetSplatWidth() { return m_nSplatWidth; }
 	uint32_t GetNeighbor(NeighborType neighbor);
+	uint32_t GetI() { return m_nI; }
 	bool IsWorldMap() { return m_nInstanceId == 0xffffffff; }
 private:
-	void Init(uint32_t I,float* heightMap, int32_t heightMapSize, float* splatMap, int32_t splatSize, int32_t splatCount);
+	void Init(float* heightMap, int32_t heightMapSize, float* splatMap, int32_t splatSize, int32_t splatCount);
 	bool GetNeighborHeight(int32_t x, int32_t y, NeighborType neighbor, float & p);
 private:
 	std::shared_ptr<Terrain> m_pLeftNeighbor;
@@ -34,6 +36,7 @@ private:
 	std::shared_ptr<Terrain> m_pBottomNeighbor;
 	std::shared_ptr<Terrain> m_pTopNeighbor;
 	G3D::Vector3 m_Position;
+	uint32_t m_nI;
 	uint32_t m_nRealWidth;
 	float* m_aHeightMap;
 	float* m_aSplatMap;
