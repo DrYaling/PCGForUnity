@@ -207,6 +207,7 @@ namespace generator
 	}
 	void MapGenerator::WorkThread()
 	{
+		LogFormat("WorkThread start ");
 		m_bRun = true;
 		GenWorldMap();
 		m_bThreadExited = false;
@@ -300,7 +301,7 @@ namespace generator
 					}
 				}
 			}
-			//m_finishQueue.add(terr);
+			m_finishQueue.add(terr);
 			LogFormat("gen terrain %d finish ,current terrain count %d ", m_pCurrentMap->m_nInstanceId, m_mTerrainData.size());
 		}
 		else
