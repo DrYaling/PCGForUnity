@@ -22,7 +22,6 @@ namespace generator
 		m_nAlphaCount = splatCount;
 		m_nSize = sizeXY;
 		m_pAlphaMap = alphaMap;
-		LogFormat("SplatPainter::Init");
 		m_pBrush->Initilize(BrushStyle::Circle_middle, 1);
 	}
 	void SplatPainter::ResetBrush(int32_t brushSize)

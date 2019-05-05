@@ -3,6 +3,7 @@
 #include "generator.h"
 #include <vector>
 #include <algorithm>
+#include "Logger/Logger.h"
 namespace generator
 {
 #define BLUR_SIZE 2
@@ -21,12 +22,12 @@ namespace generator
 		//平滑边沿，使之可以和其他地图拼接
 		inline void SetPulse(int32_t x, int32_t y, float height)
 		{
-			//SetExtendedPoint(x, y, fx, fy, fz);
 			if (x >= 0 && x < m_nSize && y >= 0 && y < m_nSize)
 			{
 				m_bEdgeExtended = true;
 				int key = GetHeightMapIndex(x, y);
 				m_mExtendedMap.insert(std::make_pair(key, height));
+				//LogFormat("map %d extend at x %d,y %d,height %f", m_Owner, x, y, height);
 			}
 		}
 		void Reset();
@@ -36,6 +37,17 @@ namespace generator
 			generator_clamp(x, 0, m_nMax);
 			generator_clamp(y, 0, m_nMax);
 			return m_vHeightMap[GetHeightMapIndex(x, y)];
+		}
+		inline bool GetExtendedHeight(int32_t x, int32_t y, float& height)
+		{
+			const std::map<int32_t, float>::iterator& itr = m_mExtendedMap.find(GetHeightMapIndex(x, y));
+			if (itr != m_mExtendedMap.end())
+			{
+				height = itr->second;
+				//LogFormat("map %d GetExtendedHeight at x %d,y %d,height is %f",m_Owner, x, y, height);
+				return true;
+			}
+			return false;
 		}
 		bool IsFinished() { return m_bIsFinished; }
 		int32_t GetSquareSize() { return m_nSize; }

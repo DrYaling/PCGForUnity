@@ -52,6 +52,7 @@ namespace SkyDream
         public int height1;
         public int height2;
         public int height3;
+        public int flags;// bit 0 - use native thread
 
     };
 
@@ -103,7 +104,7 @@ namespace SkyDream
             {
                 seed = Random.Range(0, 100),
                 H = 10,
-                I = 2,
+                I = 4,
                 singleMapSize = 0,
                 worldMapSize = 2,
                 splatWidth = 512,
@@ -137,7 +138,7 @@ namespace SkyDream
         }
         private static bool OnMapGenerateSuccess(uint terrain, uint width, Vector4 location)
         {
-            Debug.LogFormat("OnMapGenerateSuccess {0} {1}", terrain, location);
+            Debug.LogFormat("OnMapGenerateSuccess {0} {1},exist {2}", terrain, location, UnityCppBindings.GetTerrain(terrain)!=null);
             var terr = UnityCppBindings.GetTerrain(terrain);
             if (null != terr)
             {
@@ -145,7 +146,7 @@ namespace SkyDream
             }
             else
             {
-                terr = new TerrainPiece(terrain,(int)width);
+                terr = new TerrainPiece(terrain, (int)width);
                 return terr.TerrainInitilizer(width, location);
             }
         }

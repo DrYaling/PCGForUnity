@@ -11,7 +11,7 @@ class Terrain :public std::enable_shared_from_this<Terrain>
 	friend class MapGenerator;
 public:
 	Terrain() = delete;
-	Terrain(uint32_t ins, uint32_t I);
+	Terrain(uint32_t ins, uint32_t I, uint32_t heightMapSize);
 	Terrain(const Terrain& t) = delete;
 	Terrain(const Terrain&& t) = delete;
 	~Terrain();
@@ -20,13 +20,20 @@ public:
 	{
 		generator_clamp(x, 0, m_nSize - 1);
 		generator_clamp(y, 0, m_nSize - 1);
-		return m_aHeightMap[GetHeightMapIndex(x, y)];
+		LogFormat("GetHeight from %d at x %d,y %d",m_nInstanceId,x,y);
+		float h = m_aHeightMap[GetHeightMapIndex(x, y)];
+		LogFormat("GetHeight from %d at x %d,y %d, height %f", m_nInstanceId, x, y,h);
+		return h;
 	}
 	int32_t GetSplatCount() { return m_nSplatCount; }
 	int32_t GetSplatWidth() { return m_nSplatWidth; }
 	uint32_t GetNeighbor(NeighborType neighbor);
 	uint32_t GetI() { return m_nI; }
 	bool IsWorldMap() { return m_nInstanceId == 0xffffffff; }
+	uint32_t GetRealSize()
+	{
+		return m_nRealWidth;
+	}
 private:
 	void Init(float* heightMap, int32_t heightMapSize, float* splatMap, int32_t splatSize, int32_t splatCount);
 	bool GetNeighborHeight(int32_t x, int32_t y, NeighborType neighbor, float & p);

@@ -19,7 +19,6 @@ namespace generator
 	}
 	void PainterBrush::Initilize(BrushStyle style, int32_t size)
 	{
-		LogFormat("PainterBrush::Init");
 		m_vStrength.resize(size*size);
 		m_nSize = size;
 		m_nMax = size - 1;
@@ -29,7 +28,6 @@ namespace generator
 			return;
 		}
 		memset(m_vStrength.data(), 1, sizeof(float)*m_vStrength.size());
-		LogFormat("PainterBrush::Init end ");
 		return;
 		switch (style)
 		{
@@ -59,6 +57,5 @@ namespace generator
 			default:
 				break;
 		}
-		LogFormat("PainterBrush::Init end ");
 	}
 }

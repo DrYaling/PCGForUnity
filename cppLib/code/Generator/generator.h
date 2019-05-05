@@ -214,6 +214,7 @@ namespace generator
 		int32_t height1;
 		int32_t height2;
 		int32_t height3;
+		int32_t flags;// bit 0 - use native thread
 
 	};
 }

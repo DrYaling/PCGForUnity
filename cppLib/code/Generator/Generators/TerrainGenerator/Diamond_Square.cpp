@@ -27,13 +27,14 @@ namespace generator
 		m_nI = I;
 		m_nH = H / 100.0f;
 		m_bIsFinished = false;
-		m_bEdgeExtended = false;
+		//m_bEdgeExtended = false;
 		m_vHeightMap = heightMap;
 		setRandomSeed(seed);
 		m_nSize = std::pow(2, 2 * I) + 1;
 		m_nMax = m_nSize - 1;
 		m_nheightMapSize = m_nSize * m_nSize;
 		m_bInitilized = true;
+		m_Owner = owner;
 	}
 	void Diamond_Square::Reset()
 	{
@@ -159,10 +160,10 @@ namespace generator
 	{
 		if (m_bEdgeExtended)
 		{
-			auto itr = m_mExtendedMap.find(GetHeightMapIndex(x, y));
-			if (itr != m_mExtendedMap.end())
+			float height = 0;
+			if (GetExtendedHeight(x, y, height))
 			{
-				SetHeight(x, y, itr->second);
+				SetHeight(x, y, height);
 				//LogWarningFormat("Diamond at x %d,y %d key %d extend found %f", x, y, x + y * m_nSize, itr->second);
 				return;
 			}
@@ -261,11 +262,11 @@ namespace generator
 	{
 		if (m_bEdgeExtended)
 		{
-			auto itr = m_mExtendedMap.find(GetHeightMapIndex(x, y));
-			if (itr != m_mExtendedMap.end())
+			float height = 0;
+			if (GetExtendedHeight(x, y, height))
 			{
-				SetHeight(x, y, itr->second);
-				//LogWarningFormat("square at x %d,y %d  extend found %f", x, y, itr->second);
+				SetHeight(x, y, height);
+				//LogWarningFormat("Diamond at x %d,y %d key %d extend found %f", x, y, x + y * m_nSize, itr->second);
 				return;
 			}
 			else

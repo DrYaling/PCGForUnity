@@ -3,7 +3,7 @@
 using namespace G3D;
 namespace generator {
 
-	Terrain::Terrain(uint32_t ins, uint32_t I) :
+	Terrain::Terrain(uint32_t ins, uint32_t I, uint32_t heightMapSize) :
 		m_pTopNeighbor(nullptr),
 		m_pRightNeighbor(nullptr),
 		m_pLeftNeighbor(nullptr),
@@ -12,15 +12,13 @@ namespace generator {
 		m_aHeightMap(nullptr),
 		m_aSplatMap(nullptr),
 		m_nI(I),
-		m_nSize(0)
+		m_nSize(heightMapSize)
 	{
 		switch (I)
 		{
 			case 1:
-				m_nRealWidth = 16;
-				break;
 			case 2:
-				m_nRealWidth = 32;
+				m_nRealWidth = heightMapSize;
 				break;
 			case 3:
 				m_nRealWidth = 64;
@@ -102,6 +100,10 @@ namespace generator {
 		m_aSplatMap = splatMap;
 		m_nSplatWidth = splatSize;
 		m_nSplatCount = splatCount;
+		if (m_nRealWidth == 0)
+		{
+			m_nRealWidth = m_nSize;
+		}
 		LogFormat("terrain %d real size %d", m_nInstanceId, m_nRealWidth);
 	}
 

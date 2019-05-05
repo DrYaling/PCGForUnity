@@ -20,10 +20,11 @@ namespace generator
 			LogError("height map or alpha0 map error!");
 			return;
 		}
-		LogFormat("AutomaticPainter::Init");
+		//LogFormat("AutomaticPainter::Init");
 		if (m_pPainter)
 		{
 			m_pPainter->Init(alphaMap, alphaSizeXY, splatCount);
+			LogFormat("painter inited");
 			m_pPainter->ResetBrush(5);
 		}
 		m_pHeightMap = heightMap;
@@ -57,6 +58,7 @@ namespace generator
 			LogErrorFormat("Painter Not Initilized yet!");
 			return;
 		}
+		LogFormat("DrawSplatMap start");
 		SplatPainter* painter = dynamic_cast<SplatPainter*>(m_pPainter);
 		if (!painter)
 		{
@@ -91,6 +93,7 @@ namespace generator
 				Paint(x, y, brushSize, scale);
 			}
 		}
+		LogFormat("DrawSplatMap end");
 		//LogFormat("smooth cnt %d,rough cnt %d,sharp cnt %d,lh cnt %d",smoothCnt,roughCnt,sharpCnt,hlCnt);
 	}
 	void AutomaticPainter::InitSplatMap()

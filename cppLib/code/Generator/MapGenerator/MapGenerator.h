@@ -38,6 +38,7 @@ namespace generator
 		std::shared_ptr<Terrain> GetTerrain(uint32_t terr);
 		void SaveTerrain(uint32_t terr);
 		void WorkThreadEntry();
+		static bool HasInstance();
 	private:
 		void GenWorldMap();
 		void AutoGenSplatMap();

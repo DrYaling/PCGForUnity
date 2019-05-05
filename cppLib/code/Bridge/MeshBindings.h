@@ -17,36 +17,48 @@ EXPORT_API void	 STD_CALL WorldMapBindings_InitilizeWorldMap(MapGeneratorData da
 }
 EXPORT_API void	 STD_CALL WorldMapBindings_StopGeneration()
 {
-	sMapGenerator->Stop();
+	if (MapGenerator::HasInstance())
+	{
+		sMapGenerator->Stop();
+	}
 }
 EXPORT_API void STD_CALL WorldMapBindings_WorkThreadRunner()
 {
-	sMapGenerator->WorkThreadEntry();
+	if (MapGenerator::HasInstance())
+		sMapGenerator->WorkThreadEntry();
 }
 EXPORT_API void STD_CALL WorldMapBindings_SetGenerateCallBack(TerrainGenerationCallBack cb)
 {
-	sMapGenerator->SetCallBack(cb);
+	if (MapGenerator::HasInstance())
+		sMapGenerator->SetCallBack(cb);
 }
 EXPORT_API uint32_t	 STD_CALL WorldMapBindings_GetNeighbor(uint32_t who, int32_t dir)
 {
-	auto ptr = sMapGenerator->GetTerrain(who);
-	if (ptr)
+	if (MapGenerator::HasInstance())
 	{
-		return ptr->GetNeighbor((NeighborType)dir);
-	}
-	else
-	{
-		return 0;
+		auto ptr = sMapGenerator->GetTerrain(who);
+		if (ptr)
+		{
+			return ptr->GetNeighbor((NeighborType)dir);
+		}
+		else
+		{
+			return 0;
+		}
 	}
 }
 EXPORT_API void	 STD_CALL WorldMapBindings_InitTerrain(uint32_t who, float* heightMap, int32_t heightMapSize, float* splatMap, int32_t splatWidth, int32_t splatCount)
 {
-	sMapGenerator->InitTerrainInMainThread(who, heightMap, heightMapSize, splatMap, splatWidth, splatCount);
+	if (MapGenerator::HasInstance())
+	{
+		sMapGenerator->InitTerrainInMainThread(who, heightMap, heightMapSize, splatMap, splatWidth, splatCount);
+	}
 }
 
 EXPORT_API void	 STD_CALL WorldMapBindings_UpdateInMainThread(int32_t diff)
 {
-	sMapGenerator->UpdateInMainThread(diff);
+	if (MapGenerator::HasInstance())
+		sMapGenerator->UpdateInMainThread(diff);
 }
 
 EXPORT_API void	 STD_CALL WorldMapBindings_Destroy()

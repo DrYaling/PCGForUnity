@@ -46,9 +46,8 @@ public class test : MonoBehaviour
     }
 
     // Use this for initialization
-    IEnumerator Start()
+    void Start()
     {
-        yield return new WaitForSeconds(1);
         Bridge.Init();
         DateTime dt = DateTime.Now;
         terrian = new SkyDream.Terrain();
