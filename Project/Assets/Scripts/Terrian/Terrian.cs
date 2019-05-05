@@ -112,13 +112,14 @@ namespace SkyDream
                 height0 = 500,
                 height1 = 300,
                 height2 = 200,
-                height3 = 240
+                height3 = 240,
+                flags = 1
             };
             WorldMapBindings_InitilizeWorldMap(data);
             WorldMapBindings_SetGenerateCallBack(OnMapGenerateSuccess);
-            /*ThreadStart start = new ThreadStart(Runner);
+            ThreadStart start = new ThreadStart(Runner);
             workThread = new Thread(start);
-            workThread.Start();*/
+            workThread.Start();
             //WorldMapBindings_WorkThreadRunner();
             //Runner();
         }

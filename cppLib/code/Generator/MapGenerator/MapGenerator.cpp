@@ -71,7 +71,7 @@ namespace generator
 	void MapGenerator::StartRun()
 	{
 		LogFormat("StartRun %d", m_pThreadRunner);
-		if (!m_pThreadRunner)
+		if (!m_pThreadRunner && m_stData.flags == 0)
 		{
 			m_pThreadRunner = new std::thread(std::bind(&MapGenerator::WorkThread, this));
 			m_pThreadRunner->detach();
@@ -196,10 +196,10 @@ namespace generator
 	}
 	void MapGenerator::WorkThreadEntry()
 	{
-		//if (!m_bRun)
-		/*{
+		if (!m_bRun && m_stData.flags != 0)
+		{
 			WorkThread();
-		}*/
+		}
 	}
 	bool MapGenerator::HasInstance()
 	{
