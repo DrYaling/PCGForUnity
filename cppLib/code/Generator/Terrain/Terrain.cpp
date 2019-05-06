@@ -14,6 +14,7 @@ namespace generator {
 		m_nI(I),
 		m_nSize(heightMapSize)
 	{
+		m_bHeightMapInitilized = false;
 		switch (I)
 		{
 			case 1:
@@ -95,6 +96,8 @@ namespace generator {
 			LogError("TerrianDataBinding and heightMap cant be null");
 			return;
 		}
+		//LogFormat("init terrain %d data",m_nInstanceId);
+		m_bHeightMapInitilized.store(true, std::memory_order_relaxed);
 		m_aHeightMap = heightMap;
 		m_nSize = heightMapSize;
 		m_aSplatMap = splatMap;
@@ -104,12 +107,12 @@ namespace generator {
 		{
 			m_nRealWidth = m_nSize;
 		}
-		LogFormat("terrain %d real size %d", m_nInstanceId, m_nRealWidth);
+		//LogFormat("terrain %d real size %d", m_nInstanceId, m_nRealWidth);
 	}
 
 	void Terrain::InitNeighbor(NeighborType edge, std::shared_ptr<Terrain> neighbor)
 	{
-		LogFormat("terrain %d InitNeighbor %d,neighbor %d", m_nInstanceId, edge, neighbor->m_nInstanceId);
+		//LogFormat("terrain %d InitNeighbor %d,neighbor %d", m_nInstanceId, edge, neighbor->m_nInstanceId);
 		switch (edge)
 		{
 			case NeighborType::neighborPositionLeft:
@@ -154,14 +157,13 @@ namespace generator {
 	}
 	bool Terrain::GetNeighborHeight(int32_t x, int32_t y, NeighborType neighbor, float & p)
 	{
-		LogFormat("terrain %d GetNeighborHeight %d", m_nInstanceId, neighbor);
 		switch (neighbor)
 		{
 			case NeighborType::neighborPositionLeft:
-				//prevent unlimited circle
 				if (m_pLeftNeighbor)
 				{
 					p = m_pLeftNeighbor->GetHeight(x, y);
+					LogFormat("terrain %d GetNeighborHeight neighborPositionLeft  %f", m_nInstanceId, p);
 					return true;
 				}
 				break;
@@ -169,6 +171,7 @@ namespace generator {
 				if (m_pRightNeighbor)
 				{
 					p = m_pRightNeighbor->GetHeight(x, y);
+					LogFormat("terrain %d GetNeighborHeight neighborPositionRight  %f", m_nInstanceId, p);
 					return true;
 				}
 				break;
@@ -176,6 +179,7 @@ namespace generator {
 				if (m_pBottomNeighbor)
 				{
 					p = m_pBottomNeighbor->GetHeight(x, y);
+					LogFormat("terrain %d GetNeighborHeight neighborPositionBottom  %f", m_nInstanceId, p);
 					return true;
 				}
 				break;
@@ -183,6 +187,7 @@ namespace generator {
 				if (m_pTopNeighbor)
 				{
 					p = m_pTopNeighbor->GetHeight(x, y);
+					LogFormat("terrain %d GetNeighborHeight neighborPositionTop  %f", m_nInstanceId, p);
 					return true;
 				}
 				break;

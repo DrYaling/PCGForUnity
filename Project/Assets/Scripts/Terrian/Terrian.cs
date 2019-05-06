@@ -52,7 +52,7 @@ namespace SkyDream
         public int height1;
         public int height2;
         public int height3;
-        public int flags;// bit 0 - use native thread
+        public int flags;// bit 0 & 1 - use native thread (0-native thread(c++),1-c# thread,2-c# main thread(single thread),3-not supported,bit 2 -use berlin noise
 
     };
 
@@ -98,13 +98,14 @@ namespace SkyDream
         private Dictionary<int, SkyDream.TerrainPiece> m_mapTerrains = new Dictionary<int, TerrainPiece>();
         public static int maxLod = 3;
         private Thread workThread;
+        MapGeneratorData _data;
         public void Init()
         {
             MapGeneratorData data = new MapGeneratorData()
             {
                 seed = Random.Range(0, 100),
                 H = 10,
-                I = 4,
+                I = 3,
                 singleMapSize = 0,
                 worldMapSize = 2,
                 splatWidth = 512,
@@ -113,14 +114,20 @@ namespace SkyDream
                 height1 = 300,
                 height2 = 200,
                 height3 = 240,
-                flags = 1
+                flags = 0
             };
+            _data = data;
             WorldMapBindings_InitilizeWorldMap(data);
             WorldMapBindings_SetGenerateCallBack(OnMapGenerateSuccess);
-            ThreadStart start = new ThreadStart(Runner);
-            workThread = new Thread(start);
-            workThread.Start();
-            //WorldMapBindings_WorkThreadRunner();
+            if ((data.flags & 0x3) == 1)
+            {
+                ThreadStart start = new ThreadStart(Runner);
+                workThread = new Thread(start);
+                workThread.Start();
+            }
+            else if ((data.flags & 0x3) == 2)
+                WorldMapBindings_WorkThreadRunner();
+            // Debug.LogFormat("WorldMapBindings_WorkThreadRunner exit");
             //Runner();
         }
 
@@ -139,7 +146,7 @@ namespace SkyDream
         }
         private static bool OnMapGenerateSuccess(uint terrain, uint width, Vector4 location)
         {
-            Debug.LogFormat("OnMapGenerateSuccess {0} {1},exist {2}", terrain, location, UnityCppBindings.GetTerrain(terrain)!=null);
+            Debug.LogFormat("OnMapGenerateSuccess {0} {1},exist {2}", terrain, location, UnityCppBindings.GetTerrain(terrain) != null);
             var terr = UnityCppBindings.GetTerrain(terrain);
             if (null != terr)
             {
@@ -153,7 +160,10 @@ namespace SkyDream
         }
         public void Update(int time_diff)
         {
-            WorldMapBindings_UpdateInMainThread(time_diff);
+            if ((_data.flags & 0x3) != 2)
+            {
+                WorldMapBindings_UpdateInMainThread(time_diff);
+            }
         }
         public void Destroy()
         {

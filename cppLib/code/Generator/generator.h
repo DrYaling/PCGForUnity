@@ -214,7 +214,7 @@ namespace generator
 		int32_t height1;
 		int32_t height2;
 		int32_t height3;
-		int32_t flags;// bit 0 - use native thread
+		int32_t flags;// bit 0 & 1 - use native thread (0-native thread(c++),1-c# thread,2-c# main thread(single thread),3-not supported,bit 2 -use berlin noise
 
 	};
 }

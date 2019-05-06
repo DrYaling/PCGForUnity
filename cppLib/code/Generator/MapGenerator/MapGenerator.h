@@ -46,7 +46,7 @@ namespace generator
 		void WorkThread();
 		uint32 InitilizeNext();
 		void Generate(uint32);
-		static inline bool GetNeighborHeight(int32_t x, int32_t y, NeighborType neighbor, uint32_t owner, float & p);
+		static inline bool GetHeightOnWorldMap(int32_t x, int32_t y, NeighborType neighbor, uint32_t owner, float & p);
 		void InitHeightMapBaseOnNeighbor(NeighborType position, std::shared_ptr<Terrain>);
 		uint32_t GetNeighborID(NeighborType dir, uint32_t who);
 		bool LoadFromNative(uint32_t terr);

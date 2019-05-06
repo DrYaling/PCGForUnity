@@ -156,15 +156,14 @@ namespace SkyDream
             SetNeighbors();
             terrain.terrainData.size = terrainSize;
             terrain.Flush();
+            Debug.LogFormat("terrain {0} create success ", instaneId);
 
         }
         private void SetNeighbors()
         {
-            for (TerrainNeighbor n = TerrainNeighbor.neighborPositionLeft; n < TerrainNeighbor.neighborPositionTop; n++)
+            for (TerrainNeighbor n = TerrainNeighbor.neighborPositionLeft; n <= TerrainNeighbor.neighborPositionTop; n++)
             {
-                Debug.LogFormat("terrain {0}  get neighbor {1}", instaneId, n);
                 uint terr = WorldMapBindings_GetNeighbor(instaneId, (int)n);
-                Debug.LogFormat("terrain {0} neighbor {1} is {2}", instaneId, n, terr);
                 var t = UnityCppBindings.GetTerrain(terr);
                 SetNeighbor(t, n);
             }

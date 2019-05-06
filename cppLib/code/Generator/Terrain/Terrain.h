@@ -4,6 +4,7 @@
 #include "Generators/TerrainGenerator/Diamond_Square.h"
 #include "Painter/AutomaticPainter.h"
 #include <memory>
+#include <atomic>
 NS_GNRT_START
 class MapGenerator;
 class Terrain :public std::enable_shared_from_this<Terrain>
@@ -20,10 +21,7 @@ public:
 	{
 		generator_clamp(x, 0, m_nSize - 1);
 		generator_clamp(y, 0, m_nSize - 1);
-		LogFormat("GetHeight from %d at x %d,y %d",m_nInstanceId,x,y);
-		float h = m_aHeightMap[GetHeightMapIndex(x, y)];
-		LogFormat("GetHeight from %d at x %d,y %d, height %f", m_nInstanceId, x, y,h);
-		return h;
+		return  m_aHeightMap[GetHeightMapIndex(x, y)];
 	}
 	int32_t GetSplatCount() { return m_nSplatCount; }
 	int32_t GetSplatWidth() { return m_nSplatWidth; }
@@ -33,6 +31,18 @@ public:
 	uint32_t GetRealSize()
 	{
 		return m_nRealWidth;
+	}
+	bool IsInitilized()
+	{
+		return m_bHeightMapInitilized;
+	}
+	bool IsValidWorldMap()
+	{
+		return IsWorldMap() && m_nSize > 4;
+	}
+	uint32_t GetHeightMapSize() 
+	{
+		return m_nSize;
 	}
 private:
 	void Init(float* heightMap, int32_t heightMapSize, float* splatMap, int32_t splatSize, int32_t splatCount);
@@ -51,6 +61,7 @@ private:
 	uint32_t m_nInstanceId;
 	int32_t m_nSplatCount;
 	int32_t m_nSplatWidth;
+	std::atomic_bool m_bHeightMapInitilized;
 };
 NS_GNRT_END
 #endif

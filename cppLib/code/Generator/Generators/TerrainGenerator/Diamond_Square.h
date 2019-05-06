@@ -4,6 +4,7 @@
 #include <vector>
 #include <algorithm>
 #include "Logger/Logger.h"
+#include <atomic>
 namespace generator
 {
 #define BLUR_SIZE 2
@@ -81,9 +82,13 @@ namespace generator
 		}
 		inline void SetHeight(int32_t x, int32_t y, float val) { m_vHeightMap[GetHeightMapIndex(x, y)] = val; }
 		inline size_t GetSize() { return m_nheightMapSize; }
-		bool IsValidPoint(const G3D::Vector3& v)
+		bool GetHeightOnWorldMap(int32_t x, int32_t y, NeighborType neighbor, float& p)
 		{
-			return fabsf(v.x) > 0.0001f && fabsf(v.y) > 0.0001f && fabsf(v.z) > 0.0001f;
+			/*if (m_bEdgeExtended && m_cbGetNeighborHeight(x, y, neighbor, m_Owner, p))
+			{
+				return true;
+			}*/
+			return false;
 		}
 		void Blur(bool perlin = false);
 		void Smooth(int32_t x, int32_t y)
@@ -114,7 +119,7 @@ namespace generator
 		int32_t m_nMax;
 		float m_fDeltaSize;
 		bool m_bIsFinished;
-		bool m_bEdgeExtended;
+		std::atomic_bool m_bEdgeExtended;
 		bool m_bInitilized;
 	};
 

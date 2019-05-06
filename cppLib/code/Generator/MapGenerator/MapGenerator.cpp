@@ -6,6 +6,8 @@
 using namespace logger;
 namespace generator
 {
+#define break_if_stopped if(!m_bRun) break
+#define return_if_stopped if(!m_bRun) return
 	static MapGenerator* instance = nullptr;
 	MapGenerator::MapGenerator() :
 		m_cbTerrainGenFinish(nullptr),
@@ -21,7 +23,7 @@ namespace generator
 	{
 		m_mTerrainData.clear();
 		m_pGenerator = new Diamond_Square();
-		m_pGenerator->SetGetNeighborHeightCallBack(MapGenerator::GetNeighborHeight);
+		m_pGenerator->SetGetNeighborHeightCallBack(MapGenerator::GetHeightOnWorldMap);
 		m_pPainter = new AutomaticPainter();
 	}
 
@@ -42,16 +44,18 @@ namespace generator
 
 	void MapGenerator::Init(MapGeneratorData data)
 	{
-		m_pGenerator->Initilize(0, data.seed, data.I, data.H, m_aHeightMap);
+		m_pGenerator->Initilize(0, data.seed, data.I, 0, nullptr);
 		data.singleMapSize = m_pGenerator->GetSquareSize();
+		m_pGenerator->Initilize(0, data.seed, data.I / 2, 0, nullptr);
+		uint32_t worldMapSize = m_pGenerator->GetSquareSize();
 		m_stData = data;
 		m_nTotalMapCount = data.worldMapSize * data.worldMapSize;
-		m_worldMapHeightMap = new float[data.singleMapSize*data.singleMapSize / 10000];//world map is 100 sizes smaller than single map size
+		m_worldMapHeightMap = new float[worldMapSize*worldMapSize];
 		m_aHeightMap = new float[data.singleMapSize*data.singleMapSize];
 		m_aSplatMap = new float[data.splatWidth*data.splatWidth*data.splatCount];
 		m_aHeightMapCopy = new float[data.singleMapSize*data.singleMapSize];
 		m_aSplatMapCopy = new float[data.splatWidth*data.splatWidth*data.splatCount];
-		LogFormat("MapGenerator::Init mapwidth %d,total map count %d,worldmapSize %d", m_stData.singleMapSize, m_nTotalMapCount, m_stData.worldMapSize);
+		LogFormat("MapGeneratorData seed %d,i %d,h %d,worldSize %d,single size %d,map count per edge %d,splat size %d,splat count %d,flat %d", data.seed, data.I, data.H, worldMapSize, data.singleMapSize, data.worldMapSize, data.splatWidth, data.splatCount, data.flags);
 	}
 
 	MapGenerator * MapGenerator::GetInstance()
@@ -70,8 +74,8 @@ namespace generator
 
 	void MapGenerator::StartRun()
 	{
-		LogFormat("StartRun %d", m_pThreadRunner);
-		if (!m_pThreadRunner && m_stData.flags == 0)
+		LogFormat("StartRun %d,flag %d", m_pThreadRunner, m_stData.flags);
+		if (!m_pThreadRunner && ((m_stData.flags & 0x3) == 0))
 		{
 			m_pThreadRunner = new std::thread(std::bind(&MapGenerator::WorkThread, this));
 			m_pThreadRunner->detach();
@@ -87,7 +91,6 @@ namespace generator
 			{
 				sleep(1);
 			}
-			//m_pThreadRunner->join();
 			safe_delete(m_pThreadRunner);
 		}
 		LogFormat("MapGenerator WorkThread exited");
@@ -95,24 +98,13 @@ namespace generator
 
 	void MapGenerator::UpdateInMainThread(int32_t diff)
 	{
-
-		//if (m_mTerrainData.size() >= 4 && m_finishQueue.empty())
-		{
-			LogFormat("MapGenerator::UpdateInMainThread(int32_t diff) start");
-		}
 		uint32_t next;
 		while (m_finishQueue.next(next))
 		{
-			LogFormat("UpdateInMainThread next %d empty %d", next, m_finishQueue.empty());
 			if (m_cbTerrainGenFinish)
 			{
 				m_cbTerrainGenFinish(next, m_stData.singleMapSize, G3D::Vector4(m_pCurrentMap->m_Position.x, m_pCurrentMap->m_Position.y, m_pCurrentMap->m_Position.z, m_pCurrentMap->GetRealSize()));
 			}
-			LogFormat("UpdateInMainThread next %d initilize finished", next);
-		}
-		//if (m_mTerrainData.size() >= 4 && m_finishQueue.empty())
-		{
-			LogFormat("MapGenerator::UpdateInMainThread(int32_t diff) end");
 		}
 	}
 	void MapGenerator::InitTerrainInMainThread(uint32_t terrain, float* heightMap, int32_t heightMapSize, float* splatMap, int32_t splatWidth, int32_t splatCount)
@@ -148,32 +140,8 @@ namespace generator
 				return;
 			}
 			itr->second->Init(heightMap, heightMapSize, splatMap, splatWidth, splatCount);
-			//memcpy(heightMap, m_aHeightMap, sizeof(m_aHeightMap));
-			//memcpy(splatMap, m_aSplatMap, sizeof(m_aSplatMap));
-
-			LogErrorFormat("init terrain %d", terrain);
-			int idx = 0;
-			for (int y = 0; y < m_stData.singleMapSize; y++)
-			{
-				for (int x = 0; x < m_stData.singleMapSize; x++)
-				{
-					heightMap[idx] = m_aHeightMapCopy[idx];
-					idx++;
-				}
-			}
-			idx = 0;
-			for (int y = 0; y < m_stData.splatWidth; y++)
-			{
-				for (int x = 0; x < m_stData.splatWidth; x++)
-				{
-					for (int z = 0; z < m_stData.splatCount; z++)
-					{
-						splatMap[idx] = m_aSplatMapCopy[idx];
-						idx++;
-					}
-				}
-			}
-			LogErrorFormat("terrain %d init finish", terrain);
+			memcpy(heightMap, m_aHeightMapCopy, m_stData.singleMapSize*m_stData.singleMapSize * sizeof(float));
+			memcpy(splatMap, m_aSplatMapCopy, m_stData.splatCount*m_stData.splatWidth*m_stData.splatWidth * sizeof(float));
 		}
 		else
 		{
@@ -196,7 +164,7 @@ namespace generator
 	}
 	void MapGenerator::WorkThreadEntry()
 	{
-		if (!m_bRun && m_stData.flags != 0)
+		if (!m_bRun && m_stData.flags & 0x3)
 		{
 			WorkThread();
 		}
@@ -216,16 +184,21 @@ namespace generator
 			//sleep(10);
 			uint32_t current = InitilizeNext();
 			LogFormat("current gen terrain %d ,m_nTotalMapCount %d", current, m_nTotalMapCount);
-			if (current > 0 && current <= m_nTotalMapCount)
+			if (current > 0)
 			{
 				Generate(current);
 			}
-			//UpdateInMainThread(0);
+			if ((m_stData.flags & 0x3) == 2)
+			{
+				break_if_stopped;
+				UpdateInMainThread(0);
+			}
 			while (!m_finishQueue.empty())
 			{
-				sleep(100);//hold on while finish queue is empty
-				LogFormat("finish queue empty %d", m_finishQueue.empty());
+				break_if_stopped;
+				sleep(2);//hold on while finish queue is empty
 			}
+			break_if_stopped;
 			if (current >= m_nTotalMapCount)
 			{
 				break;;
@@ -243,12 +216,47 @@ namespace generator
 	void MapGenerator::Generate(uint32 terr)
 	{
 		m_nCurrentTerrain = terr;
-		LogFormat("Generate terrain %d start", terr);
+		//LogFormat("Generate terrain %d start", terr);
 		m_pCurrentMap = std::make_shared<Terrain>(terr, m_stData.I, m_stData.singleMapSize);
 		m_pGenerator->Reset();
+		uint32_t mapIndex = terr - 1;
+		uint32_t x = mapIndex % m_stData.worldMapSize;
+		uint32_t y = mapIndex / m_stData.worldMapSize;
+		float fx = x * m_pCurrentMap->GetRealSize();
+		float fy = y * m_pCurrentMap->GetRealSize();
+		m_pCurrentMap->m_Position = G3D::Vector3(fx, 0, fy);
+		LogFormat("map %d size x %f,size z %f, x %,y %d", terr, fx, fy, x, y);
+		//initilize points based on world map
+		if (m_pWorldMap->IsValidWorldMap())
+		{
+			float scale = m_pCurrentMap->GetHeightMapSize()*m_stData.worldMapSize / (float)m_pWorldMap->GetHeightMapSize();
+			uint32_t offsetX, offsetY;
+			uint32_t maxX, maxY;
+			offsetX = x * m_stData.singleMapSize;
+			offsetY = y * m_stData.singleMapSize;
+			maxX = (x + 1) * m_stData.singleMapSize;
+			maxY = (y + 1) * m_stData.singleMapSize;
+			uint32_t mapX, mapY;
+			LogFormat("maxX %d,maxY %d,offset x %d,offset y %d,x %d,y %d,scale %f", maxX, maxY, offsetX, offsetY, x, y, scale);
+			for (uint32_t wy = 0; wy < m_pWorldMap->GetHeightMapSize(); wy++)
+			{
+				for (uint32_t wx = 0; wx < m_pWorldMap->GetHeightMapSize(); wx++)
+				{
+					mapX = wx * scale - offsetX;
+					mapY = wy * scale - offsetY;
+					LogFormat("mapX %d,mapY %d", mapX, mapY);
+					if (mapX >= 0 && mapX < maxX && mapY >= 0 && mapY < maxY)
+					{
+						m_pGenerator->SetPulse(mapX, mapY, m_pWorldMap->GetHeight(wx, wy));
+					}
+				}
+			}
+		}
 		uint32_t neighbor[4] = { 0 };
+		//initilize edge same to neighbor
 		for (size_t i = 0; i < 4; i++)
 		{
+			return_if_stopped;
 			auto dir = (NeighborType)i;
 			neighbor[i] = GetNeighborID(dir, terr);
 			std::shared_ptr<Terrain> s_ptr = nullptr;
@@ -262,45 +270,38 @@ namespace generator
 			}
 			if (s_ptr != nullptr)
 			{
-				m_pCurrentMap->InitNeighbor(dir, s_ptr);
-				InitHeightMapBaseOnNeighbor(dir, s_ptr);
+				//wait until neighbor was initilized or time out
+				uint32 costtime = 0;
+				while (!s_ptr->IsInitilized() && costtime < 15 * 1000)//time out at 45s later
+				{
+					return_if_stopped;
+					sleep(10);
+					costtime += 10;
+				}
+				return_if_stopped;
+				if (costtime < 15 * 1000)
+				{
+					m_pCurrentMap->InitNeighbor(dir, s_ptr);
+					InitHeightMapBaseOnNeighbor(dir, s_ptr);
+				}
+				else
+				{
+					LogErrorFormat("terrain %d wait for neighbor %d initialize time out!", terr, s_ptr->m_nInstanceId);
+				}
 			}
 		}
+		return_if_stopped;
 		if (!LoadFromNative(terr))
 		{
-			uint32_t index = terr - 1;
-			uint32_t x = index % m_stData.worldMapSize;
-			uint32_t y = index / m_stData.worldMapSize;
-			float fx = x * m_pCurrentMap->GetRealSize();
-			float fy = y * m_pCurrentMap->GetRealSize();
-			m_pCurrentMap->m_Position = G3D::Vector3(fx, 0, fy);
-			LogFormat("map %d size x %f,size z %f, x %,y %d", terr, fx, fy, x, y);
+			return_if_stopped;
 			GenerateTerrain();
+			return_if_stopped;
 			AutoGenSplatMap();
+			return_if_stopped;
 			std::lock_guard<std::mutex> lock(m_generatorMtx);
 			m_mTerrainData.insert(std::make_pair(terr, m_pCurrentMap));
-
-			int idx = 0;
-			for (int y = 0; y < m_stData.singleMapSize; y++)
-			{
-				for (int x = 0; x < m_stData.singleMapSize; x++)
-				{
-					m_aHeightMapCopy[idx] = m_aHeightMap[idx];
-					idx++;
-				}
-			}
-			idx = 0;
-			for (int y = 0; y < m_stData.splatWidth; y++)
-			{
-				for (int x = 0; x < m_stData.splatWidth; x++)
-				{
-					for (int z = 0; z < m_stData.splatCount; z++)
-					{
-						m_aSplatMapCopy[idx] = m_aSplatMap[idx];
-						idx++;
-					}
-				}
-			}
+			memcpy(m_aHeightMapCopy, m_aHeightMap, m_stData.singleMapSize*m_stData.singleMapSize * sizeof(float));
+			memcpy(m_aSplatMapCopy, m_aSplatMap, m_stData.splatCount*m_stData.splatWidth*m_stData.splatWidth * sizeof(float));
 			m_finishQueue.add(terr);
 			LogFormat("gen terrain %d finish ,current terrain count %d ", m_pCurrentMap->m_nInstanceId, m_mTerrainData.size());
 		}
@@ -311,6 +312,7 @@ namespace generator
 	}
 	void MapGenerator::GenWorldMap()
 	{
+		setRandomSeed(m_stData.seed);
 		m_pWorldMap = std::make_shared<Terrain>(0xffffffff, m_stData.I / 2, 1);
 		m_pGenerator->Initilize(m_pWorldMap->m_nInstanceId, std::rand(), m_pWorldMap->GetI(), m_stData.H, m_worldMapHeightMap);
 		m_pWorldMap->Init(m_worldMapHeightMap, m_pGenerator->GetSquareSize(), nullptr, 0, 0);
@@ -322,18 +324,19 @@ namespace generator
 	}
 	void MapGenerator::AutoGenSplatMap()
 	{
-		LogFormat("Generate terrain %d splat map start,heightmap size %d,splat size %d,splat count %d", m_pCurrentMap->m_nInstanceId, m_stData.singleMapSize, m_stData.splatWidth, m_stData.splatCount);
 		m_pPainter->Init(m_aHeightMap, m_stData.singleMapSize, m_aSplatMap, m_stData.splatWidth, m_stData.splatCount);
+		return_if_stopped;
 		m_pPainter->DrawSplatMap();
 		LogFormat("Generate terrain %d splat map finished", m_pCurrentMap->m_nInstanceId);
 	}
 
 	void MapGenerator::GenerateTerrain()
 	{
-		LogFormat("Generate terrain %d height map start", m_pCurrentMap->m_nInstanceId);
+		//setRandomSeed(time(nullptr));
 		m_pGenerator->Initilize(m_pCurrentMap->m_nInstanceId, std::rand(), m_stData.I, m_stData.H, m_aHeightMap);
 		static float cornor[] = { m_stData.height0,m_stData.height1,m_stData.height2,m_stData.height3 };
-		m_pGenerator->Start(cornor, 4, 0);
+		return_if_stopped;
+		m_pGenerator->Start(cornor, 4, m_stData.flags & 0x4 ? m_pCurrentMap->GetRealSize() : 0);
 		LogFormat("Generate terrain %d height map finished", m_pCurrentMap->m_nInstanceId);
 	}
 	uint32_t MapGenerator::GetNeighborID(NeighborType dir, uint32_t who)
@@ -372,27 +375,23 @@ namespace generator
 		return false;
 	}
 
-	bool MapGenerator::GetNeighborHeight(int32_t x, int32_t y, NeighborType neighbor, uint32_t owner, float & p)
+	bool MapGenerator::GetHeightOnWorldMap(int32_t x, int32_t y, NeighborType neighbor, uint32_t owner, float & p)
 	{
-		//when terrain is initilizing in main thread,subthread eneration is not running,so no need to add mutex lock here
-		const std::map<uint32_t, std::shared_ptr<Terrain>>::iterator& itr = sMapGenerator->m_mTerrainData.find(owner);
-		if (itr != sMapGenerator->m_mTerrainData.end())
-		{
-			const std::shared_ptr<Terrain>& terrain = itr->second;
-			if (terrain)
-			{
-				bool ret = terrain->GetNeighborHeight(x, y, neighbor, p);
-				LogFormat("owner %d GetNeighborHeight ret %d,height %f", owner, ret, p);
-				return ret;
-			}
-		}
 		return false;
+		/*if (!instance || !instance->m_pCurrentMap || instance->m_pCurrentMap->m_nInstanceId != owner)
+		{
+			return false;
+		}
+		//owner is not added to m_mTerrainData yet,get it from m_pCurrentMap
+		//LogWarningFormat("terrain %d generator get neighbor %d at x %d,y %d,map size %d", owner, neighbor, x, y,instance->m_pCurrentMap->m_nInstanceId);
+		bool ret = instance->m_pCurrentMap->GetNeighborHeight(x, y, neighbor, p);
+		return ret;*/
 	}
 	void MapGenerator::InitHeightMapBaseOnNeighbor(NeighborType position, std::shared_ptr<Terrain> neighbor)
 	{
 		int m_nSize = m_stData.singleMapSize;
 		int nMax = m_nSize - 1;
-		LogFormat("InitHeightMapBaseOnNeighbor pos %d,for terrain %d", position, m_pCurrentMap->m_nInstanceId);
+		//LogFormat("InitHeightMapBaseOnNeighbor pos %d,for terrain %d", position, m_pCurrentMap->m_nInstanceId);
 		if (position == NeighborType::neighborPositionLeft)
 		{
 			if (m_pCurrentMap->m_pLeftNeighbor == neighbor)
@@ -400,12 +399,10 @@ namespace generator
 				//add left edge
 				int x = 0;
 				int nx(x + nMax);
-				LogFormat("t %d m_pLeftNeighbor neighbor %d heightmap %d", m_pCurrentMap->m_nInstanceId, m_pCurrentMap->m_pLeftNeighbor->m_nInstanceId, m_pCurrentMap->m_pLeftNeighbor->m_aHeightMap);
 				for (int y = 0; y <= nMax; y++)
 				{
 					float nheight = m_pCurrentMap->m_pLeftNeighbor->GetHeight(nx, y);
 					m_pGenerator->SetPulse(x, y, nheight);
-					//LogFormat("%d SetPulse x %d,y %d, nx %d,height %f", m_pCurrentMap->m_nInstanceId, x, y, nx, nheight);
 				}
 			}
 		}
@@ -416,12 +413,10 @@ namespace generator
 			{
 				int x = nMax;
 				int nx(x - nMax);
-				LogFormat("t %d m_pRightNeighbor neighbor %d heightmap %d", m_pCurrentMap->m_nInstanceId, m_pCurrentMap->m_pRightNeighbor->m_nInstanceId, m_pCurrentMap->m_pRightNeighbor->m_aHeightMap);
 				for (int y = 0; y <= nMax; y++)
 				{
 					float nheight = m_pCurrentMap->m_pRightNeighbor->GetHeight(nx, y);
 					m_pGenerator->SetPulse(x, y, nheight);
-					//LogFormat("%d SetPulse x %d,y %d, nx %d,height %f", m_pCurrentMap->m_nInstanceId, x, y, nx, nheight);
 				}
 			}
 		}
@@ -432,12 +427,10 @@ namespace generator
 			{
 				int y = 0;
 				int nY(y + nMax);
-				LogFormat("t %d m_pBottomNeighbor neighbor %d heightmap %d", m_pCurrentMap->m_nInstanceId, m_pCurrentMap->m_pBottomNeighbor->m_nInstanceId, m_pCurrentMap->m_pBottomNeighbor->m_aHeightMap);
 				for (int x = 0; x <= nMax; x++)
 				{
 					float nheight = m_pCurrentMap->m_pBottomNeighbor->GetHeight(x, nY);
 					m_pGenerator->SetPulse(x, y, nheight);
-					//LogFormat("%d SetPulse x %d,y %d, nx %d,height %f", m_pCurrentMap->m_nInstanceId, x, y, nY, nheight);
 				}
 			}
 		}
@@ -448,12 +441,10 @@ namespace generator
 			{
 				int y = nMax;
 				int nY(y - nMax);
-				LogFormat("t %d m_pTopNeighbor neighbor %d heightmap %d", m_pCurrentMap->m_nInstanceId, m_pCurrentMap->m_pTopNeighbor->m_nInstanceId, m_pCurrentMap->m_pTopNeighbor->m_aHeightMap);
 				for (int x = 0; x <= nMax; x++)
 				{
 					float nheight = m_pCurrentMap->m_pTopNeighbor->GetHeight(x, nY);
 					m_pGenerator->SetPulse(x, y, nheight);
-					//LogFormat("%d SetPulse x %d,y %d, nx %d,height %f", m_pCurrentMap->m_nInstanceId, x, y, nY, nheight);
 				}
 			}
 		}
