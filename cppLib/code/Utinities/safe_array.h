@@ -2,7 +2,7 @@
 #define safe_array_h
 #include "define.h"
 #include <memory>
-//#include "Logger/Logger.h"
+#include "Logger/Logger.h"
 template<class T>
 class safe_array
 {
@@ -50,10 +50,13 @@ public:
 	}
 	T& operator[](const uint32_t pos)
 	{
-		if (ptr && pos < _size)
+		if (pos < _size)
 			return ptr[pos];
 		else
+		{
+			LogErrorFormat("get array out of size %d", _size);
 			return _static;
+		}
 	}
 	void Print()
 	{
@@ -130,7 +133,10 @@ public:
 		if (ptr && pos < (uint32_t&)_size)
 			return ptr[pos];
 		else
+		{
+			LogErrorFormat("get array out of size %d", (uint32_t&)_size);
 			return _ssize;
+		}
 	}
 	void Print()
 	{
