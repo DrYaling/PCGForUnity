@@ -105,7 +105,7 @@ namespace SkyDream
             {
                 seed = Random.Range(0, 100),
                 H = 10,
-                I = 3,
+                I = 5,
                 singleMapSize = 0,
                 worldMapSize = 2,
                 splatWidth = 512,

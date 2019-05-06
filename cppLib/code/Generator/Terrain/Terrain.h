@@ -5,6 +5,7 @@
 #include "Painter/AutomaticPainter.h"
 #include <memory>
 #include <atomic>
+#include "Logger/Logger.h"
 NS_GNRT_START
 class MapGenerator;
 class Terrain :public std::enable_shared_from_this<Terrain>
@@ -40,7 +41,7 @@ public:
 	{
 		return IsWorldMap() && m_nSize > 4;
 	}
-	uint32_t GetHeightMapSize() 
+	uint32_t GetHeightMapSize()
 	{
 		return m_nSize;
 	}

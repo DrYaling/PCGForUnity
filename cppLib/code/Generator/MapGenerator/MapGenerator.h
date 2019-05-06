@@ -50,6 +50,15 @@ namespace generator
 		void InitHeightMapBaseOnNeighbor(NeighborType position, std::shared_ptr<Terrain>);
 		uint32_t GetNeighborID(NeighborType dir, uint32_t who);
 		bool LoadFromNative(uint32_t terr);
+		uint32_t GetWorldMapSize()
+		{
+			uint32_t i = m_stData.I / 2;
+			if (i <= 1)
+			{
+				i = m_stData.I - 1;
+			}
+			return i;
+		}
 	private:
 		std::map<uint32_t, std::shared_ptr<Terrain>> m_mTerrainData;
 		LockedQueue<uint32_t> m_finishQueue;

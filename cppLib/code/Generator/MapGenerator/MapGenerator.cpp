@@ -46,9 +46,9 @@ namespace generator
 	{
 		m_pGenerator->Initilize(0, data.seed, data.I, 0, nullptr);
 		data.singleMapSize = m_pGenerator->GetSquareSize();
-		m_pGenerator->Initilize(0, data.seed, data.I / 2, 0, nullptr);
-		uint32_t worldMapSize = m_pGenerator->GetSquareSize();
 		m_stData = data;
+		m_pGenerator->Initilize(0, data.seed, GetWorldMapSize(), 0, nullptr);
+		uint32_t worldMapSize = m_pGenerator->GetSquareSize();
 		m_nTotalMapCount = data.worldMapSize * data.worldMapSize;
 		m_worldMapHeightMap = new float[worldMapSize*worldMapSize];
 		m_aHeightMap = new float[data.singleMapSize*data.singleMapSize];
@@ -188,6 +188,7 @@ namespace generator
 			{
 				Generate(current);
 			}
+			LogFormat("flag %d", (m_stData.flags & 0x3));
 			if ((m_stData.flags & 0x3) == 2)
 			{
 				break_if_stopped;
@@ -237,14 +238,14 @@ namespace generator
 			maxX = (x + 1) * m_stData.singleMapSize;
 			maxY = (y + 1) * m_stData.singleMapSize;
 			uint32_t mapX, mapY;
-			LogFormat("maxX %d,maxY %d,offset x %d,offset y %d,x %d,y %d,scale %f", maxX, maxY, offsetX, offsetY, x, y, scale);
+			//LogFormat("maxX %d,maxY %d,offset x %d,offset y %d,x %d,y %d,scale %f", maxX, maxY, offsetX, offsetY, x, y, scale);
 			for (uint32_t wy = 0; wy < m_pWorldMap->GetHeightMapSize(); wy++)
 			{
 				for (uint32_t wx = 0; wx < m_pWorldMap->GetHeightMapSize(); wx++)
 				{
 					mapX = wx * scale - offsetX;
 					mapY = wy * scale - offsetY;
-					LogFormat("mapX %d,mapY %d", mapX, mapY);
+					//LogFormat("mapX %d,mapY %d,height %f", mapX, mapY, m_pWorldMap->GetHeight(wx, wy));
 					if (mapX >= 0 && mapX < maxX && mapY >= 0 && mapY < maxY)
 					{
 						m_pGenerator->SetPulse(mapX, mapY, m_pWorldMap->GetHeight(wx, wy));
@@ -313,9 +314,11 @@ namespace generator
 	void MapGenerator::GenWorldMap()
 	{
 		setRandomSeed(m_stData.seed);
-		m_pWorldMap = std::make_shared<Terrain>(0xffffffff, m_stData.I / 2, 1);
+		uint32_t i = GetWorldMapSize();
+		m_pWorldMap = std::make_shared<Terrain>(0xffffffff, i, 1);
 		m_pGenerator->Initilize(m_pWorldMap->m_nInstanceId, std::rand(), m_pWorldMap->GetI(), m_stData.H, m_worldMapHeightMap);
 		m_pWorldMap->Init(m_worldMapHeightMap, m_pGenerator->GetSquareSize(), nullptr, 0, 0);
+		LogFormat("GenWorldMap size %d,i %d", m_pWorldMap->GetHeightMapSize(), m_pWorldMap->GetI());
 		if (!LoadFromNative(0xffffffff) && m_pWorldMap->GetI() > 1)
 		{
 			float worldMapConor[] = { m_stData.height0,m_stData.height1,m_stData.height2,m_stData.height3 };

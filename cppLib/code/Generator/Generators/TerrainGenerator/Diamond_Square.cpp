@@ -52,12 +52,13 @@ namespace generator
 			LogError("Diamond_Square Start Fail!");
 			return;
 		}
-		size_t meshCount = GetMeshTheoreticalCount();
+		/*size_t meshCount = GetMeshTheoreticalCount();
 		if (meshCount > MAX_MESH_COUNT)
 		{
 
 			return;
-		}
+		}*/
+		LogFormat("start generate");
 		m_fDeltaSize = mapWidth / (float)m_nSize;
 		if (m_fDeltaSize < 0.001f)
 		{
@@ -294,6 +295,68 @@ namespace generator
 		return _frandom_f(-h, h);
 	}
 
+	void Diamond_Square::Flush()
+	{
+		//flush map 
+		//first flush left edge
+		// choose 2 points if exist
+		uint32_t x = 0;
+		uint32_t idx = 0;
+		float height0 = 0;
+		float height1 = 0;
+		float height2 = 0;
+		//we use a ray to caculate third point
+		//if fist point is not set,do not flush this map
+		if (!GetExtendedHeight(0, 0, height0))
+		{
+			return;
+		}
+		if (!GetExtendedHeight(0, m_nMax, height1))
+		{
+			//if max y not set,set it
+			if (m_mExtendedMap.size() >= 8)//insure valid map,if extend size is too small,this map may be too small
+			{
+				height1 = height0 + Randomize(m_nH)*height0;
+				for (uint32_t y = m_nMax - 1; y >= 0; y++)
+				{
+					if (GetExtendedHeight(x, y, height1))
+					{
+						height1 = height0 * (m_nMax - y) / (float)m_nMax + height1 * y / (float)m_nMax;
+						break;
+					}
+				}
+				SetPulse(x, m_nMax, height1);
+			}
+			else
+			{
+				return;
+			}
+		}
+		for (uint32_t y = 0; y < m_nSize; y++)
+		{
+			idx = GetHeightMapIndex(x, y);
+
+			//if this point is not set,find next point to flush it
+			if (!GetExtendedHeight(x, y, height1))
+			{
+				height2 = -999999.0f;
+				for (uint32_t ey = y + 1; ey < m_nSize; ey++)
+				{
+					if (GetExtendedHeight(x, ey, height2))
+					{
+
+						break;
+					}
+				}
+				//do not find set point,break(no more will be found)
+				if (height2 < -999998.0f)
+				{
+					break;;
+				}
+			}
+		}
+	}
+
 	void Diamond_Square::Blur(bool perlin)
 	{
 		for (size_t y = 1; y < m_nMax; y++)
@@ -423,6 +486,6 @@ namespace generator
 			}
 		}
 		//LogWarningFormat("at mesh %d,recaculate normal size %d,indexSize %d", mesh, size, indexSize);
-	}
+}
 #endif
 }

@@ -90,6 +90,8 @@ namespace generator
 			}*/
 			return false;
 		}
+		/*flush map refered to m_mExtendedMap*/
+		void Flush();
 		void Blur(bool perlin = false);
 		void Smooth(int32_t x, int32_t y)
 		{
