@@ -4,7 +4,7 @@
 #if BUILDING_COREMODULE
 #define EXPORT_API __declspec(dllexport)
 #else
-#define EXPORT_API __declspec(dllimport)
+#define EXPORT_API // __declspec(dllimport)
 #endif
 
 #define UNITY_CPP_PLUGIN_VERSION  1.0.0

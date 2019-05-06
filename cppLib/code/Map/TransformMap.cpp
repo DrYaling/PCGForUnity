@@ -1,7 +1,7 @@
 #include "TransformMap.h"
 namespace transformMap
 {
-	std::string pEngineDir;
+	static std::string pEngineDir;
 	void Initilize(std::string dir)
 	{
 		pEngineDir = dir;

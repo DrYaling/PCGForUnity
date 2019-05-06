@@ -32,5 +32,8 @@
     <ClInclude Include="..\..\..\code\game\Time\GameTime.h">
       <Filter>源文件\Time</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\code\Utinities\safe_array.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -13,8 +13,34 @@
 #include "ECS/EntityDemo.h"
 #include "server/Server.h"
 #include "Logger/leakHelper.h"
+#include "Utinities/safe_array.h"
 using namespace generator;
 using namespace ecs;
+
+namespace transformMap
+{
+	std::string GetEngineDir()
+	{
+		return "";
+	}
+}
+
+int	Safe_Array_Test()
+{
+	safe_array<float> array(10);
+	float_array farray(10);
+	std::vector<float> vect(10);
+	vect[0] = 101;
+	float t1 = vect[0];
+	array[0] = 102;
+	float t2 = array[0];
+	farray[0] = 103;
+	float t3 = farray[0];
+	LogFormat("t1 %f,t2 %f,t3 %f", t1, t2, t3);
+	array.Print();
+	farray.Print();
+	return 0;
+}
 int StartTestServer()
 {
 	SocketServer* Server = sSocketServer;
@@ -95,11 +121,11 @@ int main()
 	_CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
 	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
-	auto ret = ServerWorker();
+	auto ret = Safe_Array_Test();
 	//new int[20];
 	_CrtDumpMemoryLeaks();
 	LogFormat("ServerWorker ret %d", ret);
 	char c = 0;
-	scanf("%c",&c);
+	scanf("%c", &c);
 	return ret;
 }
