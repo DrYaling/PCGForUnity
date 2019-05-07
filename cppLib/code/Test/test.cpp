@@ -14,10 +14,10 @@
 #include "server/Server.h"
 #include "Logger/leakHelper.h"
 #include "Utinities/safe_array.h"
+#include "Utinities/timer.h"
 #include <array>
 using namespace generator;
 using namespace ecs;
-
 namespace transformMap
 {
 	std::string GetEngineDir()
@@ -28,8 +28,15 @@ namespace transformMap
 
 int	Safe_Array_Test()
 {
-	safe_array<float> sarray(10);
-	float_array farray(10);
+	LARGE_INTEGER start = { 0 };
+	LARGE_INTEGER end = { 0 };
+#define  _size 2500*2500
+	float* darray = new float[_size];
+	safe_array<float> sarray(_size);
+	float *_array = new float[_size];
+	std::array < float, (_size > 100000 )? 100000 : _size > std_array;
+	std_array.size();
+	float_array_fixed<_size> farray;
 	std::vector<float> vect(10);
 	vect[0] = 101;
 	float t1 = vect[0];
@@ -37,11 +44,57 @@ int	Safe_Array_Test()
 	float t2 = sarray[0];
 	farray[0] = 103;
 	float t3 = farray[0];
-	LogFormat("t1 %f,t2 %f,t3 %f", t1, t2, t3);
+	QueryPerformanceFrequency(&start);
+	LogFormat("t1 %f,t2 %f,t3 %f,t %lld", t1, t2, t3, start.QuadPart);
 	sarray.Print();
 	farray.Print();
-	int size = 10;
-	std::array<int, 10> iarray;
+	//auto begin = getMSTime();
+	QueryPerformanceCounter(&start);
+	for (int i = 0; i < _size; i++)
+	{
+		sarray[i] = 0.01f;
+	}
+	QueryPerformanceCounter(&end);
+	LogFormat("sarray cost %lld us,size %d", end.QuadPart - start.QuadPart, _size);
+	start = end;
+	for (int i = 0; i < _size; i++)
+	{
+		_array[i] = 0.01f;
+	}
+	QueryPerformanceCounter(&end);
+	LogFormat("array cost %lld us,size %d", end.QuadPart - start.QuadPart, _size);
+	start = end;
+	for (int i = 0; i < _size; i++)
+	{
+		farray[i] = 0.01f;
+	}
+	QueryPerformanceCounter(&end);
+	LogFormat("farray cost %lld us,size %d", end.QuadPart - start.QuadPart, _size);
+	start = end;
+	float* ptr = farray.data();
+	for (int i = 0; i < _size; i++)
+	{
+		ptr[i] = 0.01f;
+	}
+	QueryPerformanceCounter(&end);
+	LogFormat("farray data cost %lld us,size %d", end.QuadPart - start.QuadPart, _size);
+	start = end;
+	for (int i = 0; i < 2500; i++)
+	{
+		for (int j = 0; j < 2500; j++)
+		{
+			darray[i+j*2500] = 0.01f;
+		}
+	}
+	QueryPerformanceCounter(&end);
+	LogFormat("darray data cost %lld us,size %d", end.QuadPart - start.QuadPart, _size);
+	start = end;
+	for (int i = 0; i < _size && i < std_array.size(); i++)
+	{
+		std_array[i] = 0.01f;
+	}
+	QueryPerformanceCounter(&end);
+	LogFormat("std_array cost %lld us,size %d", end.QuadPart - start.QuadPart, std_array.size());
 	return 0;
 }
 int StartTestServer()

@@ -24,8 +24,6 @@ public:
 		generator_clamp(y, 0, m_nSize - 1);
 		return  m_aHeightMap[GetHeightMapIndex(x, y)];
 	}
-	int32_t GetSplatCount() { return m_nSplatCount; }
-	int32_t GetSplatWidth() { return m_nSplatWidth; }
 	uint32_t GetNeighbor(NeighborType neighbor);
 	uint32_t GetI() { return m_nI; }
 	bool IsWorldMap() { return m_nInstanceId == 0xffffffff; }
@@ -46,7 +44,7 @@ public:
 		return m_nSize;
 	}
 private:
-	void Init(float* heightMap, int32_t heightMapSize, float* splatMap, int32_t splatSize, int32_t splatCount);
+	void Init(float* heightMap, int32_t heightMapSize);
 	bool GetNeighborHeight(int32_t x, int32_t y, NeighborType neighbor, float & p);
 private:
 	std::shared_ptr<Terrain> m_pLeftNeighbor;
@@ -57,11 +55,8 @@ private:
 	uint32_t m_nI;
 	uint32_t m_nRealWidth;
 	float* m_aHeightMap;
-	float* m_aSplatMap;
 	int32_t m_nSize;
 	uint32_t m_nInstanceId;
-	int32_t m_nSplatCount;
-	int32_t m_nSplatWidth;
 	std::atomic_bool m_bHeightMapInitilized;
 };
 NS_GNRT_END

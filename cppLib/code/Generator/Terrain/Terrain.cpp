@@ -10,7 +10,6 @@ namespace generator {
 		m_pBottomNeighbor(nullptr),
 		m_nInstanceId(ins),
 		m_aHeightMap(nullptr),
-		m_aSplatMap(nullptr),
 		m_nI(I),
 		m_nSize(heightMapSize)
 	{
@@ -89,7 +88,7 @@ namespace generator {
 		}
 		return 0;
 	}
-	void Terrain::Init(float* heightMap, int32_t heightMapSize, float* splatMap, int32_t splatSize, int32_t splatCount)
+	void Terrain::Init(float* heightMap, int32_t heightMapSize)
 	{
 		if (!heightMap)
 		{
@@ -100,9 +99,6 @@ namespace generator {
 		m_bHeightMapInitilized.store(true, std::memory_order_relaxed);
 		m_aHeightMap = heightMap;
 		m_nSize = heightMapSize;
-		m_aSplatMap = splatMap;
-		m_nSplatWidth = splatSize;
-		m_nSplatCount = splatCount;
 		if (m_nRealWidth == 0)
 		{
 			m_nRealWidth = m_nSize;

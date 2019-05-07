@@ -9,10 +9,10 @@
 EXTERN_C_BEGIN
 using namespace generator;
 //map generator begin
-EXPORT_API void	 STD_CALL WorldMapBindings_InitilizeWorldMap(MapGeneratorData data)
+EXPORT_API void	 STD_CALL WorldMapBindings_InitilizeWorldMap(MapGeneratorData data,const char* mapDir)
 {
 	sMapGenerator->Init(data);
-	sMapGenerator->SetNativeDirectory(transformMap::GetEngineDir() + "/Map");
+	sMapGenerator->SetNativeDirectory(mapDir);
 	sMapGenerator->StartRun();
 }
 EXPORT_API void	 STD_CALL WorldMapBindings_StopGeneration()

@@ -13,6 +13,8 @@ namespace generator
 		m_cbTerrainGenFinish(nullptr),
 		m_aHeightMap(nullptr),
 		m_aSplatMap(nullptr),
+		m_aHeightMapCopy(nullptr),
+		m_aSplatMapCopy(nullptr),
 		m_nCurrentTerrain(0),
 		m_pGenerator(nullptr),
 		m_pPainter(nullptr),
@@ -32,14 +34,11 @@ namespace generator
 		Stop();
 		safe_delete(m_pGenerator);
 		safe_delete(m_pPainter);
-		LogFormat("1");
-		safe_delete_array(m_aSplatMap);
-		safe_delete_array(m_aSplatMapCopy);
 		safe_delete_array(m_aHeightMap);
 		safe_delete_array(m_aHeightMapCopy);
-		LogFormat("2");
+		safe_delete_array(m_aSplatMap);
+		safe_delete_array(m_aSplatMapCopy);
 		m_pWorldMap = nullptr;
-		LogFormat("3");
 	}
 
 	void MapGenerator::Init(MapGeneratorData data)
@@ -52,9 +51,10 @@ namespace generator
 		m_nTotalMapCount = data.worldMapSize * data.worldMapSize;
 		m_worldMapHeightMap = new float[worldMapSize*worldMapSize];
 		m_aHeightMap = new float[data.singleMapSize*data.singleMapSize];
-		m_aSplatMap = new float[data.splatWidth*data.splatWidth*data.splatCount];
 		m_aHeightMapCopy = new float[data.singleMapSize*data.singleMapSize];
+		m_aSplatMap = new float[data.splatWidth*data.splatWidth*data.splatCount];
 		m_aSplatMapCopy = new float[data.splatWidth*data.splatWidth*data.splatCount];
+		m_pPainter->Init(m_aHeightMap, m_stData.singleMapSize, m_aSplatMap, m_stData.splatWidth, m_stData.splatCount);
 		LogFormat("MapGeneratorData seed %d,i %d,h %d,worldSize %d,single size %d,map count per edge %d,splat size %d,splat count %d,flat %d", data.seed, data.I, data.H, worldMapSize, data.singleMapSize, data.worldMapSize, data.splatWidth, data.splatCount, data.flags);
 	}
 
@@ -139,9 +139,9 @@ namespace generator
 				LogErrorFormat("fail to init terrain %d", terrain);
 				return;
 			}
-			itr->second->Init(heightMap, heightMapSize, splatMap, splatWidth, splatCount);
+			itr->second->Init(heightMap, heightMapSize);
 			memcpy(heightMap, m_aHeightMapCopy, m_stData.singleMapSize*m_stData.singleMapSize * sizeof(float));
-			memcpy(splatMap, m_aSplatMapCopy, m_stData.splatCount*m_stData.splatWidth*m_stData.splatWidth * sizeof(float));
+			memcpy(splatMap, m_aSplatMapCopy, m_stData.splatWidth*m_stData.splatWidth * m_stData.splatCount * sizeof(float));
 		}
 		else
 		{
@@ -302,7 +302,7 @@ namespace generator
 			std::lock_guard<std::mutex> lock(m_generatorMtx);
 			m_mTerrainData.insert(std::make_pair(terr, m_pCurrentMap));
 			memcpy(m_aHeightMapCopy, m_aHeightMap, m_stData.singleMapSize*m_stData.singleMapSize * sizeof(float));
-			memcpy(m_aSplatMapCopy, m_aSplatMap, m_stData.splatCount*m_stData.splatWidth*m_stData.splatWidth * sizeof(float));
+			memcpy(m_aSplatMapCopy, m_aSplatMap, m_stData.splatWidth*m_stData.splatWidth * m_stData.splatCount * sizeof(float));
 			m_finishQueue.add(terr);
 			LogFormat("gen terrain %d finish ,current terrain count %d ", m_pCurrentMap->m_nInstanceId, m_mTerrainData.size());
 		}
@@ -317,7 +317,7 @@ namespace generator
 		uint32_t i = GetWorldMapSize();
 		m_pWorldMap = std::make_shared<Terrain>(0xffffffff, i, 1);
 		m_pGenerator->Initilize(m_pWorldMap->m_nInstanceId, std::rand(), m_pWorldMap->GetI(), m_stData.H, m_worldMapHeightMap);
-		m_pWorldMap->Init(m_worldMapHeightMap, m_pGenerator->GetSquareSize(), nullptr, 0, 0);
+		m_pWorldMap->Init(m_worldMapHeightMap, m_pGenerator->GetSquareSize());
 		LogFormat("GenWorldMap size %d,i %d", m_pWorldMap->GetHeightMapSize(), m_pWorldMap->GetI());
 		if (!LoadFromNative(0xffffffff) && m_pWorldMap->GetI() > 1)
 		{
@@ -327,7 +327,6 @@ namespace generator
 	}
 	void MapGenerator::AutoGenSplatMap()
 	{
-		m_pPainter->Init(m_aHeightMap, m_stData.singleMapSize, m_aSplatMap, m_stData.splatWidth, m_stData.splatCount);
 		return_if_stopped;
 		m_pPainter->DrawSplatMap();
 		LogFormat("Generate terrain %d splat map finished", m_pCurrentMap->m_nInstanceId);

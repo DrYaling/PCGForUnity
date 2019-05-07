@@ -150,6 +150,7 @@
     <ClInclude Include="..\..\..\code\Generator\Terrain\Painter\PainterBrush.h" />
     <ClInclude Include="..\..\..\code\Generator\Terrain\Painter\SplatPainter.h" />
     <ClInclude Include="..\..\..\code\Generator\Terrain\Terrain.h" />
+    <ClInclude Include="..\..\..\code\Utinities\safe_array.h" />
     <ClInclude Include="AutomaticPainter.h" />
     <ClInclude Include="Painter.h" />
     <ClInclude Include="PainterBrush.h" />
@@ -166,6 +167,7 @@
     <ClCompile Include="..\..\..\code\Generator\Terrain\Painter\PainterBrush.cpp" />
     <ClCompile Include="..\..\..\code\Generator\Terrain\Painter\SplatPainter.cpp" />
     <ClCompile Include="..\..\..\code\Generator\Terrain\Terrain.cpp" />
+    <ClCompile Include="..\..\..\code\Utinities\safe_array.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\g3dlite\g3dlite.vcxproj">

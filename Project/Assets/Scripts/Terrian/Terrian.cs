@@ -71,7 +71,7 @@ namespace SkyDream
         /// </summary>
         /// <param name="data"></param>
         [DllImport(dllName)]
-        private static extern void WorldMapBindings_InitilizeWorldMap(MapGeneratorData data);
+        private static extern void WorldMapBindings_InitilizeWorldMap(MapGeneratorData data, string mapDir);
         /// <summary>
         /// stop generate
         /// </summary>
@@ -105,7 +105,7 @@ namespace SkyDream
             {
                 seed = Random.Range(0, 100),
                 H = 10,
-                I = 5,
+                I = 4,
                 singleMapSize = 0,
                 worldMapSize = 2,
                 splatWidth = 512,
@@ -117,7 +117,7 @@ namespace SkyDream
                 flags = 0
             };
             _data = data;
-            WorldMapBindings_InitilizeWorldMap(data);
+            WorldMapBindings_InitilizeWorldMap(data, Application.dataPath + "/../Map");
             WorldMapBindings_SetGenerateCallBack(OnMapGenerateSuccess);
             if ((data.flags & 0x3) == 1)
             {

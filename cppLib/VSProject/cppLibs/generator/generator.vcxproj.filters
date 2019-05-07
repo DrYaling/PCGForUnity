@@ -105,6 +105,9 @@
     <ClInclude Include="..\..\..\code\Generator\MapGenerator\MapGenerator.h">
       <Filter>源文件\MapGenerator</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\code\Utinities\safe_array.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\Generator\Mesh\UnityMesh.cpp">
@@ -136,6 +139,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\code\Generator\MapGenerator\MapGenerator.cpp">
       <Filter>源文件\MapGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\code\Utinities\safe_array.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
