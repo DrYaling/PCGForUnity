@@ -112,6 +112,7 @@ namespace generator
 		int prevSize = m_nMax;
 		int genLen = 0;
 		int x, y;
+		Flush();
 		while (generateSize > 0)
 		{
 			//generate square
@@ -305,8 +306,15 @@ namespace generator
 		float height0 = 0;
 		float height1 = 0;
 		float height2 = 0;
+		uint32_t x1, x2, x3, y1, y2, y3;
 		//we use a ray to caculate third point
 		//if fist point is not set,do not flush this map
+		//ax1+b = y1
+		//ax2+b = y2
+		//y3 = ?
+		//a = (y1-y2)/(x1-x2)
+		//b = (x1y2-x2y1)/(x1-x2)
+		//so y3 = x3*a+b =x3*(y1-y2)/(x1-x2)+(x1y2-x2y1)/(x1-x2)
 		if (!GetExtendedHeight(0, 0, height0))
 		{
 			return;
@@ -321,7 +329,14 @@ namespace generator
 				{
 					if (GetExtendedHeight(x, y, height1))
 					{
-						height1 = height0 * (m_nMax - y) / (float)m_nMax + height1 * y / (float)m_nMax;
+						//here x1 = 0,x2 = y,x3 = m_nMax
+						y1 = height0;
+						y2 = height1;
+						x1 = 0;
+						x2 = y;
+						x3 = m_nMax;
+						y3 = (x3*(y1 - y2) + x1 * y2 - x2 * y1) / (float)(x1 - x2);
+						height1 = y3 /*additianal randomize height*/ + (height1 - height0)*Randomize(m_nH);
 						break;
 					}
 				}
@@ -332,6 +347,7 @@ namespace generator
 				return;
 			}
 		}
+		uint32_t y0 = 0;
 		for (uint32_t y = 0; y < m_nSize; y++)
 		{
 			idx = GetHeightMapIndex(x, y);
@@ -339,19 +355,35 @@ namespace generator
 			//if this point is not set,find next point to flush it
 			if (!GetExtendedHeight(x, y, height1))
 			{
-				height2 = -999999.0f;
+				y1 = 0xffffffff;
+				height2 = (float&)y1;
 				for (uint32_t ey = y + 1; ey < m_nSize; ey++)
 				{
 					if (GetExtendedHeight(x, ey, height2))
 					{
-
+						//here x1 = y0,x2 = ey,x3 = y
+						//y1 = height0,y2 = height2
+						y1 = height0;
+						y2 = height2;
+						x1 = y0;
+						x2 = ey;
+						x3 = y;
+						y3 = (x3*(y1 - y2) + x1 * y2 - x2 * y1) / (float)(x1 - x2);
+						height2 = y3 /*additianal randomize height*/ + (height2 - height0)*Randomize(m_nH) / 2.f;
 						break;
 					}
 				}
 				//do not find set point,break(no more will be found)
-				if (height2 < -999998.0f)
+				if (0xffffffff == (uint32_t&)height2)
 				{
+					LogFormat("flush break at x %d,y %d", 0, y);
 					break;;
+				}
+				else
+				{
+					SetPulse(x, y, height2);
+					height0 = height1;
+					y0 = y;
 				}
 			}
 		}
@@ -483,9 +515,9 @@ namespace generator
 				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[2], p - pNeibor[3]);
 				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[3], p - pNeibor[0]);
 				pN[indexSize] = unityMesh::normalize(m_stNormalBuffer);
+				}
 			}
-		}
 		//LogWarningFormat("at mesh %d,recaculate normal size %d,indexSize %d", mesh, size, indexSize);
-}
+		}
 #endif
-}
+	}
