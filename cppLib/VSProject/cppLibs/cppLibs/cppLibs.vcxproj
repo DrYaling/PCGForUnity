@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -91,7 +91,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Generator;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Generator;$(SolutionDir)../../code/Network</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BUILDING_COREMODULE;_UNICODE;UNICODE;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
@@ -117,8 +117,8 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Generator;</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>BUILDING_COREMODULE;_UNICODE;UNICODE;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Generator;$(SolutionDir)../../code/Network</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILDING_COREMODULE;_UNICODE;UNICODE;_WINDLL;%(PreprocessorDefinitions); _WINSOCK_DEPRECATED_NO_WARNINGS</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -143,7 +143,7 @@ Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(Solution
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Generator;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Generator;$(SolutionDir)../../code/Network</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BUILDING_COREMODULE;_WINDLL;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
       <LanguageStandard>stdcpp14</LanguageStandard>
@@ -176,8 +176,8 @@ Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(Solution
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Generator;</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>BUILDING_COREMODULE;_WINDLL;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Generator;$(SolutionDir)../../code/Network</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILDING_COREMODULE;_WINDLL;WIN32;%(PreprocessorDefinitions); _WINSOCK_DEPRECATED_NO_WARNINGS</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
       <LanguageStandard>stdcpp14</LanguageStandard>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
@@ -201,14 +201,19 @@ Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(Solution
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\code\Bridge\Bridge.h" />
+    <ClInclude Include="..\..\..\code\Bridge\GameEngine_Bindings.h" />
     <ClInclude Include="..\..\..\code\Bridge\MeshBindings.h" />
     <ClInclude Include="..\..\..\code\Map\TransformMap.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\code\Bridge\GameEngine_Bindings.cpp" />
     <ClCompile Include="..\..\..\code\Map\TransformMap.cpp" />
     <ClCompile Include="..\..\..\code\pch.c" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Client\Client.vcxproj">
+      <Project>{52091809-ceca-444a-9fb7-1b302fe950d3}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\ecs\ecs.vcxproj">
       <Project>{702436e0-def3-4dc6-8922-f9cb0d085588}</Project>
     </ProjectReference>
@@ -226,6 +231,12 @@ Copy "$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll" "$(Solution
     </ProjectReference>
     <ProjectReference Include="..\Proto\Proto.vcxproj">
       <Project>{29103b86-3cf7-4010-bf7c-5bdaef308ccd}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\server\server.vcxproj">
+      <Project>{69385a10-cbe8-418c-8cbe-95f7ff17064d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Threading\Threading.vcxproj">
+      <Project>{78fbf932-d43c-405e-8144-dfc9aef43094}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -13,11 +13,15 @@ namespace ecs
 	class IEntity
 	{
 	public:
-		IEntity() {}
-		virtual ~IEntity() {}
+		IEntity(): m_pContainer(nullptr)
+		{
+		}
+
+		virtual ~IEntity() = default;
 		virtual void Initilize(SystemContainer* pContainer) = 0;
 		virtual void OnComponentChangeEvent(IComponent* com, uint32_t comId, ComponentCatalog catalog) = 0;
-		void SetComponentDirty(IComponent* com, bool dirty)
+
+		static void SetComponentDirty(IComponent* com, bool dirty)
 		{
 			if (com)
 			{

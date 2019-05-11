@@ -6,7 +6,6 @@
 #include "Generators/TerrainGenerator/Diamond_Square.h"
 #include <mutex>
 #include <functional>
-#include <thread>
 #include <memory>
 #include "Utinities/LockedQueue.h"
 #include "G3D/Vector4.h"
@@ -14,13 +13,6 @@
 namespace generator
 {
 	typedef bool(__stdcall *TerrainGenerationCallBack)(uint32_t terrainId, uint32_t terrainWidth, G3D::Vector4 locate);
-	class MapInstanceIdGenerator
-	{
-	public:
-		uint32_t GetInstanceId();
-		MapInstanceIdGenerator() = delete;
-
-	};
 	class MapGenerator
 	{
 	public:
@@ -28,7 +20,7 @@ namespace generator
 		~MapGenerator();
 		void Init(MapGeneratorData data);
 		void SetNativeDirectory(std::string dir) { m_sSaveDirectory = dir; }
-		static MapGenerator* GetInstance();
+		static std::shared_ptr<MapGenerator> GetInstance();
 		static void Destroy();
 		void StartRun();
 		void Stop();
@@ -49,7 +41,7 @@ namespace generator
 		static inline bool GetHeightOnWorldMap(int32_t x, int32_t y, NeighborType neighbor, uint32_t owner, float & p);
 		void InitHeightMapBaseOnNeighbor(NeighborType position, std::shared_ptr<Terrain>);
 		uint32_t GetNeighborID(NeighborType dir, uint32_t who);
-		bool LoadFromNative(uint32_t terr);
+		bool LoadFromNative(uint32_t terr) const;
 		uint32_t GetWorldMapSize()
 		{
 			uint32_t i = m_stData.I / 2;
@@ -74,7 +66,6 @@ namespace generator
 		TerrainGenerationCallBack m_cbTerrainGenFinish;
 		uint32_t m_nCurrentTerrain;
 		std::mutex m_generatorMtx;
-		std::thread* m_pThreadRunner;
 		MapGeneratorData m_stData;
 		std::atomic<bool> m_bRun;
 		std::atomic<bool> m_bThreadExited;

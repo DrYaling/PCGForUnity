@@ -1,27 +1,29 @@
 #include "MapGenerator.h"
-#include "MapGenerator.h"
 #include "Logger/leakHelper.h"
 #include "Logger/Logger.h"
 #include "G3D/Vector4.h"
+#include "Threading/ThreadManager.h"
 using namespace logger;
 namespace generator
 {
 #define break_if_stopped if(!m_bRun) break
 #define return_if_stopped if(!m_bRun) return
-	static MapGenerator* instance = nullptr;
+	static std::shared_ptr<MapGenerator>  instance = nullptr;
 	MapGenerator::MapGenerator() :
-		m_cbTerrainGenFinish(nullptr),
+		m_pWorldMap(nullptr),
+		m_pGenerator(nullptr),
+		m_pPainter(nullptr),
+		m_worldMapHeightMap(nullptr),
 		m_aHeightMap(nullptr),
 		m_aSplatMap(nullptr),
 		m_aHeightMapCopy(nullptr),
 		m_aSplatMapCopy(nullptr),
+		m_cbTerrainGenFinish(nullptr),
 		m_nCurrentTerrain(0),
-		m_pGenerator(nullptr),
-		m_pPainter(nullptr),
-		m_pWorldMap(nullptr),
-		m_pThreadRunner(nullptr),
+		m_stData(),
 		m_bRun(false),
-		m_bThreadExited(true)
+		m_bThreadExited(true),
+		m_nTotalMapCount(0)
 	{
 		m_mTerrainData.clear();
 		m_pGenerator = new Diamond_Square();
@@ -39,6 +41,7 @@ namespace generator
 		safe_delete_array(m_aSplatMap);
 		safe_delete_array(m_aSplatMapCopy);
 		m_pWorldMap = nullptr;
+		LogFormat("map generator exit");
 	}
 
 	void MapGenerator::Init(MapGeneratorData data)
@@ -58,41 +61,30 @@ namespace generator
 		LogFormat("MapGeneratorData seed %d,i %d,h %d,worldSize %d,single size %d,map count per edge %d,splat size %d,splat count %d,flat %d", data.seed, data.I, data.H, worldMapSize, data.singleMapSize, data.worldMapSize, data.splatWidth, data.splatCount, data.flags);
 	}
 
-	MapGenerator * MapGenerator::GetInstance()
+	std::shared_ptr<MapGenerator>  MapGenerator::GetInstance()
 	{
 		if (!instance)
 		{
-			instance = new	MapGenerator();
+			instance = std::make_shared<MapGenerator>();
 		}
 		return instance;
 	}
 
 	void MapGenerator::Destroy()
 	{
-		safe_delete(instance);
+		instance = nullptr;
 	}
 
 	void MapGenerator::StartRun()
 	{
-		LogFormat("StartRun %d,flag %d", m_pThreadRunner, m_stData.flags);
-		if (!m_pThreadRunner && ((m_stData.flags & 0x3) == 0))
-		{
-			m_pThreadRunner = new std::thread(std::bind(&MapGenerator::WorkThread, this));
-			m_pThreadRunner->detach();
-		}
+		m_bRun = true;
+		LogFormat("MapGenerator start run");
+		threading::ThreadManager::GetInstance()->AddTask(threading::ThreadTask(std::bind(&MapGenerator::WorkThread, instance)));
 	}
 
 	void MapGenerator::Stop()
 	{
-		if (m_pThreadRunner)
-		{
-			m_bRun = false;
-			while (!m_bThreadExited)
-			{
-				sleep(1);
-			}
-			safe_delete(m_pThreadRunner);
-		}
+		m_bRun = false;
 		LogFormat("MapGenerator WorkThread exited");
 	}
 
@@ -164,10 +156,11 @@ namespace generator
 	}
 	void MapGenerator::WorkThreadEntry()
 	{
-		if (!m_bRun && m_stData.flags & 0x3)
+		LogError("WorkThreadEntry is not avalible any more");
+		/*if (!m_bRun && m_stData.flags & 0x3)
 		{
 			WorkThread();
-		}
+		}*/
 	}
 	bool MapGenerator::HasInstance()
 	{
@@ -176,7 +169,6 @@ namespace generator
 	void MapGenerator::WorkThread()
 	{
 		LogFormat("WorkThread start ");
-		m_bRun = true;
 		GenWorldMap();
 		m_bThreadExited = false;
 		while (m_bRun)
@@ -188,12 +180,12 @@ namespace generator
 			{
 				Generate(current);
 			}
-			LogFormat("flag %d", (m_stData.flags & 0x3));
+			/*LogFormat("flag %d", (m_stData.flags & 0x3));
 			if ((m_stData.flags & 0x3) == 2)
 			{
 				break_if_stopped;
 				UpdateInMainThread(0);
-			}
+			}*/
 			while (!m_finishQueue.empty())
 			{
 				break_if_stopped;
@@ -351,7 +343,7 @@ namespace generator
 		uint32_t index = who - 1;
 		uint32_t x = index % m_stData.worldMapSize;
 		uint32_t y = index / m_stData.worldMapSize;
-		int32_t idx = 0;
+		int32_t idx;
 		switch (dir)
 		{
 			case NeighborType::neighborPositionLeft:
@@ -368,10 +360,9 @@ namespace generator
 				return idx <= m_nTotalMapCount ? idx : 0;
 			default:
 				return 0;
-				break;
 		}
 	}
-	bool MapGenerator::LoadFromNative(uint32_t terr)
+	bool MapGenerator::LoadFromNative(uint32_t terr) const
 	{
 		//todo load raw map
 		return false;
@@ -445,16 +436,10 @@ namespace generator
 				int nY(y - nMax);
 				for (int x = 0; x <= nMax; x++)
 				{
-					float nheight = m_pCurrentMap->m_pTopNeighbor->GetHeight(x, nY);
+					const float nheight = m_pCurrentMap->m_pTopNeighbor->GetHeight(x, nY);
 					m_pGenerator->SetPulse(x, y, nheight);
 				}
 			}
 		}
 	}
-	static uint32_t mapId_instance = 0;
-	uint32_t MapInstanceIdGenerator::GetInstanceId()
-	{
-		return mapId_instance++;
-	}
-
 }

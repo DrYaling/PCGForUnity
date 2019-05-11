@@ -30,7 +30,7 @@ public:
 	SocketWriteBuffer* Front();
 	bool Pop();
 	void Flush();
-	inline int16 GetActiveSize() { return _activepos; }
+	inline int16 GetActiveSize() const { return _activepos; }
 private:
 	std::vector<SocketWriteBuffer*> _writeList;
 	int16 _activepos;

@@ -1,17 +1,15 @@
 #include "SocketServer.h"
 #include "Logger/Logger.h"
-#include <algorithm>
-#include <time.h>
-#include "SocketTime.h"
 #include "CoreOpcodes.h"
-static SocketServer* m_pInstance = nullptr;
+#include "Threading/ThreadManager.h"
+static std::shared_ptr<SocketServer> m_pInstance = nullptr;
 const static int PACKET_HEADER_SIZE = IKCP_OVERHEAD_LEN + 4 + sizeof(PacketHeader);
 char accept_pack_data[PACKET_HEADER_SIZE - IKCP_OVERHEAD_LEN] = { 0 };
-SocketServer * SocketServer::GetInstance()
+std::shared_ptr<SocketServer> SocketServer::GetInstance()
 {
 	if (nullptr == m_pInstance)
 	{
-		m_pInstance = new SocketServer(SocketType::SOCKET_UDP);
+		m_pInstance = std::make_shared<SocketServer>(SocketType::SOCKET_UDP);
 	}
 	return m_pInstance;
 }
@@ -20,12 +18,16 @@ void SocketServer::Destroy()
 	if (nullptr != m_pInstance)
 	{
 		m_pInstance->Stop();
-		delete m_pInstance;
+		m_pInstance = nullptr;
 	}
 }
-SocketServer::SocketServer(SocketType sock) :m_nMTU(512), m_pSendNotifier(nullptr), m_nServerId(0)
+SocketServer::SocketServer(SocketType sock) :
+	m_pSendNotifier(nullptr),
+	m_nClientConv(0),
+	m_nMTU(512),
+	m_nServerId(0)
 {
-	m_pSocket = new	Socket(sock);
+	m_pSocket = new Socket(sock);
 	m_pSocket->SetSocketMode(SocketSyncMode::SOCKET_ASYNC);
 	//LogFormat("Socket Server fd %d",m_pSocket->GetHandle());
 	m_readBuffer.Resize(RECV_BUFFER_SIZE);
@@ -49,10 +51,11 @@ std::shared_ptr<KcpSession> SocketServer::CreateSession(IUINT32 conv, const Sock
 
 bool SocketServer::StartUp()
 {
-	m_pSendNotifier = new ConditionNotifier(std::bind(&SocketServer::SendDataHandler, this));
-	m_pSendNotifier->Start();
+	m_pSendNotifier = new threading::ConditionNotifier(std::bind(&SocketServer::IsSendQueueNotEmpty, shared_from_this()));
+	sThreadManager->AddTask(threading::ThreadTask(std::bind(&SocketServer::SendDataHandler, shared_from_this())));
+	m_pSendNotifier->NotifyAll();
 	m_pSocket->SetReadBuffer(m_readBuffer.GetBasePointer());
-	auto callback = std::bind(&SocketServer::ReadHandlerInternal, this,std::placeholders::_1,std::placeholders::_2);
+	auto callback = std::bind(&SocketServer::ReadHandlerInternal, this, std::placeholders::_1, std::placeholders::_2);
 	m_pSocket->SetRecvCallback(callback);
 	/*m_pSocket->SetRecvCallback([&](int size, const char* data)->void {
 		this->ReadHandlerInternal(size, data);
@@ -68,13 +71,13 @@ bool SocketServer::Stop()
 	m_pSocket->Close();
 	if (nullptr != m_pSendNotifier)
 	{
-		m_pSendNotifier->Exit();
-		delete m_pSendNotifier;
+		m_pSendNotifier->NotifyAll();
+		safe_delete(m_pSendNotifier);
 	}
 	return true;
 }
 
-bool SocketServer::SetAddress(const char * ip, unsigned short port)
+bool SocketServer::SetAddress(const char * ip, unsigned short port) const
 {
 	m_pSocket->SetAddress(ip, port);
 	return true;
@@ -93,7 +96,7 @@ void SocketServer::Update(uint32_t diff)
 			}
 		}
 	}
-	for (auto sSession  = m_mSleepSessions.begin();sSession != m_mSleepSessions.end();)
+	for (auto sSession = m_mSleepSessions.begin(); sSession != m_mSleepSessions.end();)
 	{
 		std::shared_ptr<KcpSession>& session = sSession->second;
 		if (session)
@@ -118,7 +121,7 @@ int32 SocketServer::Send(const char * data, int32 dataSize, const socketSessionI
 	std::lock_guard<std::mutex> lock_guard(_sendLock);
 	if (m_writeQueue.Push(data, dataSize, session.addr))
 	{
-		m_pSendNotifier->Notify();
+		m_pSendNotifier->NotifyOne();
 		return dataSize;
 	}
 	return -1;
@@ -178,14 +181,14 @@ void SocketServer::ReadHandler()
 }
 
 
-bool SocketServer::SendDataHandler()
+void SocketServer::SendDataHandler()
 {
 	//LogFormat("SendDataHandler buffer queue size %d",m_writeQueue.GetActiveSize());
 	if (m_writeQueue.GetActiveSize() > 0)
 	{
 		auto buffer = m_writeQueue.Front();
 		SockError err;
-		size_t sendSize = buffer->buffer.GetActiveSize() > GetMTU() ? GetMTU() : buffer->buffer.GetActiveSize();
+		size_t send_size = buffer->buffer.GetActiveSize() > GetMTU() ? GetMTU() : buffer->buffer.GetActiveSize();
 		if (buffer->buffer.GetActiveSize() > GetMTU())
 		{
 			err = m_pSocket->SendTo(buffer->buffer.GetReadPointer(), GetMTU(), buffer->addr);
@@ -207,8 +210,8 @@ bool SocketServer::SendDataHandler()
 		{
 			//LogFormat("Socket Server Send fail %d",err.nresult);
 		}
+		m_pSendNotifier->Wait();
 	}
-	return m_writeQueue.GetActiveSize() <= 0;
 }
 
 
@@ -324,15 +327,15 @@ bool SocketServer::AcceptPack(const uint8 * buff, int length)
 
 std::shared_ptr<KcpSession> SocketServer::OnAccept(const SockAddr_t& remote)
 {
-	std::shared_ptr<KcpSession> session = nullptr;
+	std::shared_ptr<KcpSession> session;
 	//not valid pack
 	//a accept pack should allways simple as accept_pack_data,or its bad connection
-	IUINT32 conv = 0;
-	auto msgBuffer = GetWaitingConnectSession(remote); 
+	IUINT32 conv;
+	auto msgBuffer = GetWaitingConnectSession(remote);
 	//is not waiting for connection,parse this one
 	if (nullptr == msgBuffer)
 	{
-		
+
 		//if ((conv>>16 & 0xffff) == 0)//new connection
 		{
 			//m_readBuffer.ReadCompleted(IKCP_OVERHEAD_LEN);
@@ -348,7 +351,7 @@ std::shared_ptr<KcpSession> SocketServer::OnAccept(const SockAddr_t& remote)
 				m_mWaitingForConnections.insert(std::make_pair(remote, buff));
 				return nullptr;
 			}
-			if (!AcceptPack(msgBuffer->GetReadPointer(),msgBuffer->GetActiveSize()))
+			if (!AcceptPack(msgBuffer->GetReadPointer(), msgBuffer->GetActiveSize()))
 			{
 				// not accept pack
 				return nullptr;
@@ -393,54 +396,4 @@ std::shared_ptr<KcpSession> SocketServer::OnAccept(const SockAddr_t& remote)
 		}
 	}
 	return session;
-}
-
-void ConditionNotifier::Run()
-{
-	m_bExited = false;
-	std::unique_lock <std::mutex> lck(m_mtx);
-	while (m_bRunning.load(std::memory_order_relaxed))
-	{
-		{
-			if (m_pRunner)
-			{
-				if (m_pRunner())
-				{
-					m_condition.wait(lck);
-					if (!m_bRunning.load(std::memory_order_relaxed))
-					{
-						break;
-					}
-					//Âú×ãÌõ¼þ,ÐÝÃß
-				}
-			}
-			else
-			{
-				sleep(1000);
-				LogError("ConditonNotifier has no runner");
-			}
-		}
-	}
-	m_bExited = true;
-}
-
-void ConditionNotifier::Start()
-{
-	std::thread t(std::bind(&ConditionNotifier::Run, this));
-	t.detach();
-}
-
-void ConditionNotifier::Notify()
-{
-	std::unique_lock <std::mutex> lck(m_mtx);
-	m_condition.notify_all();
-	//LogFormat("ConditionNotifier::Notify");
-}
-
-void ConditionNotifier::Exit()
-{
-	m_bRunning.store(false, std::memory_order_release);
-	Notify();
-	while (!m_bExited) sleep(1);
-	m_pRunner = nullptr;
 }

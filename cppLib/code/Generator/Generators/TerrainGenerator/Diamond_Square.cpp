@@ -4,16 +4,17 @@
 #include "Noises/PerlinNoise.h"
 namespace generator
 {
-	static G3D::Vector3 vector3_zero(0, 0, 0);
 	using namespace G3D;
 	Diamond_Square::Diamond_Square() :
-		m_nI(0),
-		m_nH(0),
-		m_bIsFinished(false),
-		m_bEdgeExtended(false),
 		m_vHeightMap(nullptr),
-		m_bInitilized(false),
-		m_cbGetNeighborHeight(nullptr)
+		m_nheightMapSize(0),
+		m_cbGetNeighborHeight(nullptr),
+		m_nSize(0),
+		m_nH(0),
+		m_nI(0),
+		m_nMax(0), m_fDeltaSize(0),
+		m_bIsFinished(false),
+		m_bEdgeExtended(false), m_bInitilized(false)
 	{
 		//LogFormat("mesh count %d,nSize %d", meshCount, m_nSize);
 	}
@@ -302,7 +303,7 @@ namespace generator
 		//first flush left edge
 		// choose 2 points if exist
 		uint32_t x = 0;
-		uint32_t idx = 0;
+
 		float height0 = 0;
 		float height1 = 0;
 		float height2 = 0;
@@ -350,8 +351,6 @@ namespace generator
 		uint32_t y0 = 0;
 		for (uint32_t y = 0; y < m_nSize; y++)
 		{
-			idx = GetHeightMapIndex(x, y);
-
 			//if this point is not set,find next point to flush it
 			if (!GetExtendedHeight(x, y, height1))
 			{
@@ -374,6 +373,7 @@ namespace generator
 					}
 				}
 				//do not find set point,break(no more will be found)
+				LogFormat("df");
 				if (0xffffffff == (uint32_t&)height2)
 				{
 					LogFormat("flush break at x %d,y %d", 0, y);
@@ -387,9 +387,10 @@ namespace generator
 				}
 			}
 		}
+		LogFormat("%d extended point after flush state 1", m_mExtendedMap.size() - m_nMax);
 	}
 
-	void Diamond_Square::Blur(bool perlin)
+	void Diamond_Square::Blur(bool perlin) const
 	{
 		for (size_t y = 1; y < m_nMax; y++)
 		{
@@ -397,7 +398,7 @@ namespace generator
 			{
 				if (perlin)
 				{
-					float height = GetHeight(x, y);
+					const float height = GetHeight(x, y);
 					float noise = PerlinNoise::noise(x*m_fDeltaSize, y*m_fDeltaSize, height);
 					generator_clamp(noise, -0.5f, 0.5f);
 					SetHeight(x, y, height*(1 + noise));
@@ -405,6 +406,22 @@ namespace generator
 				Smooth(x, y);
 			}
 		}
+	}
+
+	void Diamond_Square::Smooth(int32_t x, int32_t y) const
+	{
+		float h = 0.0F;
+		h += GetHeight(x, y);
+		h += GetHeight(x + 1, y);
+		h += GetHeight(x - 1, y);
+		h += GetHeight(x + 1, y + 1) * 0.75F;
+		h += GetHeight(x - 1, y + 1) * 0.75F;
+		h += GetHeight(x + 1, y - 1) * 0.75F;
+		h += GetHeight(x - 1, y - 1) * 0.75F;
+		h += GetHeight(x, y + 1);
+		h += GetHeight(x, y - 1);
+		h /= 8.0F;
+		SetHeight(x, y, h);
 	}
 
 #if TERRAIN_GENERATE_VERTICES
@@ -515,9 +532,9 @@ namespace generator
 				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[2], p - pNeibor[3]);
 				m_stNormalBuffer += -unityMesh::getNormal(p - pNeibor[3], p - pNeibor[0]);
 				pN[indexSize] = unityMesh::normalize(m_stNormalBuffer);
-				}
 			}
-		//LogWarningFormat("at mesh %d,recaculate normal size %d,indexSize %d", mesh, size, indexSize);
 		}
-#endif
+		//LogWarningFormat("at mesh %d,recaculate normal size %d,indexSize %d", mesh, size, indexSize);
 	}
+#endif
+}

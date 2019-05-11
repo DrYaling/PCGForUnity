@@ -34,7 +34,8 @@ namespace generator
 		void Reset();
 		void Start(const float* corner, const int32_t size = 4, int32_t mapWidth = 10, std::function<void(void)> cb = nullptr);
 		void SetGetNeighborHeightCallBack(GetNeighborHeightCallBack cb) { m_cbGetNeighborHeight = cb; }
-		inline float GetHeight(int x, int y) {
+		inline float GetHeight(int x, int y) const
+		{
 			generator_clamp(x, 0, m_nMax);
 			generator_clamp(y, 0, m_nMax);
 			return m_vHeightMap[GetHeightMapIndex(x, y)];
@@ -50,8 +51,8 @@ namespace generator
 			}
 			return false;
 		}
-		bool IsFinished() { return m_bIsFinished; }
-		int32_t GetSquareSize() { return m_nSize; }
+		bool IsFinished() const { return m_bIsFinished; }
+		int32_t GetSquareSize() const { return m_nSize; }
 		//mesh 理论值
 		size_t GetMeshTheoreticalCount() {
 			if (GetSize() % MAX_MESH_VERTICES == 0)
@@ -64,50 +65,32 @@ namespace generator
 			}
 		}
 		void ReleaseUnusedBuffer();
-		size_t GetAlloc() {
-			size_t t = 0;
-			t += sizeof(Diamond_Square);
-			return t;
-		}
 	private:
 		void WorkThread(std::function<void(void)> cb);
 		inline void Diamond(int x, int y, int size, float h);
 		inline void Square(int x, int y, int size, float h);
-		inline float Randomize(float h);
-		inline bool IsEdge(int x, int y) { return x == 0 || y == 0 || x == m_nI || y == m_nI; }
+		static inline float Randomize(float h);
+		inline bool IsEdge(int x, int y) const { return x == 0 || y == 0 || x == m_nI || y == m_nI; }
 		//防止浮点数的累计误差
-		inline float GetDistance(int xy, float maxDistance)
+		float GetDistance(int xy, float maxDistance) const
 		{
-			return xy * maxDistance / (float)m_nMax;
+			return xy * maxDistance / float(m_nMax);
 		}
-		inline void SetHeight(int32_t x, int32_t y, float val) { m_vHeightMap[GetHeightMapIndex(x, y)] = val; }
-		inline size_t GetSize() { return m_nheightMapSize; }
-		bool GetHeightOnWorldMap(int32_t x, int32_t y, NeighborType neighbor, float& p)
+
+		void SetHeight(int32_t x, int32_t y, float val) const { m_vHeightMap[GetHeightMapIndex(x, y)] = val; }
+		size_t GetSize() const { return m_nheightMapSize; }
+		bool GetHeightOnWorldMap(int32_t x, int32_t y, NeighborType neighbor, float& p) const
 		{
-			/*if (m_bEdgeExtended && m_cbGetNeighborHeight(x, y, neighbor, m_Owner, p))
+			if (m_bEdgeExtended && m_cbGetNeighborHeight(x, y, neighbor, m_Owner, p))
 			{
 				return true;
-			}*/
+			}
 			return false;
 		}
 		/*flush map refered to m_mExtendedMap*/
 		void Flush();
-		void Blur(bool perlin = false);
-		void Smooth(int32_t x, int32_t y)
-		{
-			float h = 0.0F;
-			h += GetHeight(x, y);
-			h += GetHeight(x + 1, y);
-			h += GetHeight(x - 1, y);
-			h += GetHeight(x + 1, y + 1)  * 0.75F;
-			h += GetHeight(x - 1, y + 1)  * 0.75F;
-			h += GetHeight(x + 1, y - 1)  * 0.75F;
-			h += GetHeight(x - 1, y - 1)  * 0.75F;
-			h += GetHeight(x, y + 1);
-			h += GetHeight(x, y - 1);
-			h /= 8.0F;
-			SetHeight(x, y, h);
-		}
+		void Blur(bool perlin = false) const;
+		void Smooth(int32_t x, int32_t y) const;
 	private:
 		uint32_t m_Owner;
 		float* m_vHeightMap;

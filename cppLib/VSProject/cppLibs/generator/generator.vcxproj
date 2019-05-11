@@ -176,6 +176,9 @@
     <ProjectReference Include="..\Logger\Logger\Logger.vcxproj">
       <Project>{35edf0d3-5175-4fdf-9c39-48894d61472c}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Threading\Threading.vcxproj">
+      <Project>{78fbf932-d43c-405e-8144-dfc9aef43094}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

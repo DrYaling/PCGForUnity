@@ -8,9 +8,12 @@
 #include "game\Time\UpdateTime.h"
 namespace server
 {
-	static std::atomic<uint32> m_worldLoopCounter;
+	static std::atomic<uint32> m_worldLoopCounter = 0;
 	Server::Server() :
-		m_eState(ServerState::NORMAL)
+		m_eState(ServerState::NORMAL),
+		m_eExitCode(ServerExitCode::NORMAL),
+		m_ShutdownTimer(0),
+		m_ShutdownMask(0)
 	{
 		m_worldLoopCounter = 0;
 	}
@@ -27,17 +30,16 @@ namespace server
 	}
 	int Server::MainLoop()
 	{
-		uint32 realCurrTime = 0;
+		uint32 realCurrTime;
 		uint32 realPrevTime = getMSTime();
-		SocketServer* pSocketServer = sSocketServer;
+		std::shared_ptr<SocketServer> pSocketServer = sSocketServer;
 		pSocketServer->SetMTU(512);
-		pSocketServer->SetAddress("127.0.0.1", 8081);
 		pSocketServer->SetServerId(0);
 		pSocketServer->SetAcceptSessionHandle([](std::shared_ptr<KcpSession> session, uint32_t id)->void
 		{
 			sWorld->AddSession(std::make_shared<WorldSession>(id, "", session));
 		});
-		bool bret = pSocketServer->StartUp();
+		const bool bret = pSocketServer->StartUp();
 		if (!bret)
 		{
 			return -1;
@@ -81,7 +83,8 @@ namespace server
 		catch (const std::exception& e)
 		{
 		}
-		return (int)m_eExitCode;
+		LogFormat("server exited with code %d", m_eExitCode);
+		return static_cast<int>(m_eExitCode);
 	}
 	void Server::ShutDown()
 	{

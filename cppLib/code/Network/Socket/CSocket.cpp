@@ -6,6 +6,7 @@
 #include <thread>
 #include "Logger/Logger.h"
 //#include "Logger/Logger.h"
+#include "Threading/ThreadManager.h"
 #define INVALIDSOCKHANDLE   INVALID_SOCKET
 
 #if defined(_WIN32_PLATFROM_)
@@ -31,7 +32,7 @@
 #define gxsprintf           snprintf
 #endif
 #if defined(_WIN32_PLATFROM_)
-int sockaddr_Len = sizeof(sockaddr_in);
+int sockaddr_len = sizeof(sockaddr_in);
 #else
 socklen_t sockaddr_Len = sizeof(sockaddr_in);
 #endif
@@ -309,7 +310,6 @@ void SocketClearRecvBuffer(SocketHandle hs)
 	FD_SET(hs, &fds);
 	int   nRet = 1;
 	char tmp[100];
-	int rt;
 	while (nRet > 0)
 	{
 		nRet = select(FD_SETSIZE, &fds, NULL, NULL, &tmOut);
@@ -426,7 +426,6 @@ Socket::Socket(SocketType tp) :
 	m_bIsServer(false),
 	m_socketType(tp),
 	m_Socket(INVALIDSOCKHANDLE),
-	m_bThreadExited(true),
 	//m_pSendCallback(nullptr),
 	m_pRecvCallback(nullptr)
 {
@@ -463,9 +462,9 @@ void Socket::Close()
 	m_bConnected = false;
 	ClearRecvBuffer();
 	SocketClose(m_Socket);
-	logger::ProfilerStart("close socket");
-	while (!m_bThreadExited);
-	logger::ProfilerEnd();
+	//logger::ProfilerStart("close socket");
+	//while (!m_bThreadExited);
+	//logger::ProfilerEnd();
 }
 
 void Socket::Connect()
@@ -484,8 +483,7 @@ void Socket::Connect()
 		//m_bIsServer and m_bConnected should be set before thread start 
 		if (m_eMode == SocketSyncMode::SOCKET_ASYNC)
 		{
-			std::thread trecv(&Socket::SelectThread, this);
-			trecv.detach();
+			sThreadManager->AddTask(threading::ThreadTask(std::bind(&Socket::SelectThread, this)));
 		}
 	}
 }
@@ -542,7 +540,7 @@ SockError Socket::Send(void *ptr, int nbytes)
 	}
 	else
 	{
-		int ret = sendto(m_Socket, (const char *)ptr, nbytes, 0, (sockaddr*)&m_stAddr, sockaddr_Len);
+		int ret = sendto(m_Socket, (const char *)ptr, nbytes, 0, (sockaddr*)&m_stAddr, sockaddr_len);
 		rt.nresult = ret > 0 ? 0 : -1;
 		rt.nbytes = ret;
 	}
@@ -557,7 +555,7 @@ SockError Socket::SendTo(void *ptr, int nbytes, sockaddr_in& target)
 	}
 	else
 	{
-		int ret = sendto(m_Socket, (const char *)ptr, nbytes, 0, (sockaddr*)&target, sockaddr_Len);
+		int ret = sendto(m_Socket, (const char *)ptr, nbytes, 0, (sockaddr*)&target, sockaddr_len);
 		rt.nresult = ret > 0 ? 0 : -1;
 		rt.nbytes = ret;
 	}
@@ -572,7 +570,7 @@ SockError Socket::SendTo(void *ptr, int nbytes, sockaddr_in& target)
 	else
 	{
 		m_sendAddr = target.toSockAddr_in(m_sendAddr);
-		int ret = sendto(m_Socket, (const char *)ptr, nbytes, 0, (sockaddr*)&m_sendAddr, sockaddr_Len);
+		int ret = sendto(m_Socket, (const char *)ptr, nbytes, 0, (sockaddr*)&m_sendAddr, sockaddr_len);
 		rt.nresult = ret > 0 ? 0 : -1;
 		rt.nbytes = ret;
 	}
@@ -587,7 +585,7 @@ SockError Socket::Recv(void *ptr, int nbytes)
 	}
 	else
 	{
-		int size = recvfrom(m_Socket, (char *)ptr, nbytes, 0, (sockaddr*)&m_stAddr, &sockaddr_Len);
+		int size = recvfrom(m_Socket, (char *)ptr, nbytes, 0, (sockaddr*)&m_stAddr, &sockaddr_len);
 		if (size > 0)
 		{
 			rt.nbytes = size;
@@ -624,7 +622,7 @@ SockError Socket::TryRecv(void *ptr, int nbytes, int  milliseconds)
 	}
 	else
 	{
-		int size = recvfrom(m_Socket, (char *)ptr, nbytes, 0, (sockaddr*)&m_stAddr, &sockaddr_Len);
+		int size = recvfrom(m_Socket, (char *)ptr, nbytes, 0, (sockaddr*)&m_stAddr, &sockaddr_len);
 		if (size > 0)
 		{
 			rt.nbytes = size;
@@ -655,8 +653,7 @@ int Socket::StartListen(int maxconn)
 	{
 		m_bConnected = true;
 		//m_bIsServer and m_bConnected should be set before thread start 
-		std::thread trecv(&Socket::SelectThread, this);
-		trecv.detach();
+		sThreadManager->AddTask(threading::ThreadTask(std::bind(&Socket::SelectThread, this)));
 	}
 	return err;
 }
@@ -686,7 +683,6 @@ void Socket::SelectThread()
 	struct timeval mytime = { 3,0 };
 	std::vector<SocketHandle> m_vListeners;
 	m_vListeners.clear();
-	m_bThreadExited = false;
 	while (m_bConnected)
 	{
 		FD_ZERO(&ser_fdset);
@@ -713,6 +709,11 @@ void Socket::SelectThread()
 		}
 		//select¶àÂ·¸´ÓÃ
 		int ret = select(max_fd + 1, &ser_fdset, nullptr, nullptr, &mytime);
+		if (!m_bConnected)
+		{
+			//LogFormat("exit select thread");
+			break;
+		}
 		if (ret < 0)
 		{
 			Log("select failure\n");
@@ -768,7 +769,7 @@ void Socket::SelectThread()
 					else//udp
 					{
 						memset(&m_stRemoteAddr, 0, sizeof(m_stRemoteAddr));
-						int dataSize = recvfrom(m_Socket, recv_buffer, RECV_BUFFER_SIZE, 0, (sockaddr*)&m_stRemoteAddr, &sockaddr_Len);
+						int dataSize = recvfrom(m_Socket, recv_buffer, RECV_BUFFER_SIZE, 0, (sockaddr*)&m_stRemoteAddr, &sockaddr_len);
 						if (dataSize > 0)
 						{
 							//LogFormat("message form client[%s:%d]:%s", inet_ntoa(m_stRemoteAddr.sin_addr), m_stRemoteAddr.sin_port, recv_buffer);
@@ -788,14 +789,14 @@ void Socket::SelectThread()
 				{
 					//logger::ProfilerStart("client udp read");
 					memset(recv_buffer, 0, RECV_BUFFER_SIZE);
-					int byte_num = 0;
+					int byte_num;
 					if (m_socketType == SocketType::SOCKET_TCP)
 					{
 						byte_num = recv(m_Socket, recv_buffer, RECV_BUFFER_SIZE, BLOCKREADWRITE);
 					}
 					else
 					{
-						byte_num = recvfrom(m_Socket, recv_buffer, RECV_BUFFER_SIZE, BLOCKREADWRITE, (sockaddr*)&m_stAddr, &sockaddr_Len);
+						byte_num = recvfrom(m_Socket, recv_buffer, RECV_BUFFER_SIZE, BLOCKREADWRITE, (sockaddr*)&m_stAddr, &sockaddr_len);
 					}
 					if (byte_num > 0)
 					{
@@ -893,5 +894,4 @@ void Socket::SelectThread()
 	{
 		delete[] recv_buffer;
 	}
-	m_bThreadExited = true;
 }

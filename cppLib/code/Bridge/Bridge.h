@@ -7,6 +7,7 @@
 //#include "Generators/MeshGenerator.h"
 #include "MeshBindings.h"
 #include <stdint.h>
+#include "Threading/ThreadManager.h"
 typedef void(__stdcall *CPPUpdateCallback)(int tick);
 EXTERN_C_BEGIN
 EXPORT_API void STD_CALL InitCppEngine(const char* engineDir)
@@ -33,7 +34,8 @@ EXPORT_API void STD_CALL Update(int time_diff)
 EXPORT_API void STD_CALL DestroyCPP()
 {
 	LogFormat("DestroyCPP");
-	//WorldMapBindings_Destroy();
+	WorldMapBindings_Destroy();
+	threading::ThreadManager::Destroy();
 	transformMap::ClearTransformMapTrees();
 	logger::ClearLogger();
 }

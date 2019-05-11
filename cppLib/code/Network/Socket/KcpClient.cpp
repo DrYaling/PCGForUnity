@@ -30,6 +30,12 @@ KcpClient::KcpClient(int16 sid) :
 
 KcpClient::~KcpClient()
 {
+	Close();
+	safe_delete(m_pSocket);
+	if (m_pKcp)
+	{
+		ikcp_release(m_pKcp);
+	}
 }
 
 void KcpClient::SetAddress(const char * ip, int16 port)
@@ -59,6 +65,10 @@ void KcpClient::Connect()
 
 void KcpClient::Close()
 {
+	if (m_pSocket && m_pSocket->Connected())
+	{
+		m_pSocket->Close();
+	}
 	m_bRecv = false;
 	m_bAlive = false;
 	m_pDataHandler = nullptr;
@@ -217,7 +227,7 @@ ReadDataHandlerResult KcpClient::ReadDataHandler()
 	}
 	else if (header->Command == S2C_CRITICAL_ERROR)
 	{
-		LogErrorFormat("client %d recv critical error from server",GetClientId());
+		LogErrorFormat("client %d recv critical error from server", GetClientId());
 		return ReadDataHandlerResult::Error;
 	}
 	//LogFormat("UdpSocket read remote cmd %d,data size %d,%s", header->Command, header->Size, m_packetBuffer.GetReadPointer());
@@ -327,7 +337,9 @@ int KcpClient::fnWriteDgram(const char * buf, int len, ikcpcb * kcp, void * user
 	//LogFormat("client %d send size %d-cdata %d",client->m_stSessionId.conv,len, conv);
 	if (conv == 0)
 	{
-		LogError("KcpClient Error");
+		LogError("KcpClient Error,conv is 0");
+		client->Close();
+		return -1;
 	}
 	client->m_pSocket->Send((void*)buf, len);
 	return len;

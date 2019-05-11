@@ -14,7 +14,7 @@ using namespace logger;
 int main()
 {
 	//sleep(100);
-	int client_count = 500;
+	int client_count = 10;
 	std::vector<KcpClient*> clients;
 	char buff[480] = { "9" };
 	char data[2550] = { 5 };

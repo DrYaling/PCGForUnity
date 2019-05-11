@@ -21,9 +21,9 @@ namespace server
 		void KickPlayer();
 		/// Session in auth.queue currently
 		void SetInQueue(bool state) { m_bInQueue = state; }
-		bool GetInQueue() { return m_bInQueue; }
+		bool GetInQueue() const { return m_bInQueue; }
 		uint32_t GetSessionId() { return m_nSessionId; }
-		bool PlayerLoading() { return false; }
+		bool PlayerLoading() const { return false; }
 		void ResetTimeOutTime(bool state) { m_nTimeOutTime = GameTime::GetGameTime() + 30000; }
 		void InitializeSession();
 		void SendAuthWaitQue(uint32 position);
@@ -35,8 +35,8 @@ namespace server
 	public:
 		//ecs
 
-		virtual void Initilize(ecs::SystemContainer* pContainer);
-		virtual void OnComponentChangeEvent(ecs::IComponent* com, uint32_t comId, ecs::ComponentCatalog catalog);
+		void Initilize(ecs::SystemContainer* pContainer) override;
+		void OnComponentChangeEvent(ecs::IComponent* com, uint32_t comId, ecs::ComponentCatalog catalog) override;
 	private:
 		bool OnReceivePacket(int, uint8*, int);
 	private:

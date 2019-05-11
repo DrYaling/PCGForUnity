@@ -11,7 +11,7 @@ void GetIpAddress(char *ip, sockaddr_in *addr);
 bool IsValidSocketHandle(SocketHandle handle);
 int GetLastSocketError();
 
-SocketHandle SocketOpen(int tcpudp,int family);
+SocketHandle SocketOpen(int tcpudp, int family);
 void SocketClose(SocketHandle &handle);
 int SocketConnect(SocketHandle &handle, sockaddr_in *addr);
 int SocketBlock(SocketHandle hs, bool bblock);
@@ -65,32 +65,38 @@ public:
 	SockError TrySend(void *ptr, int nbytes, int milliseconds);
 	SockError TryRecv(void *ptr, int nbytes, int  milliseconds);
 	void ClearRecvBuffer();
-	inline bool Connected() { return m_bConnected; }
+	bool Connected() const { return m_bConnected; }
 	int StartListen(int maxconn = 1024);
 	//异步模式会设置socket为阻塞模式
 	void SetSocketMode(SocketSyncMode mode) { m_eMode = mode; SetBlock(true); }
-	SocketSyncMode GetSocketMode() { return m_eMode; }
-	
+	SocketSyncMode GetSocketMode() const { return m_eMode; }
+
 	void SetRecvCallback(SocketRecvCallBack receive) { m_pRecvCallback = receive; }
-	bool IsServer() { return m_bIsServer; }
-	bool IsSockAddr(const sockaddr_in& addr) {
+	bool IsServer() const { return m_bIsServer; }
+	bool IsSockAddr(const sockaddr_in& addr) const
+	{
 		return addr.sin_addr.S_un.S_addr == m_stRemoteAddr.sin_addr.S_un.S_addr && addr.sin_port == m_stRemoteAddr
 			.sin_port;
 	}
-	bool IsSockAddr(const SockAddr_t& addr) {
+	bool IsSockAddr(const SockAddr_t& addr) const
+	{
 		return addr.addr == m_stRemoteAddr.sin_addr.S_un.S_addr && addr.port == m_stRemoteAddr
 			.sin_port;
 	}
-	const sockaddr_in& GetRecvSockAddr() {
+	const sockaddr_in& GetRecvSockAddr() const
+	{
 		return m_stRemoteAddr;
 	}
-	SockAddr_t GetRecvSockAddr_t() {
+	SockAddr_t GetRecvSockAddr_t() const
+	{
 		return SockAddr_t(m_stRemoteAddr);
 	}
-	const sockaddr_in& GetSocketAddr() {
+	const sockaddr_in& GetSocketAddr() const
+	{
 		return m_stAddr;
 	}
-	SockAddr_t GetSocketAddr_t() {
+	SockAddr_t GetSocketAddr_t() const
+	{
 		return SockAddr_t(m_stAddr);
 	}
 	void SetReadBuffer(void* buffer) { m_pReadBuffer = buffer; }
@@ -98,7 +104,7 @@ private:
 	void OnDisconnected(SocketHandle socket);
 	void OnConnected(SocketHandle socket);
 	void SelectThread();
-	Socket() {}
+	Socket() = delete;
 protected:
 	//SocketSendCallBack m_pSendCallback;
 	SocketRecvCallBack m_pRecvCallback;
@@ -111,8 +117,7 @@ protected:
 	SocketSyncMode m_eMode;
 	bool m_bConnected;
 	bool m_bIsServer;
-	bool m_bThreadExited;
-	
+
 };
 #endif
 

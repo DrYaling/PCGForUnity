@@ -9,20 +9,22 @@
 #include "KcpSession.h"
 #include <memory>
 #include <atomic>
+#include "Threading/threading.h"
+#include "Threading/ConditionNotifier.h"
 class ConditionNotifier;
 class SocketServer;
 #define Opcode_Accept_Cmd 0
 typedef std::function<void(std::shared_ptr<KcpSession>, uint32_t)> OnAcceptSessionHandle;
-class SocketServer {
+class SocketServer :public std::enable_shared_from_this<SocketServer> {
 public:
-	static SocketServer* GetInstance();
+	static std::shared_ptr<SocketServer> GetInstance();
 	static void Destroy();
 	SocketServer(SocketType sock);
 	~SocketServer();
 	std::shared_ptr<KcpSession> CreateSession(IUINT32 conv, const SockAddr_t& addr);
 	bool StartUp();
 	bool Stop();
-	bool SetAddress(const char * ip, unsigned short port);
+	bool SetAddress(const char * ip, unsigned short port) const;
 	size_t GetClientCount() {
 		return m_mSessions.size();
 	}
@@ -40,7 +42,6 @@ public:
 protected:
 	void ReadHandlerInternal(int size, const char* buffer);
 	void ReadHandler();
-	bool SendDataHandler();
 	int16 GetNewConv() { return ++m_nClientConv; }
 private:
 	SocketServer() {}
@@ -52,9 +53,15 @@ private:
 	MessageBuffer* GetWaitingConnectSession(const SockAddr_t& remote);
 	bool AcceptPack(const uint8* buff, int length);
 	std::shared_ptr<KcpSession> OnAccept(const SockAddr_t& remote);
+	//in same thread as SendDataHandler,so no need to use mutex
+	bool IsSendQueueNotEmpty() const
+	{
+		return m_pSocket ? m_pSocket->Connected() && !m_writeQueue.GetActiveSize() : false;
+	}
+	void SendDataHandler();
 private:
 	Socket * m_pSocket;
-	ConditionNotifier* m_pSendNotifier;
+	threading::ConditionNotifier* m_pSendNotifier;
 	WriteBufferQueue m_writeQueue;
 	OnAcceptSessionHandle m_cbAcceptHandle;
 	/*MessageBuffer m_headerBuffer;
@@ -68,21 +75,6 @@ private:
 	int16 m_nClientConv;
 	int16 m_nMTU;
 	uint16_t m_nServerId;
-};
-typedef std::function<bool(void)> ContionThreadRunner;
-class ConditionNotifier {
-public:
-	ConditionNotifier(ContionThreadRunner runner) :m_pRunner(runner), m_bRunning(true), m_bExited(true) {}
-	void Start();
-	void Notify();
-	void Exit();
-private:
-	void Run();
-	std::mutex m_mtx;
-	std::condition_variable m_condition;
-	ContionThreadRunner m_pRunner;
-	std::atomic_bool m_bRunning;
-	std::atomic_bool m_bExited;
 };
 #define sSocketServer SocketServer::GetInstance()
 #endif // !SOCKET_SERVER_H

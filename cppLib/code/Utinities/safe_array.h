@@ -83,128 +83,29 @@ public:
 	float_array() :
 		_size(nullptr),
 		ptr(nullptr),
-		externArray(false)
+		externArray(false), _copy(false)
 	{
 		_ssize = 0;
 	}
-	float_array(uint32_t size) :
-		_size(nullptr),
-		ptr(nullptr)
-	{
-		_copy = false;
-		_ssize = 0;
-		if (size)
-		{
-			ptr = new float[size + 1];
-			if (ptr)
-			{
-				memset(ptr, 0, sizeof(float)*(size + 1));
-				ptr[size] = (float&)size;
-				_size = &ptr[size];
-			}
-		}
-	}
-	float_array(float* externPtr, uint32_t size) :
-		_size(nullptr),
-		ptr(nullptr)
-	{
-		_copy = false;
-		_ssize = 0;
-		if (size)
-		{
-			externArray = true;
-			ptr = externPtr;
-			if (ptr)
-			{
-				memset(ptr, 0, sizeof(float)*(size));
-				_size = new float;
-				*_size = (float&)size;
-			}
-		}
-	}
-	float_array(const float_array& _r) :
-		_size(_r._size),
-		externArray(false),
-		ptr(_r.ptr)
-	{
-		_copy = true;
-	}
-	float_array(const float_array&&) = delete;
+
+	explicit float_array(uint32_t size);
+
+	float_array(float* externPtr, uint32_t size);
+
+	float_array(const float_array& _r) = delete;
+	float_array(const float_array&&)  =delete;
 	void Init(uint32_t size);
 	void Init(float* externPtr, uint32_t size);
-	~float_array()
-	{
-		if (_copy)
-			return;
-		if (!externArray)
-		{
-			safe_delete_array(ptr);
-		}
-		else
-		{
-			safe_delete(_size);
-		}
-		_size = nullptr;
-	}
-	void copy(const float_array& from)
-	{
-		LogFormat("float array copy 00");
-		if (!ptr || !from.ptr)
-		{
-			LogErrorFormat("float array is empty");
-			return;
-		}
-		if (size() != from.size())
-		{
-			LogErrorFormat("float array size not equal!");
-			return;
-		}
-		memcpy(ptr, from.ptr, size() * sizeof(float));
-		LogFormat("float array copy 11");
-	}
-	void copy(const float* from, uint32_t fsize)
-	{
-		LogFormat("float array copy 0");
-		if (!ptr || !from)
-		{
-			LogErrorFormat("float array is empty");
-			return;
-		}
-		if (size() != fsize)
-		{
-			LogErrorFormat("float array size not equal!");
-			return;
-		}
-		memcpy(ptr, from, fsize * sizeof(float));
-		LogFormat("float array copy 1");
-	}
-	void copyTo(float* target, uint32_t copy_size)
-	{
-		LogFormat("float array copyTo 00");
-		if (!ptr || !target)
-		{
-			LogErrorFormat("float array is empty");
-			return;
-		}
-		if (size() < copy_size)
-		{
-			LogErrorFormat("float array size is smaller than given!");
-			return;
-		}
-		memcpy(target, ptr, copy_size * sizeof(float));
-		LogFormat("float array copyTo 22");
-	}
-	void copyTo(float* target)
-	{
-		if (!ptr || !target)
-		{
-			LogErrorFormat("float array is empty");
-			return;
-		}
-		LogFormat("float array copyTo 0");
-		memcpy(target, ptr, size() * sizeof(float));
-		LogFormat("float array copyTo 1");
-	}
+	~float_array();
+
+	void copy(const float_array& from) const;
+
+	void copy(const float* from, uint32_t fsize) const;
+
+	void copyTo(float* target, uint32_t copy_size);
+
+	void copyTo(float* target) const;
+
 	uint32_t size() const
 	{
 		LogFormat("size d %d", _size ? (uint32_t&)*_size : 0);
@@ -281,12 +182,10 @@ private:
 template<uint32_t _size>
 class float_array_fixed
 {
-	friend class float_array;
 public:
 	float_array_fixed() :
 		ptr(nullptr)
 	{
-		float_array::_ssize = 0;
 		ptr = new float[_size];
 		memset(ptr, 0, sizeof(float)*(_size));
 	}
@@ -310,7 +209,7 @@ public:
 		else
 		{
 			LogErrorFormat("get array out of size %d", _size);
-			return float_array::_ssize;
+			return _default;
 		}
 	}
 	void Print()
@@ -333,6 +232,10 @@ public:
 		return ptr;
 	}
 private:
+	/**
+	 * \brief 
+	 */
+	static float _default;
 	float* ptr;
 };
 #endif // !safe_array_h

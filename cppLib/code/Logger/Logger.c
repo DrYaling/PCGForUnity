@@ -2,7 +2,7 @@
 #include <mutex>
 namespace logger
 {
-#define LOG_TRACE
+//#define LOG_TRACE
 #define log_buffer_size 2048
 	static char Logger_cbuffer[log_buffer_size] = { 0 };
 	static std::string logger_buff;

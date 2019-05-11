@@ -29,8 +29,13 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "server", "server\server.vcxproj", "{69385A10-CBE8-418C-8CBE-95F7FF17064D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Client", "Client\Client.vcxproj", "{52091809-CECA-444A-9FB7-1B302FE950D3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{78FBF932-D43C-405E-8144-DFC9AEF43094} = {78FBF932-D43C-405E-8144-DFC9AEF43094}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WorldChatServer", "WorldChatServer\WorldChatServer.vcxproj", "{12E6181C-A796-4DCF-96F1-01DBD84C157C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Threading", "Threading\Threading.vcxproj", "{78FBF932-D43C-405E-8144-DFC9AEF43094}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -144,6 +149,14 @@ Global
 		{12E6181C-A796-4DCF-96F1-01DBD84C157C}.Release|x64.Build.0 = Release|x64
 		{12E6181C-A796-4DCF-96F1-01DBD84C157C}.Release|x86.ActiveCfg = Debug|x64
 		{12E6181C-A796-4DCF-96F1-01DBD84C157C}.Release|x86.Build.0 = Debug|x64
+		{78FBF932-D43C-405E-8144-DFC9AEF43094}.Debug|x64.ActiveCfg = Debug|x64
+		{78FBF932-D43C-405E-8144-DFC9AEF43094}.Debug|x64.Build.0 = Debug|x64
+		{78FBF932-D43C-405E-8144-DFC9AEF43094}.Debug|x86.ActiveCfg = Debug|Win32
+		{78FBF932-D43C-405E-8144-DFC9AEF43094}.Debug|x86.Build.0 = Debug|Win32
+		{78FBF932-D43C-405E-8144-DFC9AEF43094}.Release|x64.ActiveCfg = Release|x64
+		{78FBF932-D43C-405E-8144-DFC9AEF43094}.Release|x64.Build.0 = Release|x64
+		{78FBF932-D43C-405E-8144-DFC9AEF43094}.Release|x86.ActiveCfg = Release|Win32
+		{78FBF932-D43C-405E-8144-DFC9AEF43094}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

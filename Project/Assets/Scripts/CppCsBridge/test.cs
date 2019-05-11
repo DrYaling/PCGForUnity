@@ -45,10 +45,12 @@ public class test : MonoBehaviour
         lodBtnState[3] = !lodBtnState[3];
     }
 
+    private Server _server;
     // Use this for initialization
     void Start()
     {
         Bridge.Init();
+        _server = new Server();
         DateTime dt = DateTime.Now;
         terrian = new SkyDream.Terrain();
         terrian.Init();
@@ -69,6 +71,11 @@ public class test : MonoBehaviour
         {
             terrian.Destroy();
             terrian = null;
+        }
+        if (null != _server)
+        {
+            _server.Destroy();
+            _server = null;
         }
         Bridge.Destroy();
         //mg.Destroy();

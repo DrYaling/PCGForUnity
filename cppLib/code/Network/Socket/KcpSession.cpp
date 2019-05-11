@@ -93,7 +93,6 @@ void KcpSession::Send(char * buff, int length, bool immediately)
 
 void KcpSession::OnReceive(const uint8 * buff, int length)
 {
-	//todo after deserilize real packet
 	IUINT32 conv = ikcp_getconv(buff);
 	//error Server target
 

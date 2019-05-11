@@ -151,6 +151,9 @@
     <ProjectReference Include="..\Proto\Proto.vcxproj">
       <Project>{29103b86-3cf7-4010-bf7c-5bdaef308ccd}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Threading\Threading.vcxproj">
+      <Project>{78fbf932-d43c-405e-8144-dfc9aef43094}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\code\server\Map\Map.h" />

@@ -34,6 +34,7 @@ namespace server
 		m_pTimer = nullptr;
 		m_pHeatBeatTimer = nullptr;
 		m_pContainer = nullptr;
+		LogFormat("world Session destroyed");
 	}
 
 	void WorldSession::KickPlayer()
@@ -86,6 +87,11 @@ namespace server
 	}
 	void WorldSession::Initilize(ecs::SystemContainer * pContainer)
 	{
+		if (!pContainer)
+		{
+			LogError(" WorldSession::Initilize fail!null container");
+			return;
+		}
 		m_pContainer = pContainer;
 		uint32_t timerId = ComponentIDGenerator::GetComponentID();
 		m_nTimerId = timerId;
