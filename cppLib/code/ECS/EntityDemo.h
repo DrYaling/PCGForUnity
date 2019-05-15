@@ -23,7 +23,7 @@ namespace ecs
 		virtual void OnComponentChangeEvent(IComponent * com, uint32_t comId, ComponentCatalog catalog) override;
 	};
 
-	EntityDemo::EntityDemo()
+	EntityDemo::EntityDemo(): m_pMovement(nullptr)
 	{
 	}
 
@@ -46,7 +46,7 @@ namespace ecs
 	inline void EntityDemo::Initilize(SystemContainer* pContainer)
 	{
 		m_pContainer = pContainer;
-		auto event_call = std::bind(&EntityDemo::OnComponentChangeEvent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+		const auto event_call = std::bind(&EntityDemo::OnComponentChangeEvent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 		pContainer->RegisterComponentChangeEvent<MovementComponent>(event_call, 1, SystemCatalog::MOVEMENT);
 		pContainer->RegisterComponentChangeEvent<StatusComponent>(event_call, 2, SystemCatalog::STATUS);
 		pContainer->RegisterComponentChangeEvent<StatusComponent>(event_call, 3, SystemCatalog::STATUS);
@@ -74,7 +74,7 @@ namespace ecs
 				break;
 			case ComponentCatalog::STATUS:
 				{
-					auto itr = m_mStatus.find(comId);
+					const auto itr = m_mStatus.find(comId);
 					if (itr != m_mStatus.end())//有可能是空的
 					{
 						SetComponentDirty(itr->second, dirty);
@@ -95,7 +95,7 @@ namespace ecs
 
 	void EntityDemo::OnComponentChangeEvent(IComponent * com, uint32_t comId, ComponentCatalog catalog)
 	{
-		IComponent* old = nullptr;
+		IComponent* old;
 		switch (catalog)
 		{
 			case ComponentCatalog::MOVEMENT:
@@ -123,7 +123,7 @@ namespace ecs
 						//LogErrorFormat("com %d is not StatusComponent", com->GetID());
 						ComponentCastFailLog(comId, "StatusComponent");
 					}
-					auto itr = m_mStatus.find(comId);
+					const auto itr = m_mStatus.find(comId);
 					if (itr != m_mStatus.end())
 					{
 						if (status)

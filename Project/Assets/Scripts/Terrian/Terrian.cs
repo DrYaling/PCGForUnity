@@ -10,30 +10,12 @@ namespace SkyDream
         neighborPositionBottom = 1,
         neighborPositionRight = 2,
         neighborPositionTop = 3,
+        neighborTotal,
+
     }
     internal static class TerrainConst
     {
-        public const float MaxTerrainHeight = 1000;
-        public const int maxVerticesPerMesh = 65000;
-        public const int meshTopologyVertice = 0;
-        public const int meshTopologyTriangle = 1;
-        public const int meshTopologyUV = 2;
-        public const int meshTopologyMeshCount = 3;
-        public const int meshTopologyNormal = 4;
-        public const float lod_1_Distance = 30f;/*meters*/
-        public const float lod_2_Distance = 60f;/*meters*/
-        public const float lod_3_Distance = 90f;/*meters*/
-        /* public const int mesh_arg_seed = 0;
-         public const int mesh_arg_lod = 1;
-         public const int mesh_arg_I = 2;
-         public const int mesh_arg_H = 3;
-         public const int mesh_arg_mapWidth = 4;
-         public const int mesh_arg_h0 = 5;
-         public const int mesh_arg_h1 = 6;
-         public const int mesh_arg_h2 = 7;
-         public const int mesh_arg_h3 = 8;
-         public const int mesh_arg_h4 = 9;
-         public const int mesh_arg_useuv = 10;*/
+        public const float MaxTerrainHeight = 2000;
 
     }
     [StructLayout(LayoutKind.Sequential)]
@@ -101,32 +83,33 @@ namespace SkyDream
         MapGeneratorData _data;
         public void Init()
         {
+            UnityCppBindings.Init(32);
             MapGeneratorData data = new MapGeneratorData()
             {
                 seed = Random.Range(0, 100),
                 H = 10,
-                I = 4,
-                singleMapSize = 0,
-                worldMapSize = 2,
-                splatWidth = 512,
+                I = 5,
+                singleMapSize = 65,/*64+1,1 for same edge line*/
+                worldMapSize = 1,//only support 1
+                splatWidth = 65,
                 splatCount = 2,
                 height0 = 500,
                 height1 = 300,
-                height2 = 200,
+                height2 = 800,
                 height3 = 240,
                 flags = 0
             };
             _data = data;
             WorldMapBindings_InitilizeWorldMap(data, Application.dataPath + "/../Map");
             WorldMapBindings_SetGenerateCallBack(OnMapGenerateSuccess);
-            if ((data.flags & 0x3) == 1)
-            {
-                ThreadStart start = new ThreadStart(Runner);
-                workThread = new Thread(start);
-                workThread.Start();
-            }
-            else if ((data.flags & 0x3) == 2)
-                WorldMapBindings_WorkThreadRunner();
+            /* if ((data.flags & 0x3) == 1)
+             {
+                 ThreadStart start = new ThreadStart(Runner);
+                 workThread = new Thread(start);
+                 workThread.Start();
+             }
+             else if ((data.flags & 0x3) == 2)
+                 WorldMapBindings_WorkThreadRunner();*/
             // Debug.LogFormat("WorldMapBindings_WorkThreadRunner exit");
             //Runner();
         }
@@ -158,10 +141,14 @@ namespace SkyDream
                 return terr.TerrainInitilizer(width, location);
             }
         }
+
+        private int tick = 0;
         public void Update(int time_diff)
         {
-            if ((_data.flags & 0x3) != 2)
+            tick++;
+            if (tick > 20)
             {
+                tick = 0;
                 WorldMapBindings_UpdateInMainThread(time_diff);
             }
         }

@@ -51,6 +51,9 @@
     <ClInclude Include="..\..\..\code\ECS\Sys_Timers.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\code\ECS\StableArray.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\ECS\MovementSystem.cpp">

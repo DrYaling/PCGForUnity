@@ -1,5 +1,6 @@
 #include "ThreadManager.h"
 #include "Logger/Logger.h"
+#include <mutex>
 namespace threading
 {
 #define default_thread_pool_size 4
@@ -19,10 +20,12 @@ namespace threading
 		LogFormat("Thread Manager Destroyed");
 	}
 
-	void ThreadManager::AddTask(const ThreadTask & task) const
+	void ThreadManager::AddTask(const ThreadTask & task)
 	{
 		try
 		{
+			//LogFormat("AddTreadTask");
+			std::lock_guard<std::mutex> lock(m_mtx);
 			m_pPool->enqueue(task);
 		}
 		catch (const std::runtime_error& ex)

@@ -2,11 +2,11 @@
 #define I_System_h
 #include "define.h"
 #include "IComponent.h"
-#include "G3D/Array.h"
+#include "StableArray.h"
 #include "Logger/Logger.h"
 #include <functional>
 #include <map>
-
+#define STABLE_TEST 1
 namespace ecs
 {
 	//using namespace G3D;
@@ -26,7 +26,10 @@ namespace ecs
 		friend SystemContainer;
 	public:
 		virtual void OnUpdate(int32_t time_diff) = 0;
-		ISystem() {}
+		ISystem(): m_nPriority(0), m_bEnable(false)
+		{
+		}
+
 		virtual ~ISystem()
 		{
 			LogFormat("ISystem::~ISystem()");
@@ -35,9 +38,9 @@ namespace ecs
 		int32_t GetPriority() { return m_nPriority; }
 		int32_t GetPriority() const { return m_nPriority; }
 		void SetEnabled(bool yes) { m_bEnable = yes; }
-		bool GetEnabled() { return m_bEnable; }
+		bool GetEnabled() const { return m_bEnable; }
 	protected:
-		void FlushComponent(IComponent* com)
+		static void FlushComponent(IComponent* com)
 		{
 			if (com)
 			{
@@ -57,6 +60,7 @@ namespace ecs
 		friend SystemContainer;
 		typedef std::map<uint32_t, ComponentChangeEvent> ComponentEventMap;
 		typedef const ComponentEventMap::iterator ConstComponentEventMapItr;
+		typedef ComponentEventMap::iterator ComponentEventMapItr;
 	public:
 		System() { m_mEventMap.clear(); }
 		virtual ~System()
@@ -65,7 +69,7 @@ namespace ecs
 		}
 		void RegisterComponentChangeEvent(ComponentChangeEvent event_call, uint32_t componentId)
 		{
-			auto itr = m_mEventMap.find(componentId);
+			const auto itr = m_mEventMap.find(componentId);
 			ConstComponentEventMapItr end = m_mEventMap.end();
 			if (itr != end)
 			{
@@ -79,7 +83,7 @@ namespace ecs
 		}
 		void UnRegisterComponentChangeEvent(uint32_t componentId)
 		{
-			auto itr = m_mEventMap.find(componentId);
+			const auto itr = m_mEventMap.find(componentId);
 			ConstComponentEventMapItr end = m_mEventMap.end();
 			if (itr != end)
 			{
@@ -88,22 +92,52 @@ namespace ecs
 		}
 		void RegisterComponent(const T& com)
 		{
-			m_aData.append(com);
+			T* ptr = m_aData.Add(com);
 			ConstComponentEventMapItr end = m_mEventMap.end();
-			for (auto com = m_aData.begin(); com != m_aData.end(); com++)
+			if(m_aData.IsDirty())
 			{
-				ConstComponentEventMapItr event_call_itr = m_mEventMap.find(com->GetID());
+				for (auto itr = m_aData.begin(); itr != m_aData.end(); ++itr)
+				{
+					if(itr->GetInvalid())
+						continue;
+					ComponentEventMapItr event_call_itr = m_mEventMap.find(itr->GetID());
+					if (event_call_itr != end)
+					{
+						event_call_itr->second(itr, itr->GetID(), itr->GetCatalog());
+					}
+				}
+				m_aData.flush();
+			}
+			else
+			{
+				ComponentEventMapItr event_call_itr = m_mEventMap.find(com.GetID());
 				if (event_call_itr != end)
 				{
-					event_call_itr->second(com, com->GetID(), com->GetCatalog());
+					event_call_itr->second(ptr, com.GetID(), com.GetCatalog());
 				}
+#if STABLE_TEST
+				for (auto itr = m_aData.begin(); itr != m_aData.end(); ++itr)
+				{
+					if (itr->GetInvalid())
+					{
+						LogFormat("com %d is not valid", itr->GetID());
+						continue;
+					}
+					event_call_itr = m_mEventMap.find(itr->GetID());
+					if (event_call_itr != end)
+					{
+						event_call_itr->second(itr, itr->GetID(), itr->GetCatalog());
+					}
+				}
+#endif
+
 			}
 		}
 		void UnRegisterComponent(int componentId)
 		{
 			for (auto itr = m_aData.begin(); itr != m_aData.end(); itr++)
 			{
-				if (itr->GetID() == componentId)
+				if (!itr->GetInvalid() && itr->GetID() == componentId)
 				{
 					ConstComponentEventMapItr end = m_mEventMap.end();
 					ConstComponentEventMapItr removed = m_mEventMap.find(componentId);
@@ -112,14 +146,22 @@ namespace ecs
 						removed->second(nullptr, componentId, itr->GetCatalog());
 					}
 					m_aData.remove(itr);
-					for (auto com = m_aData.begin(); com != m_aData.end(); com++)
+#if STABLE_TEST
+					for (auto itr1 = m_aData.begin(); itr1 != m_aData.end(); ++itr1)
 					{
-						ConstComponentEventMapItr event_call_itr = m_mEventMap.find(com->GetID());
+						if (itr1->GetInvalid())
+						{
+							LogFormat("com %d is not valid", itr1->GetID());
+							continue;
+						}
+						const auto event_call_itr = m_mEventMap.find(itr1->GetID());
 						if (event_call_itr != end)
 						{
-							event_call_itr->second(com, com->GetID(), com->GetCatalog());
+							event_call_itr->second(itr1, itr1->GetID(), itr1->GetCatalog());
 						}
 					}
+#endif
+					//remove is stable,no need to check dirty
 					return;
 				}
 			}
@@ -129,7 +171,13 @@ namespace ecs
 			return this == &right;
 		}
 	protected:
-		G3D::Array<T> m_aData;
+		//array is not address stable structure,m_aData need a address stable structure
+		//for example,remove or add an element will not change the addresses of other element
+		//so need an array do not malloc memory when add,and will not move address when remove
+		//if remove an element,just give this removed element a tag of not valid
+		//if add new element,find if any invalid element exist,if so ,just do the copy construction
+		//and for enough space,its needed to malloc enough space for this array
+		StableArray<T> m_aData;
 	private:
 		ComponentEventMap m_mEventMap;
 	};

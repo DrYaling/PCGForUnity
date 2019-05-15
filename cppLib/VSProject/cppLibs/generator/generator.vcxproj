@@ -133,7 +133,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\code\Generator\generator.h" />
-    <ClInclude Include="..\..\..\code\Generator\Generators\TerrainGenerator.h" />
     <ClInclude Include="..\..\..\code\Generator\Generators\Plants\Plants.h" />
     <ClInclude Include="..\..\..\code\Generator\Generators\TerrainGenerator\Diamond_Square.h" />
     <ClInclude Include="..\..\..\code\Generator\Generators\TerrainGenerator\Mountain.h" />
@@ -157,7 +156,6 @@
     <ClInclude Include="SplatPainter.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\code\Generator\Generators\TerrainGenerator.cpp" />
     <ClCompile Include="..\..\..\code\Generator\Generators\TerrainGenerator\Diamond_Square.cpp" />
     <ClCompile Include="..\..\..\code\Generator\Generators\TerrainGenerator\Mountain.cpp" />
     <ClCompile Include="..\..\..\code\Generator\MapGenerator\MapGenerator.cpp" />

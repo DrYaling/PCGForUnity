@@ -5,7 +5,7 @@
 #define _SOCKET_CONFIG_H
 
 #include "MessageBuffer.h"
-#if WIN32 
+#if WIN32 || MSVC
 #define _WIN32_PLATFROM_
 #pragma comment(lib,"ws2_32.lib")
 #endif

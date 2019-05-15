@@ -27,13 +27,21 @@ namespace generator
 			memset(m_vStrength.data(), 1, sizeof(float)*m_vStrength.size());
 			return;
 		}
-		memset(m_vStrength.data(), 1, sizeof(float)*m_vStrength.size());
-		return;
 		switch (style)
 		{
 			case generator::BrushStyle::Circle_ful:
 			case generator::BrushStyle::Square_full:
-				memset(m_vStrength.data(), 1, sizeof(float)*m_vStrength.size());
+				{
+					int idx = 0;
+					for (int32_t y = 0; y < size; y++)
+					{
+						for (int32_t x = 0; x < size; x++)
+						{
+							m_vStrength[idx++] = 1;
+							//LogFormat("Brush Strength %f",value);
+						}
+					}
+				}
 				break;
 			case generator::BrushStyle::Circle_middle:
 			case generator::BrushStyle::Square_middle:
@@ -41,6 +49,7 @@ namespace generator
 					float minStrength = 0.0f;
 					float middle = size / 2;
 					float radius = size * 0.5f;
+					int idx = 0;
 					for (int32_t y = 0; y < size; y++)
 					{
 						for (int32_t x = 0; x < size; x++)
@@ -48,7 +57,7 @@ namespace generator
 							float distance = GetDistance2D(x, y, middle, middle);
 							float value = (radius - distance) / radius;
 							value = value <= minStrength ? minStrength : value;
-							m_vStrength[y*size + x] = value;
+							m_vStrength[idx++] = value;
 							//LogFormat("Brush Strength %f",value);
 						}
 					}

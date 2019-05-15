@@ -22,11 +22,11 @@ namespace generator
 		m_nAlphaCount = splatCount;
 		m_nSize = sizeXY;
 		m_pAlphaMap = alphaMap;
-		m_pBrush->Initilize(BrushStyle::Circle_middle, 1);
+		m_pBrush->Initilize(BrushStyle::Circle_middle, 5);
 	}
 	void SplatPainter::ResetBrush(int32_t brushSize)
 	{
-		m_pBrush->Initilize(BrushStyle::Circle_middle, 1);
+		m_pBrush->Initilize(BrushStyle::Circle_middle, brushSize);
 	}
 	//ensure alphaMap has enough space
 	inline void SplatPainter::Normalize(int32_t x, int32_t y, float newAlpha, int32_t splatIndex)

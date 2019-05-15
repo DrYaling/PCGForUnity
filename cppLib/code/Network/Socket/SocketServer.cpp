@@ -22,7 +22,6 @@ void SocketServer::Destroy()
 	}
 }
 SocketServer::SocketServer(SocketType sock) :
-	m_pSendNotifier(nullptr),
 	m_nClientConv(0),
 	m_nMTU(512),
 	m_nServerId(0)
@@ -55,7 +54,7 @@ bool SocketServer::StartUp()
 	sThreadManager->AddTask(threading::ThreadTask(std::bind(&SocketServer::SendDataHandler, shared_from_this())));
 	m_pSendNotifier->NotifyAll();
 	m_pSocket->SetReadBuffer(m_readBuffer.GetBasePointer());
-	auto callback = std::bind(&SocketServer::ReadHandlerInternal, this, std::placeholders::_1, std::placeholders::_2);
+	const auto callback = std::bind(&SocketServer::ReadHandlerInternal, this, std::placeholders::_1, std::placeholders::_2);
 	m_pSocket->SetRecvCallback(callback);
 	/*m_pSocket->SetRecvCallback([&](int size, const char* data)->void {
 		this->ReadHandlerInternal(size, data);
@@ -116,8 +115,9 @@ void SocketServer::Update(uint32_t diff)
 
 int32 SocketServer::Send(const char * data, int32 dataSize, const socketSessionId& session)
 {
-	//auto map_client = std::find(m_mSocketClients.begin(), m_mSocketClients.end(), client);
-
+	//if server is not start up,ignore any message (error message )
+	if (!m_pSocket || !m_pSocket->Connected())
+		return -1;
 	std::lock_guard<std::mutex> lock_guard(_sendLock);
 	if (m_writeQueue.Push(data, dataSize, session.addr))
 	{
@@ -188,7 +188,7 @@ void SocketServer::SendDataHandler()
 	{
 		auto buffer = m_writeQueue.Front();
 		SockError err;
-		size_t send_size = buffer->buffer.GetActiveSize() > GetMTU() ? GetMTU() : buffer->buffer.GetActiveSize();
+		//size_t send_size = buffer->buffer.GetActiveSize() > GetMTU() ? GetMTU() : buffer->buffer.GetActiveSize();
 		if (buffer->buffer.GetActiveSize() > GetMTU())
 		{
 			err = m_pSocket->SendTo(buffer->buffer.GetReadPointer(), GetMTU(), buffer->addr);

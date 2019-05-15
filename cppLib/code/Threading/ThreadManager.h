@@ -9,13 +9,15 @@ namespace threading
 		ThreadManager();
 		explicit ThreadManager(uint32_t size);
 		~ThreadManager();
-		void AddTask(const ThreadTask& task) const;
+		void AddTask(const ThreadTask& task);
 		static ThreadManager* GetInstance();
 		static void Destroy();
 		static void SetThreadCount(uint32_t count);
 	private:
 		ThreadPool * m_pPool;
+		std::mutex m_mtx;
 		static uint32_t defaultPoolSize;
+
 	};
 }
 #define sThreadManager threading::ThreadManager::GetInstance()

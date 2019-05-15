@@ -11,10 +11,11 @@ namespace generator {
 		m_nInstanceId(ins),
 		m_aHeightMap(nullptr),
 		m_nI(I),
-		m_nSize(heightMapSize)
+		m_nSize(heightMapSize),
+		m_nRealWidth(heightMapSize)
 	{
 		m_bHeightMapInitilized = false;
-		switch (I)
+		/*switch (I)
 		{
 			case 1:
 			case 2:
@@ -29,10 +30,13 @@ namespace generator {
 			case 5:
 				m_nRealWidth = 512;
 				break;
+			case 6:
+				m_nRealWidth = 2400;
+				break;
 			default:
 				LogErrorFormat("Error MapSize %d not supported", I);
 				return;
-		}
+		}*/
 	}
 
 	/*Terrain::Terrain(const Terrain & t)
@@ -54,7 +58,7 @@ namespace generator {
 	Terrain::~Terrain()
 	{
 	}
-	uint32_t Terrain::GetNeighbor(NeighborType neighbor)
+	uint32_t Terrain::GetNeighbor(NeighborType neighbor) const
 	{
 		//LogFormat("get %d neighbor of %d", neighbor, m_nInstanceId);
 		switch (neighbor)

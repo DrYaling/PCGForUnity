@@ -17,13 +17,14 @@
 namespace  threading
 {
 	class ThreadPool {
+		friend class ThreadManager;
 	public:
 		ThreadPool(size_t);
+		~ThreadPool();
+	private:
 		template<class F, class... Args>
 		std::future<typename std::result_of<F(Args...)>::type> enqueue(F&& f, Args&&... args);
 		void enqueue(const ThreadTask& task);
-		~ThreadPool();
-	private:
 		bool Predicate() const;
 	private:
 		// need to keep track of threads so we can join them
@@ -33,7 +34,7 @@ namespace  threading
 
 		// synchronization
 		std::mutex m_mutex;
-		ConditionNotifier m_condition;
+		std::condition_variable m_condition;
 		bool m_bStop;
 	};
 
@@ -48,7 +49,7 @@ namespace  threading
 
 		std::future<return_type> res = task->get_future();
 		{
-			std::unique_lock<std::mutex> lock(m_mutex);
+			//std::unique_lock<std::mutex> lock(m_mutex);
 
 			// don't allow enqueueing after stopping the pool
 			if (m_bStop)
@@ -56,7 +57,7 @@ namespace  threading
 
 			m_qTasks.emplace([task]() { (*task)(); });
 		}
-		m_condition.NotifyOne();
+		m_condition.notify_one();
 		return res;
 	}
 }

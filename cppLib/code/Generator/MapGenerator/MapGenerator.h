@@ -10,6 +10,8 @@
 #include "Utinities/LockedQueue.h"
 #include "G3D/Vector4.h"
 #include <atomic>
+#include "Terrain/Painter/AutomaticPainter.h"
+
 namespace generator
 {
 	typedef bool(__stdcall *TerrainGenerationCallBack)(uint32_t terrainId, uint32_t terrainWidth, G3D::Vector4 locate);
@@ -31,25 +33,27 @@ namespace generator
 		void SaveTerrain(uint32_t terr);
 		void WorkThreadEntry();
 		static bool HasInstance();
+
+		static bool IsStopped()
+		{
+			return !(HasInstance() && GetInstance()->m_bRun);
+		}
+
 	private:
 		void GenWorldMap();
-		void AutoGenSplatMap();
-		void GenerateTerrain();
+		void AutoGenSplatMap() const;
+		void GenerateTerrain() const;
 		void WorkThread();
 		uint32 InitilizeNext();
 		void Generate(uint32);
-		static inline bool GetHeightOnWorldMap(int32_t x, int32_t y, NeighborType neighbor, uint32_t owner, float & p);
-		void InitHeightMapBaseOnNeighbor(NeighborType position, std::shared_ptr<Terrain>);
-		uint32_t GetNeighborID(NeighborType dir, uint32_t who);
+		static inline  bool __fastcall GetHeightOnNeighbor(int32_t x, int32_t y, NeighborType neighbor, uint32_t owner, float & p);
+		static inline float __fastcall GetHeightOnWorldMap(int32_t x, int32_t y, uint32_t owner);
+		void InitHeightMapBaseOnNeighbor(NeighborType position, std::shared_ptr<Terrain>) const;
+		uint32_t GetNeighborID(NeighborType dir, uint32_t who) const;
 		bool LoadFromNative(uint32_t terr) const;
-		uint32_t GetWorldMapSize()
+		uint32_t GetWorldMapSize() const
 		{
-			uint32_t i = m_stData.I / 2;
-			if (i <= 1)
-			{
-				i = m_stData.I - 1;
-			}
-			return i;
+			return m_stData.I;
 		}
 	private:
 		std::map<uint32_t, std::shared_ptr<Terrain>> m_mTerrainData;
@@ -59,7 +63,7 @@ namespace generator
 		Diamond_Square* m_pGenerator;
 		AutomaticPainter* m_pPainter;
 		float* m_worldMapHeightMap;
-		float* m_aHeightMap;
+		//float* m_aHeightMap;
 		float* m_aSplatMap;
 		float* m_aHeightMapCopy;
 		float* m_aSplatMapCopy;

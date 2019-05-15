@@ -1,5 +1,7 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace SkyDream
 {
@@ -20,10 +22,11 @@ namespace SkyDream
         [DllImport(dllName)]
         private static extern unsafe void WorldMapBindings_InitTerrain(uint who, float* heightMap, int heightMapSize, float* splatMap, int splatWidth, int splatCount);
 
+        private Texture2D[] texture2s = new Texture2D[4];
         private uint terrainInstance = 0;
         private float[,] _heightMap;
         private float[,,] _splatMap;
-        private const int splatMapSize = 512;
+        private const int splatMapSize = 65;
         private const int splatCount = 2;
         private float _mapWidth;
         public uint instaneId
@@ -47,10 +50,17 @@ namespace SkyDream
         {
             terrainInstance = ins;
             UnityCppBindings.RegistBinding(terrainInstance, this);
-            _heightMap = new float[heightMapWidth, heightMapWidth];
+            _heightMap = UnityCppBindings.GetHeightMapCache();
             _splatMap = new float[splatMapSize, splatMapSize, splatCount];
             //StartGenerateOrLoad(meshInstanceId);
+            if (null == texture2s[0])
+            {
 
+                texture2s[0] = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/ForestFloor2/forest_floor_2");
+                texture2s[1] = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/ForestFloor2/forest_floor_2_normal");
+                texture2s[2] = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/SolidRock2/solid_rock_2");
+                texture2s[3] = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/SolidRock2/solid_rock_2_normal");
+            }
         }
         ~TerrainPiece()
         {
@@ -109,6 +119,8 @@ namespace SkyDream
         }
         public unsafe bool TerrainInitilizer(uint width, Vector4 location)
         {
+            Stopwatch watch = new Stopwatch(); ;
+            watch.Start(); ;
             _mapWidth = location.w;
             Debug.LogFormat("TerrainInitilizer wdith {0},location {1}", width, location);
             fixed (float* ptr_height = _heightMap)
@@ -120,7 +132,14 @@ namespace SkyDream
                 }
                 //传递高度图的首地址
             }
+            watch.Stop();
+            Debug.LogFormat("init terrain data cost {0} ms", watch.ElapsedMilliseconds);
+            watch.Reset();
+            watch.Start();
             OnHeightMapLoaded();
+            watch.Stop();
+            Debug.LogFormat("init terrain cost {0} ms", watch.ElapsedMilliseconds);
+
             SetPosition(new Vector3(location.x, location.y, location.z));
             return true;
         }
@@ -136,13 +155,13 @@ namespace SkyDream
             terrainData.SetHeights(0, 0, _heightMap); //一切都是为了这个方法...
             var tmp = new SplatPrototype[splatCount];
             var splat0 = new SplatPrototype();
-            splat0.texture = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/ForestFloor2/forest_floor_2");
-            splat0.normalMap = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/ForestFloor2/forest_floor_2_normal");
+            splat0.texture = texture2s[0];
+            splat0.normalMap = texture2s[1];
             splat0.smoothness = 0.5f;
 
             var splat1 = new SplatPrototype();
-            splat1.texture = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/SolidRock2/solid_rock_2");
-            splat1.normalMap = Resources.Load<Texture2D>("Realistic Terrain Collection/Other/Textures/SolidRock2/solid_rock_2_normal");
+            splat1.texture = texture2s[2];
+            splat1.normalMap = texture2s[3];
             splat1.smoothness = 0.5f;
             tmp[0] = splat0;
             tmp[1] = splat1;
@@ -159,13 +178,18 @@ namespace SkyDream
             Debug.LogFormat("terrain {0} create success ", instaneId);
 
         }
-        private void SetNeighbors()
+        private void SetNeighbors(TerrainNeighbor ignoreNeighbor = TerrainNeighbor.neighborTotal)
         {
             for (TerrainNeighbor n = TerrainNeighbor.neighborPositionLeft; n <= TerrainNeighbor.neighborPositionTop; n++)
             {
                 uint terr = WorldMapBindings_GetNeighbor(instaneId, (int)n);
                 var t = UnityCppBindings.GetTerrain(terr);
                 SetNeighbor(t, n);
+                //prevent dead loop
+                if (null != t && n != ignoreNeighbor)
+                {
+                    t.SetNeighbors((TerrainNeighbor)((int)(n + 2) % (int)TerrainNeighbor.neighborTotal));
+                }
             }
             terrain.SetNeighbors(GetNeighbor(TerrainNeighbor.neighborPositionLeft),
                 GetNeighbor(TerrainNeighbor.neighborPositionTop),
@@ -175,6 +199,7 @@ namespace SkyDream
         }
         internal void Release()
         {
+            //UnityCppBindings.RecycleCache(_heightMap);
             UnityCppBindings.UnResistBinding(terrainInstance);
             terrainInstance = 0;
         }

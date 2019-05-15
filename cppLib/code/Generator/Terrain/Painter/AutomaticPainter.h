@@ -15,8 +15,8 @@ namespace generator
 		void DrawDetail();
 		void DrawSplatMap();
 	private:
-		void InitSplatMap();
-		void Paint(int32_t x, int32_t y, int32_t brushSize,float scale);
+		void InitSplatMap() const;
+		void Paint(int32_t x, int32_t y, int32_t brushSize,float scale) const;
 		TerrainSmoothType GetTerrainStateNear(int32_t x, int32_t y,float height);
 	private:
 		Painter * m_pPainter;

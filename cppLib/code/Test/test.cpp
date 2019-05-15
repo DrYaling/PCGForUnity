@@ -166,7 +166,7 @@ int	Safe_Array_Test()
 }
 int StartTestServer()
 {
-	SocketServer* Server = sSocketServer;
+	std::shared_ptr<SocketServer> Server = sSocketServer;
 	Server->SetMTU(512);
 	Server->SetAddress(/*"127.0.0.1"*/nullptr, 8081);
 	const bool bret = Server->StartUp();
@@ -185,7 +185,7 @@ int StartTestServer()
 			sSocketServer->Update(10);
 		}
 	}
-	delete sSocketServer;
+	SocketServer::Destroy();
 	return 0;
 }
 using namespace server;
@@ -199,7 +199,7 @@ void GenerateTest()
 {
 
 }
-void ECS_Test()
+int ECS_Test()
 {
 	SystemContainer* pc = new SystemContainer();
 	pc->Initilize(SystemGroup::SERVER_WORLD);
@@ -238,13 +238,14 @@ void ECS_Test()
 
 	safe_delete(pDemo);
 	safe_delete(pc);
+	return 0;
 }
 int main()
 {
 	_CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
 	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
-	auto ret = ServerWorker();
+	auto ret = ECS_Test();
 	threading::ThreadManager::Destroy();
 	//new int[20];
 	_CrtDumpMemoryLeaks();

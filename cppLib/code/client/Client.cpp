@@ -26,7 +26,7 @@ namespace client
 		if (m_bStopped.load(std::memory_order_relaxed))
 			return;
 		//sleep(100);
-		int client_count = 10;
+		int client_count = 1;
 		std::vector<std::shared_ptr<KcpClient>> clients;
 		char buff[480] = { "9" };
 		char data[2550] = { 5 };

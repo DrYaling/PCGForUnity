@@ -63,9 +63,6 @@
     <ClInclude Include="..\..\..\code\Generator\Noises\PerlinNoise.h">
       <Filter>源文件\Noises</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\code\Generator\Generators\TerrainGenerator.h">
-      <Filter>源文件\Generators</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\code\Generator\Generators\TerrainGenerator\Mountain.h">
       <Filter>源文件\Generators\TerrainGenerator</Filter>
     </ClInclude>
@@ -112,9 +109,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\code\Generator\Mesh\UnityMesh.cpp">
       <Filter>源文件\Mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\code\Generator\Generators\TerrainGenerator.cpp">
-      <Filter>源文件\Generators</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\code\Generator\Generators\TerrainGenerator\Diamond_Square.cpp">
       <Filter>源文件\Generators\TerrainGenerator</Filter>

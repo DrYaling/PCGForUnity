@@ -19,10 +19,10 @@ namespace generator
 		inline void Normalize(int32_t x, int32_t y,float strength, int32_t splatIndex);
 		void Paint(int xCenter, int yCenter, int splatIndex);
 		float* GetAlphaMap() { return m_pAlphaMap; }
-		int32_t GetAlphaCount() { return m_nAlphaCount; }
-		int32_t GetAlphaSize() { return m_nSize; }
-		int32_t GetAlphaMapSize() { return m_nSize * m_nSize*m_nAlphaCount; }
-		int32_t GetBrushSize()
+		int32_t GetAlphaCount() const { return m_nAlphaCount; }
+		int32_t GetAlphaSize() const { return m_nSize; }
+		int32_t GetAlphaMapSize() const { return m_nSize * m_nSize*m_nAlphaCount; }
+		int32_t GetBrushSize() const
 		{
 			if (m_pBrush)
 			{

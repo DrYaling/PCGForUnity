@@ -118,7 +118,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)../../code/Bridge;$(SolutionDir)../../code;$(SolutionDir)../../code/dep/G3D/include;$(SolutionDir)../../code/Generator;$(SolutionDir)../../code/Network</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>BUILDING_COREMODULE;_UNICODE;UNICODE;_WINDLL;%(PreprocessorDefinitions); _WINSOCK_DEPRECATED_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BUILDING_COREMODULE;_UNICODE;UNICODE;_WINDLL;%(PreprocessorDefinitions); _WINSOCK_DEPRECATED_NO_WARNINGS;WIN32</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <FunctionLevelLinking>true</FunctionLevelLinking>

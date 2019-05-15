@@ -1,11 +1,8 @@
 #ifndef TERRIAN_MESH_H
 #define TERRIAN_MESH_H
 #include "generator.h"
-#include "Generators/TerrainGenerator/Diamond_Square.h"
-#include "Painter/AutomaticPainter.h"
 #include <memory>
 #include <atomic>
-#include "Logger/Logger.h"
 NS_GNRT_START
 class MapGenerator;
 class Terrain :public std::enable_shared_from_this<Terrain>
@@ -18,28 +15,28 @@ public:
 	Terrain(const Terrain&& t) = delete;
 	~Terrain();
 	void InitNeighbor(NeighborType edge, std::shared_ptr<Terrain> mesh);
-	float GetHeight(int32_t x, int32_t y)
+	float GetHeight(int32_t x, int32_t y) const
 	{
 		generator_clamp(x, 0, m_nSize - 1);
 		generator_clamp(y, 0, m_nSize - 1);
 		return  m_aHeightMap[GetHeightMapIndex(x, y)];
 	}
-	uint32_t GetNeighbor(NeighborType neighbor);
-	uint32_t GetI() { return m_nI; }
-	bool IsWorldMap() { return m_nInstanceId == 0xffffffff; }
-	uint32_t GetRealSize()
+	uint32_t GetNeighbor(NeighborType neighbor) const;
+	uint32_t GetI() const { return m_nI; }
+	bool IsWorldMap() const { return m_nInstanceId == 0xffffffff; }
+	uint32_t GetRealSize() const
 	{
 		return m_nRealWidth;
 	}
-	bool IsInitilized()
+	bool IsInitilized() const
 	{
 		return m_bHeightMapInitilized;
 	}
-	bool IsValidWorldMap()
+	bool IsValidWorldMap() const
 	{
 		return IsWorldMap() && m_nSize > 4;
 	}
-	uint32_t GetHeightMapSize()
+	uint32_t GetHeightMapSize() const
 	{
 		return m_nSize;
 	}

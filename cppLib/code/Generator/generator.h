@@ -173,10 +173,11 @@ enum class TerrainSmoothType :int32_t
 	Sharp//º‚»Òµÿ–Œ
 };
 #define TERRAIN_GENERATE_VERTICES 0
-#define  MAX_MAP_HEIGHT 1000.0f
+#define  MAX_MAP_HEIGHT 2000.0f
 #define TERRAIN_HIGH_NO_GRASS_HEIGHT 550.0f
 #define TERRAIN_LOW_NO_GRASS_HEIGHT 50.0f
 #define GetHeightMapIndex(x,y) x+y*m_nSize
+#define GetHeightMapIndexN(x,y,n) x+y*n
 #define GetSplatMapIndex(x,y,z,size,sizeAlpha) ((x * size + y) * sizeAlpha+z) 
 #define generator_clamp(x,low,high) if (x < low) \
 		x = low; \

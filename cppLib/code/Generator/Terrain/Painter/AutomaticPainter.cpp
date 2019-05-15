@@ -1,8 +1,10 @@
 #include "AutomaticPainter.h"
 #include "SplatPainter.h"
 #include "Logger/Logger.h"
+#include "MapGenerator/MapGenerator.h"
 namespace generator
 {
+#define return_if_exit if(MapGenerator::IsStopped()) return 
 	AutomaticPainter::AutomaticPainter() :
 		m_pPainter(nullptr)
 	{
@@ -63,6 +65,7 @@ namespace generator
 			LogErrorFormat("DrawSplatMap need SplatPainter!");
 			return;
 		}
+		return_if_exit;
 		InitSplatMap();
 		int brushSize = painter->GetBrushSize() / 2;
 		int intFraction = painter->GetBrushSize() % 2;
@@ -70,15 +73,16 @@ namespace generator
 		{
 			brushSize = 1;
 		}
-		int alphaSize = painter->GetAlphaSize();
-		float scale = m_nSize / (float)alphaSize;
-		//int alphaCount = painter->GetAlphaCount();
-		//LogFormat("alphaSize  %d,alphaCount %d,brush size %d,scale %f", alphaSize, alphaCount, brushSize, scale);
+		const int alphaSize = painter->GetAlphaSize();
+		const float scale = m_nSize / (float)alphaSize;
+		const auto alphaCount = painter->GetAlphaCount();
+		LogFormat("alphaSize  %d,alphaCount %d,brush size %d,scale %f", alphaSize, alphaCount, brushSize, scale);
 		int32_t x = 0, y = 0;
 		for (y = 0; y < alphaSize; y += brushSize)
 		{
 			for (x = 0; x < alphaSize; x += brushSize)
 			{
+				return_if_exit;
 				Paint(x, y, brushSize, scale);
 			}
 		}
@@ -88,12 +92,13 @@ namespace generator
 		{
 			for (; x < alphaSize; x += brushSize)
 			{
+				return_if_exit;
 				Paint(x, y, brushSize, scale);
 			}
 		}
 		//LogFormat("smooth cnt %d,rough cnt %d,sharp cnt %d,lh cnt %d",smoothCnt,roughCnt,sharpCnt,hlCnt);
 	}
-	void AutomaticPainter::InitSplatMap()
+	void AutomaticPainter::InitSplatMap() const
 	{
 		SplatPainter* painter = dynamic_cast<SplatPainter*>(m_pPainter);
 		if (!painter)
@@ -102,8 +107,8 @@ namespace generator
 			return;
 		}
 		float* map = painter->GetAlphaMap();
-		int32_t size = painter->GetAlphaSize();
-		int32_t count = painter->GetAlphaCount();
+		const int32_t size = painter->GetAlphaSize();
+		const int32_t count = painter->GetAlphaCount();
 		for (int32_t x = 0; x < size; x++)
 		{
 			for (int32_t y = 0; y < size; y++)
@@ -115,15 +120,14 @@ namespace generator
 			}
 		}
 	}
-	void AutomaticPainter::Paint(int32_t x, int32_t y, int32_t brushSize, float scale)
+	void AutomaticPainter::Paint(int32_t x, int32_t y, int32_t brushSize, float scale) const
 	{
 		SplatPainter* painter = dynamic_cast<SplatPainter*>(m_pPainter);
-		int heightMapX = 0, heightMapY = 0;
-		heightMapX = (int)(scale*x);
-		heightMapY = (int)(scale*y);
+		int heightMapX = (int)(scale * x);
+		int heightMapY = (int)(scale * y);
 		generator_clamp(heightMapX, 0, m_nMax);
 		generator_clamp(heightMapY, 0, m_nMax);
-		float height = m_pHeightMap[GetHeightMapIndex(heightMapX, heightMapY)] * MAX_MAP_HEIGHT;
+		const float height = m_pHeightMap[GetHeightMapIndex(heightMapX, heightMapY)] * MAX_MAP_HEIGHT;
 
 		if (height > TERRAIN_HIGH_NO_GRASS_HEIGHT)
 		{
@@ -140,7 +144,7 @@ namespace generator
 			//if smooth nearby,paint grass
 			//if rough nearby,paint random grass and rock
 			//if sharp nearby,paint rock with high level
-			auto type = GetTerrainStateNear(heightMapX, heightMapY, height);
+			//auto type = GetTerrainStateNear(heightMapX, heightMapY, height);
 			float alpha0 = painter->GetAlpha(x, y, 0);
 			bool alpha0_chance = true;
 			int neighborCnt = 0;

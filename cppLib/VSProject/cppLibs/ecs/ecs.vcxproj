@@ -25,6 +25,7 @@
     <ClInclude Include="..\..\..\code\ECS\ISystem.h" />
     <ClInclude Include="..\..\..\code\ECS\MovementComponent.h" />
     <ClInclude Include="..\..\..\code\ECS\MovementSystem.h" />
+    <ClInclude Include="..\..\..\code\ECS\StableArray.h" />
     <ClInclude Include="..\..\..\code\ECS\StatusComponent.h" />
     <ClInclude Include="..\..\..\code\ECS\StatusSystem.h" />
     <ClInclude Include="..\..\..\code\ECS\SystemContainer.h" />

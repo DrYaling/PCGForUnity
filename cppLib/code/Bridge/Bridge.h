@@ -10,6 +10,11 @@
 #include "Threading/ThreadManager.h"
 typedef void(__stdcall *CPPUpdateCallback)(int tick);
 EXTERN_C_BEGIN
+
+EXPORT_API void STD_CALL EngineEntryInitilize()
+{
+}
+
 EXPORT_API void STD_CALL InitCppEngine(const char* engineDir)
 {
 	transformMap::InitTransformMap(engineDir);
