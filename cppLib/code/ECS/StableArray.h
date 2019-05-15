@@ -33,6 +33,7 @@ private:
 	 */
 	void realloc(size_t oldNum)
 	{
+		dirty = true;
 		T* oldData = data;
 		_invalid.clear();
 		// The allocation is separate from the constructor invocation because we don't want 
@@ -270,7 +271,7 @@ public:
 	 */
 	inline int size() const
 	{
-		return (int)num;
+		return static_cast<int>(num - _invalid.size());
 	}
 
 	/**
@@ -298,8 +299,8 @@ public:
 
 		size_t oldNum = num;
 		num = n;
-
-		dirty = true;
+		if (oldNum > num)
+			dirty = true;
 		// Call the destructors on newly hidden elements if there are any
 		for (size_t i = num; i < oldNum; ++i)
 		{
